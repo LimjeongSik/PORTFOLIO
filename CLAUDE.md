@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 먼저 읽을 것 — 진행 문서
+
+작업 시작 전 **`docs/PROGRESS.md`를 먼저 읽으세요.** 프로젝트의 진행사항·현재 상태·완료 기능·전체 디렉토리 구조·결정사항·최근 작업·검증 결과가 정리된 단일 소스입니다. 이 CLAUDE.md는 **바뀌지 않는 규약(명령어·코딩 규칙·보안)** 만 다루고, 그때그때의 상태/구조는 중복 기재하지 않습니다.
+
+의미 있는 작업을 마칠 때마다 `docs/PROGRESS.md`의 관련 섹션(최근 작업·현재 상태·결정사항·마지막 검증 등)을 갱신해, `/clear` 이후에도 맥락이 이어지도록 유지하세요.
+
 ## 명령어
 
 이 프로젝트는 패키지 매니저로 **Bun**(`bun.lock`), 린트/포맷 도구로 **Biome**를 사용합니다(기본 Vite README가 언급하는 ESLint/Prettier가 아님).
@@ -15,16 +21,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 아직 테스트 러너는 설정되어 있지 않습니다.
 
-## 아키텍처
+## 아키텍처 규약
 
-**Vite 8**로 번들링되는 단일 페이지 React 19 포트폴리오 앱입니다. 진입 흐름: `index.html` → `src/main.tsx`(`<StrictMode>`로 `<App />` 마운트) → `src/App.tsx`. 현재는 스캐폴드 상태입니다(`App.tsx`가 "Hello world!"만 렌더링).
+**Vite 8** 번들링, React 19 SPA. 진입 흐름: `index.html` → `src/main.tsx`(`<BrowserRouter>` + `<StrictMode>`) → `src/App.tsx`. 섹션·라우팅·데이터 계층의 전체 구조와 스택은 `docs/PROGRESS.md` "현재 구조"를 참고하세요. 코드를 추가할 때 지킬 규약:
 
-코드를 추가할 때 따라야 할 주요 규약:
-
-- **경로 별칭**: `@/*`로 임포트하며 `src/*`에 매핑됩니다. 예: `import App from "@/App"`. `tsconfig.app.json`에 설정되어 있고 Vite의 `tsconfigPaths`를 통해 사용됩니다.
-- **스타일링**: `@tailwindcss/vite` 플러그인을 통한 Tailwind CSS v4. 전역 스타일은 `src/styles/index.css`에 있으며, 내용은 `@import "tailwindcss";` 한 줄뿐입니다. `tailwind.config.js`가 없으므로 v4 규약에 따라 CSS에서 Tailwind를 설정하세요.
-- **SVG**: `vite-plugin-svgr`가 활성화되어 있어 SVG를 React 컴포넌트로 임포트할 수 있습니다(`?react` 접미사 사용). 타입 참조는 `src/types/vite-env.d.ts`에 있습니다.
-- **애니메이션 라이브러리**: 애니메이션을 위해 `gsap`(+ `@gsap/react`)와 `motion`이 설치되어 있습니다.
+- **경로 별칭**: `@/*` → `src/*`. 예: `import { Hero } from "@/components/sections/Hero"`. `tsconfig.app.json`에 설정되어 Vite `tsconfigPaths`로 동작합니다.
+- **콘텐츠는 데이터로**: 화면 텍스트/목록은 컴포넌트에 하드코딩하지 말고 `src/data/*.ts`(타입은 `src/types/content.ts`)에서 가져옵니다. 사용자가 로직 없이 콘텐츠만 교체할 수 있어야 합니다.
+- **스타일링**: `@tailwindcss/vite` 기반 Tailwind CSS v4. `tailwind.config.js`가 없으므로 색상/폰트 토큰은 `src/styles/index.css`의 `@theme` 블록에서 관리합니다(예: `bg-paper`, `text-espresso`, `font-display`). 새 디자인 토큰이 필요하면 이곳에 추가하세요.
+- **애니메이션**: GSAP은 `@/lib/gsap`에서 import(플러그인 등록 완료), 컴포넌트에서는 `useGSAP({ scope })`로 사용. 뷰포트 리빌·인터랙션은 `motion` 사용. 새 모션은 반드시 `prefers-reduced-motion`을 존중해야 합니다(`useReducedMotion` 또는 CSS 미디어쿼리).
+- **SVG**: `vite-plugin-svgr` 활성화 — `?react` 접미사로 React 컴포넌트 import 가능. 타입 참조는 `src/types/vite-env.d.ts`.
 
 ## 코드 작성에 영향을 주는 Biome 규칙
 

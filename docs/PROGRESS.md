@@ -1,0 +1,92 @@
+# 포트폴리오 진행 문서
+
+> 최종 업데이트: 2026-07-23
+
+프론트엔드 개발자 **포트폴리오 겸 이력서** 웹사이트. 원페이지 스크롤 + 프로젝트 상세 페이지 구조.
+
+---
+
+## 1. 프로젝트 진행사항
+
+- 초기 스캐폴드(`Hello world!`) 상태에서 전체 사이트 구현 완료.
+- 기획 콘셉트: **"편안한 갤러리(Calm Gallery)"** — 연한 베이지 지면 위에 프로젝트를 크게 전시하고, 개발자 정체성은 모노스페이스 메타로 인코딩.
+- 핵심 요구사항 반영 완료: 원페이지 + 프로젝트 상세 분리, 스크롤 애니메이션/인터랙션, 연한 베이지 팔레트, 프로젝트 강조, 이력서 용도(연락 섹션 제거·프로필란 추가).
+
+## 2. 현재 상태
+
+- **기능적으로 완성** 상태. 빌드/린트 모두 통과.
+- 콘텐츠는 전부 한국어 **더미**이며, 사용자가 `src/data/*.ts`만 수정하면 교체되도록 데이터 분리.
+- 이미지는 `src/assets/hero.png` 하나를 모든 프로젝트 썸네일/커버/갤러리 및 프로필 사진의 플레이스홀더로 재사용 중 → 실제 에셋으로 교체 필요.
+- 육안(브라우저) 확인은 세션에 브라우저 도구 미연결로 미수행. `bun run dev` 권장.
+
+## 3. 완료된 작업 및 기능
+
+- **라우팅**: `/` (홈 원페이지), `/projects/:slug` (프로젝트 상세). 없는 slug는 홈으로 리다이렉트.
+- **홈 섹션**: Hero → About(프로필) → Skills → Experience → Projects.
+- **프로필란(About)**: 사진 + 이름 + 이메일/생년월일/직군/위치 정보 + 소개 + 카운트업 통계.
+- **프로젝트 강조**: 대형 2열 카드, 포인터 추종 3D 틸트 + 이미지 역시차 패럴랙스.
+- **프로젝트 상세**: 커버 패럴랙스, 개요/역할/기간, 문제→해결, 하이라이트, 갤러리, 데모/레포 링크, 이전/다음 내비.
+- **인터랙션**: Lenis 관성 스크롤, Navbar 진행 바 + 활성 섹션 하이라이트, Hero 글자 마스크 리빌 + 포인터 글로우 + 스크롤 페이드, 섹션 리빌, 경력 타임라인 스크롤 드로잉, 섹션 헤딩 라인 드로우.
+- **연락 섹션/버튼 제거**: 이력서 용도에 맞게 Contact 섹션·CTA·네비 항목 삭제.
+- **접근성**: `prefers-reduced-motion` 존중(틸트·패럴랙스·글로우·카운트업 비활성), focus-visible 링, aria 라벨.
+
+## 4. 현재 구조
+
+```
+src/
+  main.tsx                     # BrowserRouter로 App 래핑
+  App.tsx                      # useLenis + ScrollToTop + Navbar + Routes + Footer
+  lib/gsap.ts                  # gsap + ScrollTrigger + useGSAP 플러그인 등록
+  hooks/useLenis.ts            # Lenis 관성 스크롤 ↔ ScrollTrigger 동기화
+  routes/
+    Home.tsx                   # Hero·About·Skills·Experience·Projects 조합
+    ProjectDetail.tsx          # slug 조회 상세 페이지
+  components/
+    layout/                    # Navbar · Footer · ScrollToTop
+    sections/                  # Hero · About · Skills · Experience · Projects
+    project/                   # ProjectCard · ProjectHero · ProjectGallery
+    ui/                        # SectionHeading · Reveal · Tag · CountUp
+  data/                        # profile · experience · skills · projects · socials · nav (더미, 편집 지점)
+  types/content.ts             # Profile · Experience · Project · SkillGroup · SocialLink
+  styles/index.css             # Tailwind v4 @theme 토큰 + 폰트 + reduced-motion
+docs/
+  PROGRESS.md                  # 본 문서
+```
+
+- **스택**: React 19 + Vite 8 + TypeScript, Bun, Biome, Tailwind v4(@theme), react-router-dom v7, GSAP + @gsap/react, motion, Lenis.
+- **팔레트 토큰**: paper `#f4eee3` / surface `#eae1d2` / ink `#2c2722` / muted `#8b8173` / line `#d8cdbb` / sand `#e4d3b2` / espresso `#3b372f`.
+- **폰트**: Space Grotesk(디스플레이) · Pretendard(본문) · JetBrains Mono(메타).
+
+## 5. 최근 작업
+
+- **Codex 리뷰 반영 — Hero reduced-motion 가드**: `review-and-apply`로 받은 P2 지적(GSAP 타임라인·무한 바운스가 `prefers-reduced-motion`에서 억제 안 됨)을 타당으로 판단해 반영. `Hero.tsx`의 `useGSAP`를 `if (reduced) return`으로 가드하고 의존성에 `reduced` 추가. CSS 미디어쿼리가 못 막는 GSAP 인라인 트윈을 JS에서 차단.
+- **`commit-push` 스킬 신설** (`.claude/skills/commit-push/SKILL.md`): 검증된 변경만 GitHub(origin)에 커밋·푸시. 게이트 3중 — ① `review-and-apply` **수행** 확인(없으면 먼저 실행; 판단 결과 아무것도 반영 안 해도 통과) ② `bun run check && build` 통과 ③ 시크릿(`.env`·`.mcp.json`) 스테이징 차단. 하나라도 실패하면 커밋/푸시 안 함. 통과 시 커밋(Co-Authored-By 포함) → `git push origin HEAD` → PROGRESS 갱신. `/commit-push`로 호출.
+- **`review-and-apply` 스킬 신설** (`.claude/skills/review-and-apply/SKILL.md`): 작업 완료 후 Codex 코드리뷰를 받아, 코드와 대조해 타당한 지적만 반영하는 워크플로우. 리뷰 실행(`codex-companion.mjs review --wait`) → Claude 판단 게이트(거짓 양성·규약 충돌·범위 밖 필터링) → 반영 → `check`/`build` 검증 → PROGRESS 갱신·보고 순. `/review-and-apply`로 호출.
+- **Hero 스크롤 페이드 수정**: 엘리먼트 측정(`useScroll target`) → 전역 스크롤 픽셀값 매핑으로 교체. 내려갈 때 0 / 올라올 때 서서히 1로 단조 동작, 섹션 전환 시 튐 제거.
+- **애니메이션 고도화**: 프로젝트 카드 3D 틸트 + 패럴랙스, Hero 글자 리빌 + 포인터 글로우, 통계 카운트업, 섹션 헤딩 라인 드로우 추가.
+- **프로필란 신설**: About을 소개 위주에서 이력서형 프로필(사진·이메일·생년월일·직군·위치·통계)로 재구성.
+- **About 레이아웃 반복 개선** (최종): 테두리 카드로 묶는 방식이 답답 → 폐기하고, 사진+이름 나란한 헤더 + 구분선만 있는 열린 4칸 정보 스트립 + 소개 + 통계의 **개방형 편집 레이아웃**으로 확정. 모바일에선 사진 가운데 정렬.
+
+## 6. 결정사항
+
+- **페이지는 2종만**: 홈 + 프로젝트 상세 (과한 페이지 분리 지양).
+- **라이트/베이지 고정**: 다크 모드 토글·다국어 미포함.
+- **콘텐츠 데이터 분리**: 로직 수정 없이 `src/data/*.ts`만 편집해 교체.
+- **이력서 톤**: 프리랜서식 "연락하기/협업 가능" 문구 제거, 대신 프로필 정보 강조.
+- **애니메이션은 reduced-motion 필수 존중**, 프로젝트 강조는 항상 유지.
+- **Biome 검사에서 `.claude` 제외**: 하네스 생성 설정 파일이 포맷 규칙에 걸려 `bun run check` 실패시키던 문제 해결.
+- **무료 스택 선택**: 유료 GSAP ScrollSmoother 대신 Lenis 사용.
+- **리뷰는 판단 게이트를 거쳐 반영**: Codex 리뷰를 그대로 따르지 않고, 코드와 대조해 타당한 것만 반영한다(`review-and-apply` 스킬). Codex 사용에는 `/codex:setup` 사전 설정 필요.
+
+## 7. 마지막 검증
+
+- `bun run check` — Biome 린트/포맷 **경고 0, 에러 0** (38 files).
+- `bun run build` — `tsc -b` 타입 통과 + 프로덕션 빌드 성공.
+- **Codex 리뷰 1회** 수행 → P2 지적 1건 반영(Hero reduced-motion), 재검증 통과.
+- 참고: JS 번들 약 537KB(>500KB 경고), Pretendard 가변 폰트 약 2MB — 포트폴리오 규모에서 허용, 필요 시 코드 스플리팅/폰트 서브셋으로 최적화 여지.
+
+## 8. 다음 작업 (미착수)
+
+- 실제 이력/프로젝트 콘텐츠 및 이미지 에셋으로 더미 교체 (사용자 직접).
+- (선택) 번들 코드 스플리팅, Pretendard dynamic-subset로 폰트 경량화.
+- (선택) 브라우저 육안 QA — 스크롤 애니메이션·프로젝트 호버·반응형.

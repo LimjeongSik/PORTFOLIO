@@ -6,7 +6,8 @@
         "useIgnoreFile": true
     },
     "files": {
-        "ignoreUnknown": false
+        "ignoreUnknown": false,
+        "includes": ["**", "!**/*.svg", "!dist", "!.claude"]
     },
     "formatter": {
         "enabled": true,
@@ -24,6 +25,11 @@
             "quoteStyle": "double",
             "semicolons": "always",
             "trailingCommas": "all"
+        }
+    },
+    "css": {
+        "parser": {
+            "tailwindDirectives": true
         }
     },
     "linter": {
@@ -61,13 +67,21 @@
     },
     "overrides": [
         {
-            "includes": [
-                "src/main.tsx"
-            ],
+            "includes": ["src/main.tsx"],
             "linter": {
                 "rules": {
                     "style": {
                         "noNonNullAssertion": "off"
+                    }
+                }
+            }
+        },
+        {
+            "includes": ["**/*.css"],
+            "linter": {
+                "rules": {
+                    "complexity": {
+                        "noImportantStyles": "off"
                     }
                 }
             }
@@ -85,21 +99,13 @@
                             {
                                 "type": false,
                                 "kind": "!bare",
-                                "source": [
-                                    "react",
-                                    "react/**",
-                                    "react-*",
-                                    "react-*/**"
-                                ]
+                                "source": ["react", "react/**", "react-*", "react-*/**"]
                             },
                             ":BLANK_LINE:",
                             {
                                 "type": false,
                                 "kind": "!bare",
-                                "source": [
-                                    ":PACKAGE:",
-                                    ":PACKAGE_WITH_PROTOCOL:"
-                                ]
+                                "source": [":PACKAGE:", ":PACKAGE_WITH_PROTOCOL:"]
                             },
                             ":BLANK_LINE:",
                             {
@@ -121,11 +127,7 @@
                             {
                                 "type": false,
                                 "kind": "!bare",
-                                "source": [
-                                    "@/assets/**",
-                                    "./assets/**",
-                                    "../assets/**"
-                                ]
+                                "source": ["@/assets/**", "./assets/**", "../assets/**"]
                             },
                             ":BLANK_LINE:",
                             {
@@ -137,10 +139,7 @@
                             {
                                 "type": false,
                                 "kind": "!bare",
-                                "source": [
-                                    "./**",
-                                    "../**"
-                                ]
+                                "source": ["./**", "../**"]
                             },
                             ":BLANK_LINE:",
                             {

@@ -1,1 +1,77 @@
 @import "tailwindcss";
+
+@import "pretendard/dist/web/variable/pretendardvariable.css";
+@import "@fontsource/space-grotesk/400.css";
+@import "@fontsource/space-grotesk/500.css";
+@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+
+@theme {
+    --color-paper: #f4eee3;
+    --color-surface: #eae1d2;
+    --color-ink: #2c2722;
+    --color-muted: #8b8173;
+    --color-line: #d8cdbb;
+    --color-sand: #e4d3b2;
+    --color-espresso: #3b372f;
+
+    --font-display: "Space Grotesk", "Pretendard Variable", sans-serif;
+    --font-sans: "Pretendard Variable", "Space Grotesk", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+    color-scheme: light;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Lenis 사용 시 네이티브 smooth-scroll 비활성화 */
+html.lenis,
+html.lenis body {
+    height: auto;
+}
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+::selection {
+    background-color: var(--color-sand);
+    color: var(--color-ink);
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-espresso);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
