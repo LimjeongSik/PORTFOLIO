@@ -1,0 +1,160 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.5.5/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "ignoreUnknown": false
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 100
+    },
+    "json": {
+        "formatter": {
+            "trailingCommas": "none"
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "double",
+            "semicolons": "always",
+            "trailingCommas": "all"
+        }
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "preset": "recommended",
+            "correctness": {
+                "noUnusedImports": {
+                    "level": "error",
+                    "fix": "safe"
+                },
+                "useHookAtTopLevel": "error",
+                "useExhaustiveDependencies": "warn"
+            },
+            "style": {
+                "useImportType": {
+                    "level": "error",
+                    "options": {
+                        "style": "separatedType"
+                    }
+                }
+            },
+            "suspicious": {
+                "noArrayIndexKey": "warn"
+            },
+            "security": {
+                "noDangerouslySetInnerHtml": "warn"
+            },
+            "a11y": {
+                "useButtonType": "error",
+                "useKeyWithClickEvents": "warn",
+                "useSemanticElements": "warn"
+            }
+        }
+    },
+    "overrides": [
+        {
+            "includes": [
+                "src/main.tsx"
+            ],
+            "linter": {
+                "rules": {
+                    "style": {
+                        "noNonNullAssertion": "off"
+                    }
+                }
+            }
+        }
+    ],
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": {
+                    "level": "on",
+                    "options": {
+                        "sortBareImports": true,
+                        "groups": [
+                            {
+                                "type": false,
+                                "kind": "!bare",
+                                "source": [
+                                    "react",
+                                    "react/**",
+                                    "react-*",
+                                    "react-*/**"
+                                ]
+                            },
+                            ":BLANK_LINE:",
+                            {
+                                "type": false,
+                                "kind": "!bare",
+                                "source": [
+                                    ":PACKAGE:",
+                                    ":PACKAGE_WITH_PROTOCOL:"
+                                ]
+                            },
+                            ":BLANK_LINE:",
+                            {
+                                "type": false,
+                                "kind": "!bare",
+                                "source": [
+                                    "@/components/**",
+                                    "@/constants/**",
+                                    "@/hooks/**",
+                                    "@/layouts/**",
+                                    "@/pages/**",
+                                    "@/router/**",
+                                    "@/services/**",
+                                    "@/stores/**",
+                                    "@/utils/**"
+                                ]
+                            },
+                            ":BLANK_LINE:",
+                            {
+                                "type": false,
+                                "kind": "!bare",
+                                "source": [
+                                    "@/assets/**",
+                                    "./assets/**",
+                                    "../assets/**"
+                                ]
+                            },
+                            ":BLANK_LINE:",
+                            {
+                                "type": false,
+                                "kind": "!bare",
+                                "source": "@/**"
+                            },
+                            ":BLANK_LINE:",
+                            {
+                                "type": false,
+                                "kind": "!bare",
+                                "source": [
+                                    "./**",
+                                    "../**"
+                                ]
+                            },
+                            ":BLANK_LINE:",
+                            {
+                                "type": true
+                            },
+                            ":BLANK_LINE:",
+                            {
+                                "kind": "bare",
+                                "source": ":STYLE:"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
