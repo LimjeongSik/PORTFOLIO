@@ -4,5 +4,28 @@
     "codex@openai-codex": true,
     "skill-creator@claude-plugins-official": true
   },
-  "language": "korean"
+  "language": "korean",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/mark-review-pending.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-auto-review.sh\""
+          }
+        ]
+      }
+    ]
+  }
 }

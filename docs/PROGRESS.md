@@ -59,6 +59,7 @@ docs/
 
 ## 5. 최근 작업
 
+- **자동 리뷰 게이트 훅 신설** (`.claude/hooks/` + `settings.json`): 코드 편집이 있는 작업 턴이 끝나면 `review-and-apply`가 자동 실행되도록 hook으로 구성. `mark-review-pending.sh`(PostToolUse: Edit/Write/MultiEdit)가 마커를 남기고, `stop-auto-review.sh`(Stop)가 마커 확인 후 리뷰 실행을 지시. 편집 없던 턴은 미발동, `stop_hook_active`로 재귀 리뷰 무한루프 차단. 마커 파일(`.claude/.review-pending.<session_id>`)은 gitignore. **Skill 대신 hook 선택 이유**: "작업 종료 시 자동"은 하니스가 실행하는 이벤트여야 보장되며, skill은 호출을 매번 판단해야 해 자동성 미보장. **자기 리뷰 반영(Codex P2 2건)**: ① 마커를 `session_id`로 스코프해 동시 세션 간 마커 오소비(편집이 리뷰 건너뜀) 경쟁 제거 ② settings.json의 hook 경로를 따옴표로 감싸 공백 포함 경로에서도 실행되게 방어. hook 시나리오(발동/미발동/동시성/재귀차단/gitignore) 스크립트 검증 통과.
 - **Codex 리뷰 반영 — Hero reduced-motion 가드**: `review-and-apply`로 받은 P2 지적(GSAP 타임라인·무한 바운스가 `prefers-reduced-motion`에서 억제 안 됨)을 타당으로 판단해 반영. `Hero.tsx`의 `useGSAP`를 `if (reduced) return`으로 가드하고 의존성에 `reduced` 추가. CSS 미디어쿼리가 못 막는 GSAP 인라인 트윈을 JS에서 차단.
 - **`commit-push` 스킬 신설** (`.claude/skills/commit-push/SKILL.md`): 검증된 변경만 GitHub(origin)에 커밋·푸시. 게이트 3중 — ① `review-and-apply` **수행** 확인(없으면 먼저 실행; 판단 결과 아무것도 반영 안 해도 통과) ② `bun run check && build` 통과 ③ 시크릿(`.env`·`.mcp.json`) 스테이징 차단. 하나라도 실패하면 커밋/푸시 안 함. 통과 시 커밋(Co-Authored-By 포함) → `git push origin HEAD` → PROGRESS 갱신. `/commit-push`로 호출.
 - **`review-and-apply` 스킬 신설** (`.claude/skills/review-and-apply/SKILL.md`): 작업 완료 후 Codex 코드리뷰를 받아, 코드와 대조해 타당한 지적만 반영하는 워크플로우. 리뷰 실행(`codex-companion.mjs review --wait`) → Claude 판단 게이트(거짓 양성·규약 충돌·범위 밖 필터링) → 반영 → `check`/`build` 검증 → PROGRESS 갱신·보고 순. `/review-and-apply`로 호출.
@@ -77,12 +78,14 @@ docs/
 - **Biome 검사에서 `.claude` 제외**: 하네스 생성 설정 파일이 포맷 규칙에 걸려 `bun run check` 실패시키던 문제 해결.
 - **무료 스택 선택**: 유료 GSAP ScrollSmoother 대신 Lenis 사용.
 - **리뷰는 판단 게이트를 거쳐 반영**: Codex 리뷰를 그대로 따르지 않고, 코드와 대조해 타당한 것만 반영한다(`review-and-apply` 스킬). Codex 사용에는 `/codex:setup` 사전 설정 필요.
+- **작업 후 리뷰는 hook으로 자동화**: `review-and-apply`를 매번 수동 호출하는 대신 Stop hook이 편집 있는 턴 종료 시 자동 발동. hook 설정은 개인 포트폴리오라 `settings.local.json`이 아닌 커밋되는 `settings.json`에 둠(팀 공유 불필요).
 
 ## 7. 마지막 검증
 
 - `bun run check` — Biome 린트/포맷 **경고 0, 에러 0** (38 files).
 - `bun run build` — `tsc -b` 타입 통과 + 프로덕션 빌드 성공.
 - **Codex 리뷰 1회** 수행 → P2 지적 1건 반영(Hero reduced-motion), 재검증 통과.
+- **GitHub 반영**: 커밋 `645260c` (`feat: 포트폴리오 겸 이력서 사이트 구축`) → `origin/main` 푸시 완료. `commit-push` 게이트 3종(리뷰·검증·시크릿) 통과.
 - 참고: JS 번들 약 537KB(>500KB 경고), Pretendard 가변 폰트 약 2MB — 포트폴리오 규모에서 허용, 필요 시 코드 스플리팅/폰트 서브셋으로 최적화 여지.
 
 ## 8. 다음 작업 (미착수)
