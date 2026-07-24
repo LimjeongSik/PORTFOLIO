@@ -38,12 +38,17 @@ git rev-parse --is-inside-work-tree 2>/dev/null && git status --short --untracke
 ### 2. Codex 리뷰 실행
 
 Codex 플러그인의 companion 스크립트를 직접 호출한다(슬래시 커맨드 `/codex:review`는 모델이 직접
-호출할 수 없으므로 스크립트를 쓴다). 버전 디렉토리는 바뀔 수 있으니 최신 경로를 글롭으로 해석한다:
+호출할 수 없으므로 스크립트를 쓴다). 버전 디렉토리 자동 해석은 프로젝트의 래퍼 스크립트가 처리하며,
+**반드시 아래 형태 그대로** 호출한다 — 이 안정된 커맨드 형태여야 Bash 권한 자동승인(allow) 규칙
+`Bash(bash .claude/scripts/codex-review.sh:*)`에 매칭되어 매번 승인 프롬프트 없이 리뷰가 돈다:
 
 ```bash
-CODEX_SCRIPT="$(ls -t ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | head -1)"
-node "$CODEX_SCRIPT" review --wait
+bash .claude/scripts/codex-review.sh review --wait
 ```
+
+(인라인 `CODEX_SCRIPT="$(...)"; node "$CODEX_SCRIPT"` 형태는 변수 할당+서브셸이 섞여 자동승인
+규칙으로 매칭할 수 없으므로 쓰지 않는다. 래퍼는 `~/.claude/plugins/.../codex-companion.mjs`의 최신
+버전 경로를 글롭으로 찾아 `node`로 실행하고 인자를 그대로 전달한다.)
 
 - `--wait`로 **포그라운드 실행** — 결과를 받아 같은 흐름에서 판단·반영해야 하기 때문. (변경이 아주
   크면 시간이 걸릴 수 있음을 사용자에게 알린다.)

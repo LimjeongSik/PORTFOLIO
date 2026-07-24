@@ -5,6 +5,23 @@
     "skill-creator@claude-plugins-official": true
   },
   "language": "korean",
+  "permissions": {
+    "allow": [
+      "Bash(bun run:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git remote:*)",
+      "Bash(git stash list:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(bash .claude/scripts/codex-review.sh:*)"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {

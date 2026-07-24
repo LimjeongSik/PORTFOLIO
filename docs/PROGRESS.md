@@ -59,6 +59,7 @@ docs/
 
 ## 5. 최근 작업
 
+- **Bash 권한 자동승인 + Codex 리뷰 래퍼** (워크플로우 편의): `.claude/settings.json`에 `permissions.allow` 신설 — `bun run:*`, 읽기 전용 git·`git add`·`git commit`을 프롬프트 없이 자동 승인("로컬까지만" 경계, `git push`·`reset --hard`·`clean`·`rm`은 계속 확인). Codex 리뷰 호출은 인라인 `CODEX_SCRIPT="$(...)"; node` 형태가 변수할당+서브셸이라 prefix 규칙 매칭 불가 → **래퍼 `.claude/scripts/codex-review.sh`**(버전 디렉토리 글롭 해석 + node 실행 + 인자 전달)를 만들어 그것만 allow(`bash .claude/scripts/codex-review.sh:*`)에 등록, `node` 전체를 여는 위험 회피. `review-and-apply` 스킬도 래퍼 호출 형태로 갱신. **Codex 리뷰 반영(P2 1건)**: 래퍼의 `set -euo pipefail`에서 `ls` 조회 실패 시 할당문이 조기 종료돼 "플러그인 없음" 안내 경로가 죽던 문제 → `|| true`로 비치명화, 부재/정상 두 경로 검증 통과. 커밋·푸시는 자동 체이닝하지 않고 리뷰 후 채팅에서 물어보는 흐름 유지(결정사항 참고).
 - **Navbar 3종 수정** (테스트 피드백 반영): ① **색상 통일** — active pill을 Hero "프로젝트 보기" 버튼과 맞춰 `bg-sand/60`→`bg-espresso`, active 텍스트 `text-ink`→`text-paper`(어두운 배경 대비 확보). 진행바·scroll cue dot(둘 다 espresso)과 톤 일치. ② **상세→홈 복귀 시 pill 잔상 버그** — `IntersectionObserver` effect 진입부에 `setActive("")` 추가. 이전엔 `isHome` 전환 후에도 `active`가 이전 섹션("projects")에 남아 옵저버가 새 intersection 감지 전까지 pill이 프로젝트에 붙어 있었음. 의존성 `[isHome]`이라 일반 스크롤 중엔 재실행 없음(깜빡임 X). ③ **Tailwind 경고** — `translate-y-[5px]`/`-translate-y-[5px]` → `translate-y-1.25`/`-translate-y-1.25`. (Codex 리뷰는 사용자 요청으로 이번 턴 스킵.)
 - **자동 리뷰 게이트 ↔ commit-push 겹침 해소** (Codex P2 반영): commit-push가 푸시 후 PROGRESS.md를 갱신하던 순서 때문에, 그 문서 편집이 marker를 남겨 매 푸시마다 자동 리뷰가 사소하게 재발동하던 문제. ① **Stop hook에 git-status 가드 추가**(`stop-auto-review.sh`): marker가 있어도 작업 트리가 clean(=전부 커밋됨)이면 리뷰 스킵. 마커 라인은 `--untracked-files=all`+`grep -v`로 제외해 gitignore·디렉토리 collapse에 비의존. ② **commit-push 순서 변경**: PROGRESS.md 갱신을 게이트 1(리뷰) **앞**으로 이동해 리뷰·검증·커밋 트리를 일치시키고 같은 커밋에 포함 → 푸시 후 트리 clean. 근본 원인은 "marker가 커밋 여부와 무관하게 편집만으로 찍힌다"는 점(Codex 지적을 넘어 hook 레벨에서 차단). 5개 시나리오(worst-case collapse·실제 구조·진짜 변경·재귀차단·dirty) 검증 통과.
 - **자동 리뷰 게이트 훅 신설** (`.claude/hooks/` + `settings.json`): 코드 편집이 있는 작업 턴이 끝나면 `review-and-apply`가 자동 실행되도록 hook으로 구성. `mark-review-pending.sh`(PostToolUse: Edit/Write/MultiEdit)가 마커를 남기고, `stop-auto-review.sh`(Stop)가 마커 확인 후 리뷰 실행을 지시. 편집 없던 턴은 미발동, `stop_hook_active`로 재귀 리뷰 무한루프 차단. 마커 파일(`.claude/.review-pending.<session_id>`)은 gitignore. **Skill 대신 hook 선택 이유**: "작업 종료 시 자동"은 하니스가 실행하는 이벤트여야 보장되며, skill은 호출을 매번 판단해야 해 자동성 미보장. **자기 리뷰 반영(Codex P2 2건)**: ① 마커를 `session_id`로 스코프해 동시 세션 간 마커 오소비(편집이 리뷰 건너뜀) 경쟁 제거 ② settings.json의 hook 경로를 따옴표로 감싸 공백 포함 경로에서도 실행되게 방어. hook 시나리오(발동/미발동/동시성/재귀차단/gitignore) 스크립트 검증 통과.
@@ -86,7 +87,7 @@ docs/
 
 - `bun run check` — Biome 린트/포맷 **경고 0, 에러 0** (38 files).
 - `bun run build` — `tsc -b` 타입 통과 + 프로덕션 빌드 성공.
-- **Codex 리뷰**: Navbar 3종 수정 대상으로 1회 수행 → **지적 0건**(변경 일관·유효한 Tailwind 유틸·기능 회귀 없음, active 리셋이 잔상 문제 해결 확인). 반영할 항목 없음. (직전: 자동 리뷰 게이트 ↔ commit-push 겹침 P2 1건.)
+- **Codex 리뷰**: Codex 리뷰 래퍼 대상으로 1회 수행 → P2 1건(`set -euo pipefail`에서 조회 실패 시 안내 경로 조기 종료) 타당 판단, `|| true`로 반영. (직전: Navbar 3종 수정 지적 0건 / settings 권한 추가 지적 0건.)
 - **GitHub 반영**: 직전 커밋 `5ad3937` (`chore: 작업 종료 시 자동 리뷰 게이트 훅 추가`) → `origin/main` 푸시 완료. 이번 겹침 해소 변경은 `commit-push`(새 순서: PROGRESS를 게이트 전 갱신)로 커밋·푸시 진행.
 - 참고: JS 번들 약 537KB(>500KB 경고), Pretendard 가변 폰트 약 2MB — 포트폴리오 규모에서 허용, 필요 시 코드 스플리팅/폰트 서브셋으로 최적화 여지.
 
