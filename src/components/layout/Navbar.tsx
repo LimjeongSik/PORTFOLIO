@@ -35,13 +35,23 @@ export function Navbar() {
             .map((item) => document.getElementById(item.id))
             .filter((el): el is HTMLElement => el !== null);
 
+        // 감지 밴드 안에 들어온 섹션을 집합으로 추적한다.
+        // 밴드에 아무 섹션도 없으면(=Hero 영역) active를 비워,
+        // 소개→Hero로 스크롤을 올렸을 때 pill이 남는 버그를 방지한다.
+        const visible = new Set<string>();
+
         const observer = new IntersectionObserver(
             (entries) => {
                 for (const entry of entries) {
                     if (entry.isIntersecting) {
-                        setActive(entry.target.id);
+                        visible.add(entry.target.id);
+                    } else {
+                        visible.delete(entry.target.id);
                     }
                 }
+                // navItems 순서대로 가장 먼저 걸린 섹션을 활성화, 없으면 초기화.
+                const next = navItems.find((item) => visible.has(item.id));
+                setActive(next?.id ?? "");
             },
             { rootMargin: "-45% 0px -50% 0px" },
         );
