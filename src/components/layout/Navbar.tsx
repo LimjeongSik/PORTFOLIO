@@ -25,6 +25,9 @@ export function Navbar() {
     }, []);
 
     useEffect(() => {
+        // 홈 진입/이탈 시 이전 활성 섹션을 초기화한다.
+        // (상세페이지에 갔다 돌아왔을 때 pill이 이전 위치에 남는 버그 방지)
+        setActive("");
         if (!isHome) {
             return;
         }
@@ -82,14 +85,14 @@ export function Navbar() {
                             onClick={() => goToSection(item.id)}
                             className={`relative rounded-full px-4 py-2 text-sm transition-colors ${
                                 active === item.id && isHome
-                                    ? "text-ink"
+                                    ? "text-paper"
                                     : "text-muted hover:text-ink"
                             }`}
                         >
                             {active === item.id && isHome ? (
                                 <motion.span
                                     layoutId="nav-active"
-                                    className="absolute inset-0 rounded-full bg-sand/60"
+                                    className="absolute inset-0 rounded-full bg-espresso"
                                     transition={{ type: "spring", stiffness: 380, damping: 32 }}
                                 />
                             ) : null}
@@ -108,7 +111,7 @@ export function Navbar() {
                     <span className="relative flex h-3 w-4 flex-col justify-between">
                         <span
                             className={`h-0.5 w-full origin-center bg-current transition-transform ${
-                                menuOpen ? "translate-y-[5px] rotate-45" : ""
+                                menuOpen ? "translate-y-1.25 rotate-45" : ""
                             }`}
                         />
                         <span
@@ -118,7 +121,7 @@ export function Navbar() {
                         />
                         <span
                             className={`h-0.5 w-full origin-center bg-current transition-transform ${
-                                menuOpen ? "-translate-y-[5px] -rotate-45" : ""
+                                menuOpen ? "-translate-y-1.25 -rotate-45" : ""
                             }`}
                         />
                     </span>
