@@ -21,14 +21,16 @@
       "Bash(git commit:*)",
       "Bash(bash .claude/scripts/codex-review.sh:*)"
     ],
-    "deny": [
+    "ask": [
       "Read(node_modules/**)",
       "Read(dist/**)",
       "Read(dist-ssr/**)",
       "Read(coverage/**)",
       "Read(**/*.tsbuildinfo)",
       "Read(bun.lock)",
-      "Read(.git/**)",
+      "Read(.git/**)"
+    ],
+    "deny": [
       "Read(.env)",
       "Read(.env.*)",
       "Read(.mcp.json)",

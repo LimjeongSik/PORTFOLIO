@@ -59,7 +59,7 @@ docs/
 
 ## 5. 최근 작업
 
-- **Claude Code 읽기 차단(`permissions.deny`) 도입** (토큰 절약·시크릿 보호): 사용자가 `.claudeignore`로 불필요 파일 제외를 요청 → **Claude Code는 `.claudeignore`를 지원하지 않음**을 확인(claude-code-guide 검증). 실제 효과 있는 공식 수단인 `.claude/settings.json`의 `permissions.deny`로 대체. 차단 대상: `node_modules/**`·`dist/**`·`dist-ssr/**`·`coverage/**`·`**/*.tsbuildinfo`·`bun.lock`·`.git/**`(불필요 대용량) + `.env`·`.env.*`·`.mcp.json`·`.claude/settings.local.json`(시크릿 하드 차단). 참고: Grep은 이미 `.gitignore`를 존중하므로 node_modules는 원래 검색 제외됨 — deny는 Read 실수까지 봉쇄하고 시크릿 노출을 하네스 레벨에서 막는 이중 안전장치.
+- **Claude Code 접근 정책: `ask`(승인형) + `deny`(시크릿 차단) 분리** (토큰 절약·시크릿 보호): 사용자가 `.claudeignore`로 불필요 파일 제외를 요청 → **Claude Code는 `.claudeignore`를 지원하지 않음**을 확인(claude-code-guide 검증). 공식 수단인 `.claude/settings.json` permissions로 대체. 처음엔 전부 `deny`로 넣었으나, `deny`는 프롬프트조차 없는 하드 차단이라 "필요 시 확인해서 읽기"가 불가 → 우선순위(`deny > ask > allow`)에 맞춰 재구성: **`ask`**(필요 시 승인 프롬프트로 접근) = `node_modules/**`·`dist/**`·`dist-ssr/**`·`coverage/**`·`**/*.tsbuildinfo`·`bun.lock`·`.git/**`(디버깅 등으로 가끔 볼 수 있는 대용량), **`deny`**(하드 차단 유지) = `.env`·`.env.*`·`.mcp.json`·`.claude/settings.local.json`(물어봐도 노출되면 안 되는 시크릿). 참고: Grep은 이미 `.gitignore`를 존중하므로 node_modules는 원래 검색 제외됨 — ask/deny는 Read 실수까지 봉쇄하고 시크릿 노출을 하네스 레벨에서 막는 이중 안전장치.
 - **Bash 권한 자동승인 + Codex 리뷰 래퍼** (워크플로우 편의): `.claude/settings.json`에 `permissions.allow` 신설 — `bun run:*`, 읽기 전용 git·`git add`·`git commit`을 프롬프트 없이 자동 승인("로컬까지만" 경계, `git push`·`reset --hard`·`clean`·`rm`은 계속 확인). Codex 리뷰 호출은 인라인 `CODEX_SCRIPT="$(...)"; node` 형태가 변수할당+서브셸이라 prefix 규칙 매칭 불가 → **래퍼 `.claude/scripts/codex-review.sh`**(버전 디렉토리 글롭 해석 + node 실행 + 인자 전달)를 만들어 그것만 allow(`bash .claude/scripts/codex-review.sh:*`)에 등록, `node` 전체를 여는 위험 회피. `review-and-apply` 스킬도 래퍼 호출 형태로 갱신. **Codex 리뷰 반영(P2 1건)**: 래퍼의 `set -euo pipefail`에서 `ls` 조회 실패 시 할당문이 조기 종료돼 "플러그인 없음" 안내 경로가 죽던 문제 → `|| true`로 비치명화, 부재/정상 두 경로 검증 통과. 커밋·푸시는 자동 체이닝하지 않고 리뷰 후 채팅에서 물어보는 흐름 유지(결정사항 참고).
 - **Navbar Hero 복귀 pill 잔상 버그 수정** (테스트 피드백 반영): 소개 섹션에서 스크롤을 위로 올려 Hero로 돌아가도 소개 pill(active fill)이 켜진 채 남던 문제. 원인 — Hero는 `navItems`에 없는데(about/skills/experience/projects만) `IntersectionObserver` 콜백이 **교차 진입 시에만** `setActive`하고 이탈 시 초기화하지 않아, 감지 밴드(`-45%/-50%`)에 걸리는 navItem이 없는 Hero 영역에서 마지막 값("about")이 유지됨. 수정 — 밴드 안 섹션을 `Set`으로 추적해 이탈 시 제거하고, 매 콜백마다 `navItems` 순서상 첫 교차 섹션을 active로, **집합이 비면 `""`로 초기화**. 겹침 시 위쪽 섹션 우선이라 동작도 안정화. Codex 리뷰 지적 0건.
 - **Navbar 3종 수정** (테스트 피드백 반영): ① **색상 통일** — active pill을 Hero "프로젝트 보기" 버튼과 맞춰 `bg-sand/60`→`bg-espresso`, active 텍스트 `text-ink`→`text-paper`(어두운 배경 대비 확보). 진행바·scroll cue dot(둘 다 espresso)과 톤 일치. ② **상세→홈 복귀 시 pill 잔상 버그** — `IntersectionObserver` effect 진입부에 `setActive("")` 추가. 이전엔 `isHome` 전환 후에도 `active`가 이전 섹션("projects")에 남아 옵저버가 새 intersection 감지 전까지 pill이 프로젝트에 붙어 있었음. 의존성 `[isHome]`이라 일반 스크롤 중엔 재실행 없음(깜빡임 X). ③ **Tailwind 경고** — `translate-y-[5px]`/`-translate-y-[5px]` → `translate-y-1.25`/`-translate-y-1.25`. (Codex 리뷰는 사용자 요청으로 이번 턴 스킵.)
@@ -89,8 +89,8 @@ docs/
 
 - `bun run check` — Biome 린트/포맷 **경고 0, 에러 0** (38 files).
 - `bun run build` — `tsc -b` 타입 통과 + 프로덕션 빌드 성공.
-- **Codex 리뷰**: `permissions.deny` 도입(설정 파일 변경) 대상 1회 수행 → 지적 0건("유효·타겟된 read-deny 규칙, 문서 갱신 정상 — 기능 회귀·버그 없음"). (직전: Navbar Hero 복귀 pill 0건 / 래퍼 P2 1건 `|| true` 반영 / Navbar 3종 0건.)
-- **GitHub 반영**: 직전 커밋 `a94a32f` (`fix: Navbar Hero 복귀 시 active pill 잔상 제거`) → `origin/main` 푸시 완료. 이번 `permissions.deny` 변경은 `commit-push`로 커밋·푸시 진행.
+- **Codex 리뷰**: `ask`/`deny` 재구성(설정 파일 변경) 1회 수행 → 지적 0건("deny→ask 이동 유효, 민감 파일 deny 유지 — 기능 버그 없음"). (직전: deny 최초 도입 0건 / Navbar Hero 복귀 pill 0건 / 래퍼 P2 1건 `|| true` 반영.)
+- **GitHub 반영**: 직전 커밋 `4ae2588` (`chore: Claude Code 읽기 차단(permissions.deny) 추가`) → `origin/main` 푸시 완료. 이번 `ask`/`deny` 분리 변경은 `commit-push`로 커밋·푸시 진행.
 - 참고: JS 번들 약 537KB(>500KB 경고), Pretendard 가변 폰트 약 2MB — 포트폴리오 규모에서 허용, 필요 시 코드 스플리팅/폰트 서브셋으로 최적화 여지.
 
 ## 8. 다음 작업 (미착수)
