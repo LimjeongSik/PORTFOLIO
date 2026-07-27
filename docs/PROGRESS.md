@@ -15,8 +15,7 @@
 ## 2. 현재 상태
 
 - **기능적으로 완성** 상태. 빌드/린트 모두 통과.
-- **프로필·경력·스킬은 사용자 실제 콘텐츠로 교체 완료**(`profile.ts`·`experience.ts`·`skills.ts`, 프로필 사진 `src/assets/profile.png`). **프로젝트(`projects.ts`)는 아직 더미**이며 썸네일/커버/갤러리는 `src/assets/hero.png`를 재사용 중 → 실제 에셋으로 교체 필요.
-- `profile.png`가 **1.6MB**로 초기 로드에서 가장 무거운 리소스(폰트 3종 합보다 3배). 리사이즈/webp 변환 권장.
+- **프로필·경력·스킬은 사용자 실제 콘텐츠로 교체 완료**(`profile.ts`·`experience.ts`·`skills.ts`, 프로필 사진 `src/assets/profile.webp`). **프로젝트(`projects.ts`)는 아직 더미**이며 썸네일/커버/갤러리는 `src/assets/hero.png`를 재사용 중 → 실제 에셋으로 교체 필요.
 - 육안(브라우저) 확인은 세션에 브라우저 도구 미연결로 미수행. `bun run dev` 권장.
 
 ## 3. 완료된 작업 및 기능
@@ -52,6 +51,7 @@ src/
   assets/fonts/                # Pretendard 원본 OTF(gitignore) + 서브셋 woff2 3종(커밋)
 scripts/
   subset-fonts.py              # OTF → 서브셋 woff2 변환 (폰트 교체/콘텐츠 확장 시 재실행)
+  optimize-images.py           # 원본 이미지 → 표시 크기 webp 변환 (에셋 교체 시 재실행)
 docs/
   PROGRESS.md                  # 본 문서
 ```
@@ -62,6 +62,7 @@ docs/
 
 ## 5. 최근 작업
 
+- **프로필 이미지 최적화 (1.6MB → 18KB)**: 폰트 경량화 직후 초기 로드 최대 리소스가 된 `profile.png`(1122×1440, 1552KB) 처리. About에서 이 사진의 실제 표시 크기는 **최대 144px**(`sm:w-36`, `aspect-4/5`)인데 원본은 그 8배 폭이었다. 신설한 `scripts/optimize-images.py`(Pillow)가 **DPR 3 여유를 둔 432px 폭**으로 리사이즈 + **webp(quality 82, method 6)** 변환 → **432×554, 18KB(약 1/86)**. `profile.ts`가 webp를 import하므로 원본 PNG는 번들에서 빠진다. **원본은 저장소에 그대로 남긴다** — 폰트 OTF와 달리 사용자의 원본 사진은 재취득이 어려운 자산이라 백업 가치가 있고, import하지 않으면 Vite가 번들에 넣지 않아 초기 로드에는 영향이 없다(clone 용량만 1.6MB 증가). 육안으로 변환 결과 화질 확인 완료.
 - **Pretendard self-host 서브셋 전환 + 실제 콘텐츠 반영 + Tailwind 임의값 정리**:
   - **폰트(초기 로드 2MB → 0.5MB)**: 사용자가 `src/assets/fonts/`에 넣은 Pretendard **OTF 9종(합 14MB)** 을 활용하되, OTF는 웹 압축이 안 돼 그대로 `@font-face`에 등록하면 굵기당 1.5MB가 전송되므로 **서브셋 woff2로 변환해 self-host** 하는 방식을 택했다(사용자 선택). 신설한 `scripts/subset-fonts.py`가 pyftsubset으로 ① 실제 쓰는 굵기 3종만(400 본문 / 500 `font-medium` / 700 `font-bold` — 소스 grep으로 확인, 600·800 등은 미사용) ② **KS X 1001 완성형 2350자 + 라틴/기호/화살표 범위**로 잘라낸다 → 굵기당 **약 170KB, 3종 합 518KB**. 기존 npm `pretendard` 가변 폰트(약 2MB) import는 제거하고 패키지도 `bun remove`. **함정**: 파이썬의 `euc-kr` 코덱은 실제로 **CP949(확장 완성형)** 라 한글 음절 11172자를 전부 인코딩한다 — `try/except`만으로는 전혀 걸러지지 않아 첫 변환이 굵기당 558KB로 나왔다. 인코딩 결과의 **리드 바이트가 KS X 1001 영역(0xB0–0xC8)인지**로 판별해야 정확히 2350자가 된다. 2350자 밖 글자(똠·뷁 등)를 콘텐츠에 쓰면 fallback으로 렌더되므로, 스크립트가 **`src/**` + `index.html`에 실제 등장하는 한글을 합집합으로 추가**해 구멍을 메운다(현재 콘텐츠는 추가 0자 = 전부 2350자 안). **콘텐츠를 교체하면 스크립트를 다시 실행할 것.** 원본 OTF는 `.gitignore`(14MB), 생성물 woff2와 스크립트만 커밋 → 재현 가능. `--font-sans` fallback도 `"Space Grotesk"`(라틴 전용이라 한글에 무의미) 대신 시스템 한글 스택(`system-ui`·`Apple SD Gothic Neo`·`Malgun Gothic`)으로 교체.
   - **Tailwind 임의값 → 스케일 유틸**: 에디터 경고(`left-[3px]` can be written as `left-0.75`) 해소. `Experience.tsx`의 타임라인 축 `left-[3px]`/`sm:left-[7px]` → `left-0.75`/`sm:left-1.75`(spacing 0.25rem 기준 3px·7px 동일), `ProjectCard.tsx`의 `scale-[1.08]`/`group-hover:scale-[1.13]` → `scale-108`/`group-hover:scale-113`(v4에서 `scale-<n>`은 n%). 생성 CSS를 grep해 값 동일함을 확인. **남긴 임의값**: `text-[clamp(...)]`·`leading-[0.95]`·`pb-[0.08em]`·`h-[112%]`·`text-[10px]`는 spacing 스케일 대응이 없어 경고 대상이 아니며 그대로 둔다.
@@ -92,6 +93,7 @@ docs/
 - **Biome 검사에서 `.claude` 제외**: 하네스 생성 설정 파일이 포맷 규칙에 걸려 `bun run check` 실패시키던 문제 해결.
 - **무료 스택 선택**: 유료 GSAP ScrollSmoother 대신 Lenis 사용.
 - **Pretendard는 서브셋 woff2 self-host**: npm 가변 폰트(2MB) 의존 제거. 폰트 파일을 바꾸거나 2350자 밖 한글을 쓰는 콘텐츠로 교체하면 `python3 scripts/subset-fonts.py` 재실행이 필요하다(요구: `fonttools[woff]`, `brotli`). 원본 OTF는 커밋하지 않는다.
+- **이미지는 표시 크기에 맞춘 webp를 번들한다**: 원본은 저장소에 백업으로 두되 코드는 `scripts/optimize-images.py`가 만든 webp를 import한다. 에셋을 교체하면 스크립트의 `TARGETS`를 갱신해 재실행할 것(요구: Pillow).
 - **Tailwind 임의값은 스케일 유틸이 있으면 그쪽 사용**: `left-[3px]` → `left-0.75`처럼 spacing/percent 스케일로 표현되는 값은 유틸로 쓰고, `clamp()`·`em`·비율(`leading-[0.95]`)처럼 대응 유틸이 없는 것만 임의값으로 남긴다.
 - **리뷰는 판단 게이트를 거쳐 반영**: Codex 리뷰를 그대로 따르지 않고, 코드와 대조해 타당한 것만 반영한다(`review-and-apply` 스킬). Codex 사용에는 `/codex:setup` 사전 설정 필요.
 - **작업 후 리뷰는 hook으로 자동화**: `review-and-apply`를 매번 수동 호출하는 대신 Stop hook이 편집 있는 턴 종료 시 자동 발동. hook 설정은 개인 포트폴리오라 `settings.local.json`이 아닌 커밋되는 `settings.json`에 둠(팀 공유 불필요).
@@ -99,9 +101,11 @@ docs/
 ## 7. 마지막 검증
 
 - `bun run check` — Biome 린트/포맷 **경고 0, 에러 0** (39 files).
-- `bun run build` — `tsc -b` 타입 통과 + 프로덕션 빌드 성공 (폰트 self-host 전환 후 재검증, 청크 크기 경고 없음).
+- `bun run build` — `tsc -b` 타입 통과 + 프로덕션 빌드 성공 (폰트 self-host·이미지 최적화 반영 후 재검증, 청크 크기 경고 없음).
+- **이미지 최적화 검증**: 빌드 산출물에 `profile-*.webp` **18.27KB**만 포함되고 원본 PNG는 번들에서 빠짐을 확인. 변환 결과를 육안으로 열어 화질 이상 없음.
 - **폰트 서브셋 검증**: 생성된 woff2를 fontTools로 열어 유효성(flavor=woff2, 글리프 2774자) 확인, `src/**`+`index.html`의 **비ASCII 문자 전량이 서브셋에 포함**됨을 대조(미포함 0). 빌드 산출물에서 `pretendard-{400,500,700}.subset-*.woff2` 3종이 해시 URL로 번들됨을 확인.
 - **Tailwind 유틸 치환 검증**: 생성 CSS에서 `.left-0\.75{left:calc(var(--spacing) * .75)}`(=3px), `.scale-108{--tw-scale-*:108%}`, `.group-hover\:scale-113`이 정상 생성됨을 grep으로 확인 — 임의값과 계산 결과 동일.
+- **Codex 리뷰(이미지 최적화)**: 1회 수행 → **지적 0건**("webp 에셋이 올바르게 참조되고 표시 요구 크기에 부합하며, 변환 스크립트와 문서가 구현과 일치해 기능 회귀 없음").
 - **Codex 리뷰(폰트 self-host + 콘텐츠 + Tailwind 유틸)**: 1회 수행 → **지적 0건**("콘텐츠·타입·폰트 호스팅·Tailwind 유틸 변경이 서로 일관되고, 생성 폰트·프로필 에셋도 포함되어 기능 회귀 없음").
 - **Codex 리뷰**: Projects 재설계 과정에서 **8회 수행 → P2 3건 타당 판단·반영, 나머지 0건** — ① 좁은 화면에서 세로 패럴랙스가 scale 여백 초과(px → % 비례) ② 항목 4개에 3열이면 3+1 고아 행(당시 3열 철회) ③ Motion 인라인 transform이 Tailwind `scale`을 덮어써 확대·hover 줌 무효(확대/이동을 다른 요소로 분리). 최종 지그재그 리스트 안은 "레이아웃·모션 variants·reduced-motion 처리·미디어쿼리 구독이 일관되고 기능 회귀 없음"으로 지적 0건. (직전: `ask`/`deny` 재구성 0건 / deny 최초 도입 0건 / Navbar Hero 복귀 pill 0건 / 래퍼 P2 1건 `|| true` 반영.)
 - **육안 QA(사용자)**: 브레이크포인트 왕복 확인에서 발견된 2건 반영 — 768px 위로 넓힐 때 썸네일이 사라지던 버그(커튼 조건부 마운트 → CSS 제어), 1열 구간 `max-w-sm` 상한의 어색한 여백(철회).
@@ -111,6 +115,5 @@ docs/
 
 ## 8. 다음 작업 (미착수)
 
-- **프로젝트 콘텐츠(`projects.ts`) 및 썸네일/커버 이미지 교체** (사용자 직접). 프로필·경력·스킬은 반영 완료.
-- **`profile.png` 경량화** — 현재 1.6MB로 초기 로드 최대 리소스. 표시 크기에 맞춘 리사이즈 + webp 변환 권장.
+- **프로젝트 콘텐츠(`projects.ts`) 및 썸네일/커버 이미지 교체** (사용자 직접). 프로필·경력·스킬은 반영 완료. 실제 썸네일을 넣을 때는 `scripts/optimize-images.py`의 `TARGETS`에 추가해 webp로 변환할 것(썸네일 표시 폭은 약 457px).
 - (선택) 브라우저 육안 QA — 스크롤 애니메이션·프로젝트 호버·반응형·**폰트 렌더링(Pretendard 적용 여부)**.

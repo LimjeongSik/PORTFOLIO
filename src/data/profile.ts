@@ -1,4 +1,6 @@
-import ProfileImage from "@/assets/profile.png";
+// 원본 profile.png(1122x1440, 1.6MB)는 백업으로만 두고, 표시 크기에 맞춰
+// 줄인 webp를 쓴다. 재생성: `python3 scripts/optimize-images.py`
+import ProfileImage from "@/assets/profile.webp";
 
 import type { Profile } from "@/types/content";
 
