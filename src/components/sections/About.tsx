@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { profile } from "@/data/profile";
 
 const details: { label: string; value: string; href?: string }[] = [
+    { label: "연락처", value: profile.phone },
     { label: "이메일", value: profile.email, href: `mailto:${profile.email}` },
     { label: "생년월일", value: profile.birth },
     { label: "직군", value: profile.role },
@@ -12,9 +13,9 @@ const details: { label: string; value: string; href?: string }[] = [
 ];
 
 const stats: { to: number; suffix: string; label: string }[] = [
-    { to: 5, suffix: "+", label: "년 경력" },
+    { to: 6, suffix: "+", label: "년 경력" },
     { to: 24, suffix: "+", label: "프로젝트" },
-    { to: 12, suffix: "+", label: "기술 스택" },
+    { to: 20, suffix: "+", label: "기술 스택" },
 ];
 
 export function About() {

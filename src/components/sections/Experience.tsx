@@ -36,8 +36,8 @@ export function Experience() {
                 />
 
                 <div className="timeline-track relative mt-16 pl-8 sm:pl-12">
-                    <div className="absolute top-2 bottom-2 left-[3px] w-px bg-line sm:left-[7px]" />
-                    <div className="timeline-progress absolute top-2 bottom-2 left-[3px] w-px origin-top bg-espresso sm:left-[7px]" />
+                    <div className="absolute top-2 bottom-2 left-0.75 w-px bg-line sm:left-1.75" />
+                    <div className="timeline-progress absolute top-2 bottom-2 left-0.75 w-px origin-top bg-espresso sm:left-1.75" />
 
                     <div className="space-y-16">
                         {experiences.map((exp) => (

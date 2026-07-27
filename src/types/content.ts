@@ -3,6 +3,7 @@ export interface Profile {
     role: string;
     tagline: string;
     intro: string[];
+    phone: string;
     email: string;
     birth: string;
     location: string;

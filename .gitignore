@@ -29,6 +29,10 @@ coverage
 # 자동 리뷰 게이트 훅의 세션 마커 파일 (커밋 대상 아님)
 .claude/.review-pending*
 
+# 폰트 원본 OTF (각 ~1.5MB). 서브셋 woff2만 커밋하고 원본은 로컬 보관 —
+# 재생성은 `python3 scripts/subset-fonts.py`
+src/assets/fonts/*.otf
+
 # VS Code
 .vscode/*
 !.vscode/settings.json

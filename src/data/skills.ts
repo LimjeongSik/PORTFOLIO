@@ -2,23 +2,31 @@ import type { SkillGroup } from "@/types/content";
 
 export const skillGroups: SkillGroup[] = [
     {
-        label: "Core",
-        items: ["React", "TypeScript", "JavaScript (ES2023)", "HTML", "CSS"],
+        label: "Frontend",
+        items: ["React", "Next.js", "TypeScript", "JavaScript"],
+    },
+    {
+        label: "Mobile",
+        items: ["React Native", "Expo", "React Native CLI", "React Navigation", "WebView"],
+    },
+    {
+        label: "State & Data",
+        items: ["TanStack Query", "Zustand", "Axios", "Context API", "Fetch API"],
     },
     {
         label: "Styling",
-        items: ["Tailwind CSS", "styled-components", "SCSS", "Design Tokens"],
+        items: ["Tailwind CSS", "styled-components", "CSS Modules"],
     },
     {
         label: "Motion",
         items: ["GSAP", "Motion", "ScrollTrigger", "Lenis"],
     },
     {
-        label: "Tooling",
-        items: ["Vite", "Bun", "Biome", "Storybook", "Vitest"],
+        label: "Tooling & Testing",
+        items: ["Vite", "Bun", "Biome", "Vitest"],
     },
     {
         label: "Workflow",
-        items: ["Git", "Figma", "CI/CD", "Web Accessibility"],
+        items: ["GitHub", "Figma"],
     },
 ];

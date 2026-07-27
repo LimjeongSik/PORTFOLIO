@@ -2,38 +2,75 @@ import type { Experience } from "@/types/content";
 
 export const experiences: Experience[] = [
     {
-        company: "루미넌트 랩스",
-        position: "시니어 프론트엔드 엔지니어",
-        period: "2023.03 — 현재",
-        summary: "B2B SaaS 대시보드의 프론트엔드 아키텍처를 총괄하고 디자인 시스템을 구축했습니다.",
+        company: "준진소프트 주식회사 및 외주 프로젝트",
+        position: "프론트엔드 엔지니어",
+        period: "2025.04 — 현재",
+        summary:
+            "준진소프트의 개발 팀에서 앱을 개발하며 프론트엔드 아키텍처를 설계하고 팀의 기술적 방향성을 주도하고 있습니다.",
         achievements: [
-            "공용 컴포넌트 라이브러리를 도입해 신규 화면 개발 리드타임을 40% 단축",
-            "코드 스플리팅과 렌더링 최적화로 초기 로딩 시간을 2.4초에서 0.9초로 개선",
-            "주니어 3인의 코드 리뷰와 온보딩을 담당하며 팀 프론트엔드 컨벤션 정립",
+            "웹 개발 및 앱 개발을 위한 공용 인스턴스 설계 및 구현",
+            "개발팀과의 코드리뷰 및 멘토링을 통해 팀의 기술적 역량 향상에 기여",
         ],
-        stack: ["React", "TypeScript", "Vite", "TanStack Query", "Storybook"],
+        stack: ["React", "React Native", "TypeScript", "Vite", "Axios", "TanStack Query"],
     },
     {
-        company: "노바 커머스",
+        company: "바움루트미주식회사",
         position: "프론트엔드 개발자",
-        period: "2021.01 — 2023.02",
-        summary: "커머스 웹앱의 사용자 여정 전반을 개발하며 전환율 개선 실험을 주도했습니다.",
+        period: "2024.04 — 2025.04",
+        summary:
+            "바움루트미의 개발 팀 리드로서 프론트엔드 아키텍처를 설계하고 팀의 기술적 방향성을 주도 했습니다.",
         achievements: [
-            "결제 플로우를 재설계해 이탈률을 18% 감소시키고 결제 완료율 개선",
-            "A/B 테스트 인프라를 구축해 실험 기반 UI 의사결정 체계 도입",
-            "웹 접근성 진단을 반영해 WCAG AA 기준 주요 페이지 100% 충족",
+            "웹 개발 및 앱 개발을 위한 공용 인스턴스 설계 및 구현",
+            "공용 컴포넌트를 설계 및 도입하여 신규 화면 개발 리드타임을 30% 단축",
+            "개발팀과의 개발스터디 진행을 통해 팀의 기술적 역량 향상에 기여",
         ],
-        stack: ["React", "Next.js", "Redux", "styled-components"],
+        stack: [
+            "React",
+            "Next.js",
+            "Recoil",
+            "Axios",
+            "Zustand",
+            "styled-components",
+            "TanStack Query",
+        ],
     },
     {
-        company: "스튜디오 페이즈",
-        position: "웹 퍼블리셔 / 주니어 개발자",
-        period: "2019.06 — 2020.12",
-        summary: "브랜드 캠페인 사이트와 인터랙티브 랜딩 페이지를 다수 제작했습니다.",
+        company: "프리랜서 외주 프로젝트",
+        position: "프리랜서 프론트엔드 개발자",
+        period: "2022.08 — 2024.03",
+        summary:
+            "다수의 외주 프로젝트에서 프론트엔드 개발자로 참여하며 웹 애플리케이션을 개발했습니다.",
         achievements: [
-            "스크롤 기반 인터랙션 랜딩을 제작해 캠페인 체류시간 2배 달성",
-            "반응형 마크업 가이드를 정리해 퍼블리싱 산출물 품질 표준화",
+            "클라이언트 요구사항에 맞춰 UI/UX를 구현하고 최적화하여 프로젝트 성공적으로 완료",
+            "다양한 기술 스택을 활용하여 프로젝트 요구사항에 맞는 솔루션 제공",
         ],
-        stack: ["JavaScript", "GSAP", "SCSS", "HTML"],
+        stack: ["React", "Next.js", "React Native", "TypeScript", "Axios", "styled-components"],
+    },
+    {
+        company: "주식회사 피씨유스토어",
+        position: "주니어 프론트엔드 개발자",
+        period: "2022.03 — 2022.07",
+        summary:
+            "피씨유스토어 개발 팀에서 프론트엔드 개발자로 근무하며 회사 홈페이지 제작과 쇼핑몰을 유지보수했습니다.",
+        achievements: [
+            "쇼핑몰 UI/UX 개선을 통해 사용자 경험 향상",
+            "웹 접근성 개선을 통해 WCAG AA 기준 충족",
+            "반응형 웹 디자인을 적용하여 다양한 디바이스에서 최적화된 사용자 경험 제공",
+        ],
+        stack: ["JavaScript", "jQuery", "CSS", "HTML"],
+    },
+    {
+        company: "모과플레이주식회사 및 외주 프로젝트",
+        position: "웹 퍼블리셔 / 주니어 개발자",
+        period: "2020.10 — 2022.02",
+        summary:
+            "모과플레이 개발 팀에서 웹 퍼블리셔로 근무하며 다양한 웹 프로젝트를 제작하고 유지보수했습니다.",
+        achievements: [
+            "웹 접근성 개선을 통해 WCAG AA 기준 충족",
+            "웹 표준 준수를 통해 크로스 브라우징 문제 해결",
+            "다양한 외주 프로젝트에서 UI/UX 개선 및 유지보수 작업 수행",
+            "애니메이션 및 인터랙션 구현을 통해 사용자 경험 향상",
+        ],
+        stack: ["JavaScript", "jQuery", "CSS", "HTML"],
     },
 ];

@@ -154,7 +154,7 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
                             {/* 확대(CSS)와 패럴랙스 이동(Motion)을 다른 요소에 나눈다 — 한
                                 요소에 두면 Motion이 쓰는 인라인 transform이 Tailwind scale을
                                 덮어써 확대가 사라지고, 이동 여백이 없어 배경이 드러난다. */}
-                            <div className="h-full w-full scale-[1.08] transition-transform duration-700 ease-out group-hover:scale-[1.13]">
+                            <div className="h-full w-full scale-108 transition-transform duration-700 ease-out group-hover:scale-113">
                                 <motion.img
                                     src={project.thumbnail}
                                     alt={project.title}
