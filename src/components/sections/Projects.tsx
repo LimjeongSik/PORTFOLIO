@@ -14,12 +14,15 @@ export function Projects() {
                     description="문제를 정의하고, 인터랙션으로 풀어낸 대표 작업들입니다. 카드를 눌러 자세히 살펴보세요."
                 />
 
-                <div className="mt-16 grid gap-x-8 gap-y-16 md:grid-cols-2">
+                {/* 그리드 나열 대신 한 줄에 한 프로젝트씩 — 썸네일과 본문의 좌우를 번갈아
+                    배치해(지그재그) 스크롤하며 하나씩 읽히게 한다. */}
+                <div className="mt-14 flex flex-col gap-16 sm:mt-16 md:gap-24">
                     {projects.map((project, index) => (
                         <ProjectCard
                             key={project.slug}
                             project={project}
                             index={String(index + 1).padStart(2, "0")}
+                            reversed={index % 2 === 1}
                         />
                     ))}
                 </div>
