@@ -1,75 +1,42 @@
-# React + TypeScript + Vite
+# Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+프론트엔드 개발자 포트폴리오 겸 이력서 웹사이트. 원페이지 스크롤(`/`) + 프로젝트 상세
+페이지(`/projects/:slug`) 구조.
 
-Currently, two official plugins are available:
+**스택** — React 19 · Vite 8 · TypeScript · Tailwind CSS v4 · GSAP · motion · Lenis.
+패키지 매니저는 Bun, 린트/포맷은 Biome.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 개발
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+bun install
+bun run dev        # 개발 서버 (HMR)
+bun run build      # 타입 체크(tsc -b) + 프로덕션 빌드
+bun run preview    # 빌드 결과 로컬 서빙
+bun run check      # Biome 린트 + 포맷 검사
+bun run check:fix  # 자동 수정
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 콘텐츠 편집
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+화면에 나오는 텍스트·목록은 전부 `src/data/*.ts`에 있다. 로직을 건드리지 않고 이 파일들만 고치면 된다.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| 파일 | 내용 |
+|------|------|
+| `profile.ts` | 이름·연락처·소개·프로필 사진 |
+| `experience.ts` | 경력 |
+| `skills.ts` | 기술 스택 |
+| `projects.ts` | 프로젝트 목록 및 상세 |
+| `socials.ts` · `nav.ts` | 소셜 링크 · 내비 항목 |
 
+이미지와 폰트는 원본을 그대로 쓰지 않고 스크립트로 변환한 산출물을 번들한다:
+
+```bash
+python3 scripts/optimize-images.py   # 원본 이미지 → 표시 크기 webp (요구: Pillow)
+python3 scripts/subset-fonts.py      # Pretendard OTF → 서브셋 woff2 (요구: fonttools[woff], brotli)
 ```
+
+## 문서
+
+- `docs/PROGRESS.md` — 현재 상태·구조·결정사항·함정 노트
+- `CLAUDE.md` — Claude Code 작업 규약

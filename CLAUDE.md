@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 먼저 읽을 것 — 진행 문서
 
-작업 시작 전 **`docs/PROGRESS.md`를 먼저 읽으세요.** 프로젝트의 진행사항·현재 상태·완료 기능·전체 디렉토리 구조·결정사항·최근 작업·검증 결과가 정리된 단일 소스입니다. 이 CLAUDE.md는 **바뀌지 않는 규약(명령어·코딩 규칙·보안)** 만 다루고, 그때그때의 상태/구조는 중복 기재하지 않습니다.
+작업 시작 전 **`docs/PROGRESS.md`를 먼저 읽으세요.** 현재 상태·디렉토리 구조·결정사항·**함정 노트**(한 번씩 밟았던 재발 방지 항목)·마지막 검증이 정리된 단일 소스입니다. 이 CLAUDE.md는 **바뀌지 않는 규약(명령어·코딩 규칙·보안)** 만 다루고, 그때그때의 상태/구조는 중복 기재하지 않습니다.
 
-의미 있는 작업을 마칠 때마다 `docs/PROGRESS.md`의 관련 섹션(최근 작업·현재 상태·결정사항·마지막 검증 등)을 갱신해, `/clear` 이후에도 맥락이 이어지도록 유지하세요.
+의미 있는 작업을 마칠 때마다 `docs/PROGRESS.md`의 관련 섹션을 갱신하되, **변경 이력을 나열하지 마세요** — 그건 git log가 담당합니다. 남길 것은 바뀐 현재 상태와, 다음에 같은 실수를 막아줄 함정뿐입니다.
 
 ## 명령어
 
@@ -28,7 +28,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **경로 별칭**: `@/*` → `src/*`. 예: `import { Hero } from "@/components/sections/Hero"`. `tsconfig.app.json`에 설정되어 Vite `tsconfigPaths`로 동작합니다.
 - **콘텐츠는 데이터로**: 화면 텍스트/목록은 컴포넌트에 하드코딩하지 말고 `src/data/*.ts`(타입은 `src/types/content.ts`)에서 가져옵니다. 사용자가 로직 없이 콘텐츠만 교체할 수 있어야 합니다.
 - **스타일링**: `@tailwindcss/vite` 기반 Tailwind CSS v4. `tailwind.config.js`가 없으므로 색상/폰트 토큰은 `src/styles/index.css`의 `@theme` 블록에서 관리합니다(예: `bg-paper`, `text-espresso`, `font-display`). 새 디자인 토큰이 필요하면 이곳에 추가하세요.
-- **애니메이션**: GSAP은 `@/lib/gsap`에서 import(플러그인 등록 완료), 컴포넌트에서는 `useGSAP({ scope })`로 사용. 뷰포트 리빌·인터랙션은 `motion` 사용. 새 모션은 반드시 `prefers-reduced-motion`을 존중해야 합니다(`useReducedMotion` 또는 CSS 미디어쿼리).
+- **애니메이션**: GSAP은 `@/lib/gsap`에서 import(플러그인 등록 완료), 컴포넌트에서는 `useGSAP({ scope })`로 사용. 뷰포트 리빌·인터랙션은 `motion` 사용. 새 모션은 반드시 `prefers-reduced-motion`을 존중해야 합니다(`useReducedMotion` 또는 CSS 미디어쿼리 — GSAP 인라인 트윈은 CSS로 막히지 않으니 JS에서 가드).
+- **스크롤 이동**: 관성 스크롤(Lenis)이 window 스크롤을 소유합니다. 프로그래매틱 이동은 `window.scrollTo()`가 아니라 `@/lib/lenis`의 `getLenisInstance()`를 거쳐야 하며, Lenis가 없을 때(reduced-motion·최초 마운트)를 위한 폴백을 함께 둡니다. 자세한 이유는 PROGRESS.md 함정 노트 참고.
 - **SVG**: `vite-plugin-svgr` 활성화 — `?react` 접미사로 React 컴포넌트 import 가능. 타입 참조는 `src/types/vite-env.d.ts`.
 
 ## 코드 작성에 영향을 주는 Biome 규칙
