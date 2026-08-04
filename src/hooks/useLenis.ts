@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { setLenisInstance } from "@/lib/lenis";
 
 /**
  * Lenis 관성 스크롤을 초기화하고 GSAP ScrollTrigger와 동기화한다.
@@ -21,6 +22,7 @@ export function useLenis() {
             easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
         });
 
+        setLenisInstance(lenis);
         lenis.on("scroll", ScrollTrigger.update);
 
         const update = (time: number) => {
@@ -31,6 +33,7 @@ export function useLenis() {
         gsap.ticker.lagSmoothing(0);
 
         return () => {
+            setLenisInstance(null);
             lenis.destroy();
             gsap.ticker.remove(update);
         };

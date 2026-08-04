@@ -62,6 +62,8 @@ docs/
 
 ## 5. 최근 작업
 
+- **경력 직함 갱신**(사용자 직접 편집): `experience.ts`의 준진소프트·바움루트미를 "프론트엔드 개발 팀 리드"로, 모과플레이를 "웹 퍼블리셔"로 수정.
+- **상세 페이지 진입 시 최하단 스크롤 버그 수정** (테스트 피드백 반영): 프로젝트 카드를 눌러 `/projects/:slug`로 이동하면 페이지가 맨 아래에 위치한 채 열리던 문제. **원인** — `ScrollToTop`이 `window.scrollTo()`를 직접 호출하는데, **Lenis는 자체 rAF 루프로 매 프레임 자신의 `targetScroll`을 window에 다시 적용**하므로 직접 이동이 다음 프레임에 되돌려진다. 이때 `targetScroll`은 홈에서 스크롤한 큰 값 그대로이고, 상세 페이지는 홈보다 문서가 짧아 그 값이 **최하단으로 클램프**된다(상세 페이지가 `lazy`라 Suspense fallback 구간에 문서 높이가 한 번 더 줄어드는 것도 겹침). **수정** — `src/lib/lenis.ts`에 인스턴스 모듈 싱글톤(`setLenisInstance`/`getLenisInstance`)을 두고 `useLenis`가 생성·정리 시 등록/해제, `ScrollToTop`은 Lenis가 있으면 `lenis.resize()`(이전 페이지 높이 기준 치수 무효화) 후 `lenis.scrollTo(0, { immediate: true, force: true })`, 없으면(=`prefers-reduced-motion`으로 네이티브 스크롤) 기존 `window.scrollTo`로 폴백. 해시(`/#projects`) 이동도 같은 이유로 Lenis 경유(`lenis.scrollTo(target)`)로 바꿔 네이티브 `scrollIntoView({behavior:"smooth"})`와 Lenis가 다투지 않게 했고, **해시 경로에도 `lenis.resize()`를 선행**한다(Codex P1 반영) — `Dimensions`의 ResizeObserver가 **250ms 디바운스**(`lenis.mjs:153,157`)라 라우트 이동 직후 rAF 시점(약 16ms)의 `limit`은 이전 페이지 기준이고, `scrollTo`는 `clamp(0, target, this.limit)`(`:790`)이므로 상세→홈 복귀 시 Projects 섹션에 못 미치고 잘릴 수 있다. 더불어 `history.scrollRestoration = "manual"`을 마운트 시 1회 설정해 새로고침·뒤로가기 때 브라우저 자동 복원이 리셋과 충돌하지 않게 했다. **주의**: React는 자식 → 부모 순으로 effect를 실행하므로 **최초 마운트 때는 `ScrollToTop`이 `useLenis`(App)보다 먼저 돌아 인스턴스가 아직 `null`** — 폴백 경로를 반드시 유지할 것. **교훈: 스무스 스크롤 라이브러리를 쓰면 스크롤 이동은 전부 그 라이브러리를 통해야 한다.**
 - **프로필 이미지 최적화 (1.6MB → 18KB)**: 폰트 경량화 직후 초기 로드 최대 리소스가 된 `profile.png`(1122×1440, 1552KB) 처리. About에서 이 사진의 실제 표시 크기는 **최대 144px**(`sm:w-36`, `aspect-4/5`)인데 원본은 그 8배 폭이었다. 신설한 `scripts/optimize-images.py`(Pillow)가 **DPR 3 여유를 둔 432px 폭**으로 리사이즈 + **webp(quality 82, method 6)** 변환 → **432×554, 18KB(약 1/86)**. `profile.ts`가 webp를 import하므로 원본 PNG는 번들에서 빠진다. **원본은 저장소에 그대로 남긴다** — 폰트 OTF와 달리 사용자의 원본 사진은 재취득이 어려운 자산이라 백업 가치가 있고, import하지 않으면 Vite가 번들에 넣지 않아 초기 로드에는 영향이 없다(clone 용량만 1.6MB 증가). 육안으로 변환 결과 화질 확인 완료.
 - **Pretendard self-host 서브셋 전환 + 실제 콘텐츠 반영 + Tailwind 임의값 정리**:
   - **폰트(초기 로드 2MB → 0.5MB)**: 사용자가 `src/assets/fonts/`에 넣은 Pretendard **OTF 9종(합 14MB)** 을 활용하되, OTF는 웹 압축이 안 돼 그대로 `@font-face`에 등록하면 굵기당 1.5MB가 전송되므로 **서브셋 woff2로 변환해 self-host** 하는 방식을 택했다(사용자 선택). 신설한 `scripts/subset-fonts.py`가 pyftsubset으로 ① 실제 쓰는 굵기 3종만(400 본문 / 500 `font-medium` / 700 `font-bold` — 소스 grep으로 확인, 600·800 등은 미사용) ② **KS X 1001 완성형 2350자 + 라틴/기호/화살표 범위**로 잘라낸다 → 굵기당 **약 170KB, 3종 합 518KB**. 기존 npm `pretendard` 가변 폰트(약 2MB) import는 제거하고 패키지도 `bun remove`. **함정**: 파이썬의 `euc-kr` 코덱은 실제로 **CP949(확장 완성형)** 라 한글 음절 11172자를 전부 인코딩한다 — `try/except`만으로는 전혀 걸러지지 않아 첫 변환이 굵기당 558KB로 나왔다. 인코딩 결과의 **리드 바이트가 KS X 1001 영역(0xB0–0xC8)인지**로 판별해야 정확히 2350자가 된다. 2350자 밖 글자(똠·뷁 등)를 콘텐츠에 쓰면 fallback으로 렌더되므로, 스크립트가 **`src/**` + `index.html`에 실제 등장하는 한글을 합집합으로 추가**해 구멍을 메운다(현재 콘텐츠는 추가 0자 = 전부 2350자 안). **콘텐츠를 교체하면 스크립트를 다시 실행할 것.** 원본 OTF는 `.gitignore`(14MB), 생성물 woff2와 스크립트만 커밋 → 재현 가능. `--font-sans` fallback도 `"Space Grotesk"`(라틴 전용이라 한글에 무의미) 대신 시스템 한글 스택(`system-ui`·`Apple SD Gothic Neo`·`Malgun Gothic`)으로 교체.
@@ -100,8 +102,10 @@ docs/
 
 ## 7. 마지막 검증
 
-- `bun run check` — Biome 린트/포맷 **경고 0, 에러 0** (39 files).
-- `bun run build` — `tsc -b` 타입 통과 + 프로덕션 빌드 성공 (폰트 self-host·이미지 최적화 반영 후 재검증, 청크 크기 경고 없음).
+- `bun run check` — Biome 린트/포맷 **경고 0, 에러 0** (40 files, 스크롤 리셋 수정 후 재검증).
+- `bun run build` — `tsc -b` 타입 통과 + 프로덕션 빌드 성공 (스크롤 리셋 수정 후 재검증, 청크 크기 경고 없음).
+- **Codex 리뷰(상세 페이지 스크롤 리셋)**: 1회 수행 → **P1 1건 타당 판단·반영** — 해시 이동 경로에서 Lenis 치수가 stale이라 목표가 잘못 클램프될 수 있다는 지적. `lenis.mjs`의 디바운스(250ms)와 `scrollTo`의 `clamp` 구현을 직접 열어 사실 확인 후 `lenis.resize()` 선행 추가.
+- **육안 QA(사용자) — 상세 페이지 스크롤 리셋**: "홈 하단까지 스크롤 → 프로젝트 클릭 → 상세가 맨 위에서 열림", "상세 → 프로젝트 목록 링크로 복귀" 두 흐름 브라우저 확인 **통과**.
 - **이미지 최적화 검증**: 빌드 산출물에 `profile-*.webp` **18.27KB**만 포함되고 원본 PNG는 번들에서 빠짐을 확인. 변환 결과를 육안으로 열어 화질 이상 없음.
 - **폰트 서브셋 검증**: 생성된 woff2를 fontTools로 열어 유효성(flavor=woff2, 글리프 2774자) 확인, `src/**`+`index.html`의 **비ASCII 문자 전량이 서브셋에 포함**됨을 대조(미포함 0). 빌드 산출물에서 `pretendard-{400,500,700}.subset-*.woff2` 3종이 해시 URL로 번들됨을 확인.
 - **Tailwind 유틸 치환 검증**: 생성 CSS에서 `.left-0\.75{left:calc(var(--spacing) * .75)}`(=3px), `.scale-108{--tw-scale-*:108%}`, `.group-hover\:scale-113`이 정상 생성됨을 grep으로 확인 — 임의값과 계산 결과 동일.
