@@ -3,7 +3,7 @@ import type { Experience } from "@/types/content";
 export const experiences: Experience[] = [
     {
         company: "준진소프트 주식회사 및 외주 프로젝트",
-        position: "프론트엔드 엔지니어",
+        position: "프론트엔드 개발 팀 리드",
         period: "2025.04 — 현재",
         summary:
             "준진소프트의 개발 팀에서 앱을 개발하며 프론트엔드 아키텍처를 설계하고 팀의 기술적 방향성을 주도하고 있습니다.",
@@ -15,7 +15,7 @@ export const experiences: Experience[] = [
     },
     {
         company: "바움루트미주식회사",
-        position: "프론트엔드 개발자",
+        position: "프론트엔드 개발 팀 리드",
         period: "2024.04 — 2025.04",
         summary:
             "바움루트미의 개발 팀 리드로서 프론트엔드 아키텍처를 설계하고 팀의 기술적 방향성을 주도 했습니다.",
@@ -61,7 +61,7 @@ export const experiences: Experience[] = [
     },
     {
         company: "모과플레이주식회사 및 외주 프로젝트",
-        position: "웹 퍼블리셔 / 주니어 개발자",
+        position: "웹 퍼블리셔",
         period: "2020.10 — 2022.02",
         summary:
             "모과플레이 개발 팀에서 웹 퍼블리셔로 근무하며 다양한 웹 프로젝트를 제작하고 유지보수했습니다.",
