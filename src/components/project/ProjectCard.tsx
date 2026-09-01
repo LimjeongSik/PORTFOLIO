@@ -91,10 +91,10 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
 
     const rotateX = useTransform(smoothY, [0, 1], [7, -7]);
     const rotateY = useTransform(smoothX, [0, 1], [-7, 7]);
-    // 이동량은 px가 아닌 이미지 크기 대비 비율 — scale-108이 만드는 여백(각 변 4%) 안에
+    // 이동량은 px가 아닌 이미지 크기 대비 비율 — scale-104가 만드는 여백(각 변 2%) 안에
     // 항상 머물러야 좁은 화면에서도 이미지 가장자리가 드러나지 않는다.
-    const imageX = useTransform(smoothX, [0, 1], ["-3%", "3%"]);
-    const imageY = useTransform(smoothY, [0, 1], ["-3%", "3%"]);
+    const imageX = useTransform(smoothX, [0, 1], ["-1.5%", "1.5%"]);
+    const imageY = useTransform(smoothY, [0, 1], ["-1.5%", "1.5%"]);
 
     const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
         // 1열 구간은 대부분 터치 기기 — 탭할 때마다 카드가 기우는 게 어색해 틸트를 끈다.
@@ -154,7 +154,7 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
                             {/* 확대(CSS)와 패럴랙스 이동(Motion)을 다른 요소에 나눈다 — 한
                                 요소에 두면 Motion이 쓰는 인라인 transform이 Tailwind scale을
                                 덮어써 확대가 사라지고, 이동 여백이 없어 배경이 드러난다. */}
-                            <div className="h-full w-full scale-108 transition-transform duration-700 ease-out group-hover:scale-113">
+                            <div className="h-full w-full scale-104 transition-transform duration-700 ease-out group-hover:scale-108">
                                 <motion.img
                                     src={project.thumbnail}
                                     alt={project.title}
@@ -185,7 +185,7 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
                             aria-hidden
                             className="h-px w-8 bg-line transition-all duration-500 ease-out group-hover:w-14 group-hover:bg-espresso"
                         />
-                        <span>{project.year}</span>
+                        <span>{project.period}</span>
                     </motion.div>
 
                     <motion.h3

@@ -29,6 +29,41 @@ export interface ProjectLinks {
     repo?: string;
 }
 
+export interface ProjectScreen {
+    src: string;
+    name: string;
+    note: string;
+}
+
+export interface ProjectSheet {
+    src: string;
+    title: string;
+    note: string;
+}
+
+export interface ProjectMetric {
+    label: string;
+    value: string;
+}
+
+export interface ProjectCase {
+    label: string;
+    problem: string;
+    approach: string;
+    result: string;
+    metrics?: ProjectMetric[];
+}
+
+export interface ProjectTheme {
+    paper: string;
+    surface: string;
+    ink: string;
+    muted: string;
+    line: string;
+    espresso: string;
+    sand: string;
+}
+
 export interface Project {
     slug: string;
     title: string;
@@ -36,13 +71,16 @@ export interface Project {
     year: string;
     role: string;
     period: string;
+    platform: "mobile" | "web";
     tech: string[];
     thumbnail: string;
-    cover: string;
-    problem: string;
-    solution: string;
-    highlights: string[];
-    gallery: string[];
+    icon?: string;
+    theme: ProjectTheme;
+    context: string[];
+    approach: string[];
+    cases: ProjectCase[];
+    screens: ProjectScreen[];
+    sheets: ProjectSheet[];
     links: ProjectLinks;
 }
 

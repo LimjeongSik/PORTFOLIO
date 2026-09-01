@@ -25,6 +25,7 @@ ASSET_DIR = Path(__file__).resolve().parent.parent / "src" / "assets"
 # 프로필: 표시 144px * DPR 3 = 432px
 TARGETS = [
     ("profile.png", "profile.webp", 432, 82),
+    ("safeops-icon.png", "safeops-icon.webp", 192, 88),
 ]
 
 

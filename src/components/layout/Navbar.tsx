@@ -73,7 +73,8 @@ export function Navbar() {
 
     return (
         <header
-            className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+            data-navbar
+            className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color] duration-300 ${
                 scrolled ? "bg-paper/80 backdrop-blur-md" : "bg-transparent"
             }`}
         >
