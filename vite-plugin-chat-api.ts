@@ -1,8 +1,7 @@
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import { loadEnv } from "vite";
 
-import type { IncomingMessage, ServerResponse } from "node:http";
+import { sendWebResponse, toWebRequest } from "./api/_lib/node-adapter.js";
+
 import type { Plugin } from "vite";
 
 /**
@@ -32,8 +31,7 @@ export function chatApiPlugin(): Plugin {
                         "/api/_lib/handler.ts",
                     )) as typeof import("./api/_lib/handler.ts");
 
-                    const response = await handleChat(toWebRequest(req));
-                    await sendWebResponse(res, response);
+                    await sendWebResponse(res, await handleChat(toWebRequest(req)));
                 } catch (error) {
                     server.config.logger.error(`[chat-api] ${String(error)}`);
                     if (!res.headersSent) {
@@ -45,39 +43,4 @@ export function chatApiPlugin(): Plugin {
             });
         },
     };
-}
-
-function toWebRequest(req: IncomingMessage): Request {
-    const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-
-    const headers = new Headers();
-    for (const [key, value] of Object.entries(req.headers)) {
-        if (typeof value === "string") headers.set(key, value);
-        else if (Array.isArray(value)) for (const item of value) headers.append(key, item);
-    }
-
-    const method = req.method ?? "GET";
-    const hasBody = method !== "GET" && method !== "HEAD";
-
-    return new Request(url, {
-        method,
-        headers,
-        body: hasBody ? (Readable.toWeb(req) as ReadableStream<Uint8Array>) : undefined,
-        // 요청 본문을 스트림으로 넘길 때 필요하지만 lib.dom 타입에는 없다.
-        duplex: "half",
-    } as RequestInit & { duplex: "half" });
-}
-
-async function sendWebResponse(res: ServerResponse, response: Response): Promise<void> {
-    res.statusCode = response.status;
-    response.headers.forEach((value, key) => {
-        res.setHeader(key, value);
-    });
-
-    if (!response.body) {
-        res.end();
-        return;
-    }
-    // 토큰이 도착하는 대로 흘려보낸다 — 모아서 보내면 스트리밍이 죽는다.
-    await pipeline(Readable.fromWeb(response.body as Parameters<typeof Readable.fromWeb>[0]), res);
 }

@@ -6,5 +6,16 @@
  * 상대 import에 `.js`를 붙이는 건 오타가 아니다 — Vercel은 이 파일들을 번들하지 않고
  * 하나씩 트랜스파일해 Node ESM으로 돌리므로, 확장자가 없으면 런타임에
  * `ERR_MODULE_NOT_FOUND`가 난다(TS와 Vite는 `.js`를 `.ts`로 해석해 준다).
+ *
+ * 인자가 Web `Request`가 아니라 Node의 `IncomingMessage`인 것도 같은 이유다 —
+ * Vercel의 Node 런타임이 그렇게 넘긴다. 변환은 `_lib/node-adapter.ts`가 맡는다.
  */
-export { handleChat as default } from "./_lib/handler.js";
+import { handleChat } from "./_lib/handler.js";
+import { sendWebResponse, toWebRequest } from "./_lib/node-adapter.js";
+
+import type { IncomingMessage, ServerResponse } from "node:http";
+
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+    const response = await handleChat(toWebRequest(req));
+    await sendWebResponse(res, response);
+}
