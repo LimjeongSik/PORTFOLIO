@@ -20,12 +20,23 @@ export function toWebRequest(req: IncomingMessage): Request {
     }
 
     const method = req.method ?? "GET";
-    const hasBody = method !== "GET" && method !== "HEAD";
+    if (method === "GET" || method === "HEAD") {
+        return new Request(url, { method, headers });
+    }
+
+    // Vercel의 Node 런타임은 요청 본문을 미리 읽어 `req.body`에 파싱해 둔다. 그 뒤에 스트림을
+    // 다시 읽으려 하면 아무것도 오지 않고 `done`도 나지 않아 함수가 통째로 매달린다
+    // (배포본에서만 FUNCTION_INVOCATION_TIMEOUT이 났던 원인). 이미 읽힌 본문이 있으면 그걸 쓴다.
+    const parsed = (req as IncomingMessage & { body?: unknown }).body;
+    if (parsed !== undefined && parsed !== null) {
+        const body = typeof parsed === "string" ? parsed : JSON.stringify(parsed);
+        return new Request(url, { method, headers, body });
+    }
 
     return new Request(url, {
         method,
         headers,
-        body: hasBody ? (Readable.toWeb(req) as ReadableStream<Uint8Array>) : undefined,
+        body: Readable.toWeb(req) as ReadableStream<Uint8Array>,
         // 요청 본문을 스트림으로 넘길 때 필요하지만 lib.dom 타입에는 없다.
         duplex: "half",
     } as RequestInit & { duplex: "half" });

@@ -85,7 +85,8 @@ function json(body: unknown, status: number): Response {
 /**
  * 본문을 상한까지만 읽는다. 다 읽고 나서 재는 것과는 다르다 — 넘치는 요청은
  * 끝까지 받아 문자열로 만들기 전에 스트림을 끊는다. `content-length`가 붙어 있으면
- * 한 바이트도 읽지 않고 거절한다.
+ * 한 바이트도 읽지 않고 거절하므로, 호스팅이 본문을 미리 파싱해 넘기는 환경에서도
+ * (Vercel의 Node 런타임이 그렇다) 크기 방어는 그대로 선다.
  */
 async function readCapped(req: Request, limit: number): Promise<string | null> {
     const declared = Number(req.headers.get("content-length"));
