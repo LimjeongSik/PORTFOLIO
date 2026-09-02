@@ -9,7 +9,7 @@ import {
 } from "ai";
 import { z } from "zod";
 
-import { buildSystemPrompt, getProjectDetail, projectSlugs } from "./prompt";
+import { buildSystemPrompt, getProjectDetail, projectSlugs } from "./prompt.js";
 
 import type { ToolSet, UIMessage } from "ai";
 

@@ -1,6 +1,6 @@
-import { knowledge } from "./knowledge.generated";
+import { knowledge } from "./knowledge.generated.js";
 
-import type { KnowledgeProjectDetail } from "./types";
+import type { KnowledgeProjectDetail } from "./types.js";
 
 const { profile, experiences, skills, socials, projects, details } = knowledge;
 

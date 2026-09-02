@@ -64,7 +64,7 @@ const banner = `/**
  * 자동 생성 파일 — 직접 고치지 마세요.
  * 원본은 \`src/data/*.ts\`이고, \`bun run knowledge\`로 다시 만듭니다.
  */
-import type { Knowledge } from "./types";
+import type { Knowledge } from "./types.js";
 
 export const knowledge: Knowledge = `;
 

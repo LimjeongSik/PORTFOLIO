@@ -12,7 +12,7 @@ import type {
     ProjectRuntimeMap,
     SkillGroup,
     SocialLink,
-} from "../../src/types/content";
+} from "../../src/types/content.js";
 
 export type KnowledgeProfile = Omit<Profile, "avatar">;
 
