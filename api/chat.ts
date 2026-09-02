@@ -15,6 +15,15 @@ import { sendWebResponse, toWebRequest } from "./_lib/node-adapter.js";
 
 import type { IncomingMessage, ServerResponse } from "node:http";
 
+/**
+ * Node 런타임은 응답을 기본적으로 모았다가 한 번에 보낸다. 답이 흘러나오게 하려면
+ * 스트리밍을 켜야 하고, 실행 시간도 기본값(10초)으로는 모델이 말을 마치기 전에 끊긴다.
+ */
+export const config = {
+    runtime: "nodejs",
+    supportsResponseStreaming: true,
+};
+
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
     const response = await handleChat(toWebRequest(req));
     await sendWebResponse(res, response);
