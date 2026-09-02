@@ -318,6 +318,19 @@ done
 - **요청 크기는 다 읽고 재면 늦다**: `await req.text()` 뒤에 길이를 보면 이미 전부 버퍼링한
   뒤다(게다가 문자 수는 바이트가 아니다). `content-length`를 먼저 보고, 없으면 스트림을 읽으며
   바이트를 세다 상한에서 끊는다.
+- **Vercel의 서버 함수는 개발 서버와 실행 방식이 다르다 — 배포본에서만 깨지는 것이 세 가지 있었다.**
+  전부 로컬에서는 멀쩡하고 배포 후에만 드러났으니, 서버 코드를 손대면 배포본에서 한 번 찔러 본다.
+  1. **번들하지 않고 하나씩 트랜스파일해 Node ESM으로 돌린다** — 확장자 없는 상대 import가 그대로
+     남아 `ERR_MODULE_NOT_FOUND`. `api/` 안의 상대 import에는 **`.js`를 붙인다**(TS와 Vite가
+     `.ts`로 해석해 준다).
+  2. **핸들러에 Web `Request`가 아니라 Node `IncomingMessage`를 넘긴다** —
+     `req.headers.get is not a function`. 변환은 `api/_lib/node-adapter.ts`가 맡고,
+     개발 플러그인도 같은 어댑터를 쓴다.
+  3. **요청 본문을 미리 읽어 `req.body`에 파싱해 둔다** — 그 뒤 스트림을 다시 읽으면 데이터도
+     `done`도 오지 않아 함수가 통째로 매달린다(`FUNCTION_INVOCATION_TIMEOUT`). 이미 읽힌 본문이
+     있으면 그것으로 `Request`를 만든다.
+  여기에 응답 스트리밍은 `supportsResponseStreaming`으로 켜야 하고, `maxDuration` 기본값(10초)은
+  모델이 말을 마치기 전에 끊긴다.
 - **개발 서버(`ssrLoadModule`)는 모듈을 다시 평가한다**: 모듈 스코프에 둔 카운터가 요청마다
   초기화돼 레이트리밋이 전혀 걸리지 않았다(21번째에 429가 나와야 하는데 계속 400). 프로세스가
   살아 있는 동안 이어져야 하는 상태는 `globalThis`에 붙인다.
@@ -376,26 +389,19 @@ done
   그대로 신뢰 · 본문 크기를 다 읽은 뒤에 검사.
 - **주입·과대 요청 차단 실증**: `role: "system"`을 섞은 요청 400, 240KB 본문은
   `content-length`가 있든(413) `Transfer-Encoding: chunked`든(413) 차단된다.
+- **배포본에서 재확인**: 대화 1.3초 응답 · `get_project_detail` 호출 · 주입 400 · 과대 413 ·
+  SPA 라우트 200 · 첫 로드에 assistant 청크 없음 · 브라우저에서 카드 렌더와 상세 이동까지.
 
 ## 6. AI 안내자 — 키와 배포
 
-로컬은 `.env.local`에 키만 있으면 `bun run dev` 하나로 돈다(개발 서버가 `/api/chat`을 직접 처리).
-**배포는 아직 연결하지 않았다.** Vercel에 올릴 때:
-
-```bash
-# 1) 키 — https://aistudio.google.com/apikey 에서 발급해 .env.local에 둔다
-#    GOOGLE_GENERATIVE_AI_API_KEY=...   (.env.example 참고)
-
-# 2) Vercel 연결 (브라우저 로그인이 필요해 셸에서 직접 실행)
-bunx vercel login
-bunx vercel link
-bunx vercel env add GOOGLE_GENERATIVE_AI_API_KEY production
-bunx vercel env add GOOGLE_GENERATIVE_AI_API_KEY preview
-bunx vercel --prod
-```
-
-`vercel.json`이 빌드 커맨드(`bun run build`) · 출력(`dist`) · SPA rewrite(`/api/*` 제외)를 들고
-있으므로 대시보드에서 따로 설정할 것은 없다. GitHub 저장소를 연결하면 push마다 배포된다.
+- **배포됨**: https://portfolio-pi-nine-wt7bk929id.vercel.app (Vercel 프로젝트
+  `limjeongsiks-projects/portfolio`). GitHub `main`에 push하면 자동 배포된다.
+- 키는 Vercel 환경변수 `GOOGLE_GENERATIVE_AI_API_KEY`(Production · Preview)에 있고,
+  로컬은 `.env.local`을 쓴다(`.env.example` 참고).
+- `vercel.json`이 빌드 커맨드(`bun run build`) · 출력(`dist`) · SPA rewrite(`/api/*` 제외) ·
+  함수 `maxDuration`(60초)을 들고 있어 대시보드에서 따로 설정할 것은 없다.
+- **배포별 URL(`portfolio-<해시>-...`)은 Deployment Protection이 걸려 401이다.** 공개로 열리는 건
+  프로덕션 별칭뿐이니, 링크를 공유할 때 배포 URL을 주지 말 것.
 
 **한도가 차면 `GEMINI_MODEL`을 갈아끼운다.** 이 키로 쓸 수 있는 모델(2026-09 확인):
 
@@ -410,11 +416,13 @@ bunx vercel --prod
 
 ## 7. 다음 작업 (미착수)
 
-- **나머지 더미 프로젝트 3개 교체 또는 삭제**(Atlas · Muse · Cadence · Prism 중 남은 것).
+- **나머지 더미 프로젝트 4개 교체 또는 삭제**(Atlas · Muse · Cadence · Prism). **AI 안내자가
+  붙으면서 급해졌다** — 화면에서는 카드로만 보이던 것을, 이제 안내자가 "총 여섯 개의 프로젝트를
+  진행했습니다"라고 말한다(배포본에서 실제로 확인). 지식은 `projects.ts`를 그대로 읽으므로,
+  지우거나 채우기 전까지는 방문자에게 사실이 아닌 이력을 말하게 된다.
   카드 썸네일은 표시 폭 약 457px이고, `theme` 7색과 `variant`도 함께 정해야 한다.
   세 번째 프로젝트를 넣는다면 `signal`·`sanctuary`를 재탕하지 말고 갈래를 하나 더 만든다.
 - (선택) 실제 브라우저에서의 관성 스크롤 감각 확인 — CDP 캡처는 정지 화면이라 Lenis의
   감속 곡선과 pin 전환의 매끄러움까지는 보지 못했다.
-- **AI 안내자 배포 연결**(§6). 키는 로컬에만 있고 Vercel 프로젝트는 아직 없다.
 - (선택) 공유 저장소 기반 레이트리밋. 지금의 분당 20요청 카운터는 인메모리라 서버리스
   인스턴스마다 따로 센다 — Vercel KV 등을 하나 붙이면 인스턴스를 가로질러 정확히 묶을 수 있다.
