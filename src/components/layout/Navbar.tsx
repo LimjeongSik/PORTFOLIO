@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useScroll, useSpring } from "motion/react";
 
 import { navItems } from "@/data/nav";
 import { profile } from "@/data/profile";
+import { scrollToSection, scrollToTop } from "@/lib/scroll";
 
 export function Navbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -68,7 +69,7 @@ export function Navbar() {
             navigate(`/#${id}`);
             return;
         }
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        scrollToSection(id);
     };
 
     return (
@@ -81,7 +82,7 @@ export function Navbar() {
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
                 <Link
                     to="/"
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    onClick={() => scrollToTop()}
                     className="font-display text-lg font-bold tracking-tight text-ink"
                 >
                     {profile.name}

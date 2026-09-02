@@ -3,8 +3,10 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import svgr from "vite-plugin-svgr";
 
+import { chatApiPlugin } from "./vite-plugin-chat-api";
+
 export default defineConfig({
-    plugins: [react(), tailwindcss(), svgr()],
+    plugins: [react(), tailwindcss(), svgr(), chatApiPlugin()],
     resolve: {
         tsconfigPaths: true,
     },
@@ -24,6 +26,10 @@ export default defineConfig({
                         {
                             name: "motion-vendor",
                             test: /node_modules[\\/](motion|motion-dom|motion-utils)[\\/]/,
+                        },
+                        {
+                            name: "assistant-vendor",
+                            test: /node_modules[\\/](@assistant-ui|assistant-stream|@ai-sdk|ai|zod)[\\/]/,
                         },
                     ],
                 },

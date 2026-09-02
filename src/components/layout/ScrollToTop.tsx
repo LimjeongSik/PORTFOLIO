@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 import { getLenisInstance } from "@/lib/lenis";
+import { scrollToSection } from "@/lib/scroll";
 
 /**
  * 라우트 이동 시 스크롤 위치를 초기화한다.
@@ -23,26 +24,16 @@ export function ScrollToTop() {
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: pathname은 라우트 변경 시 스크롤 리셋을 트리거하는 의도된 의존성
     useEffect(() => {
-        const lenis = getLenisInstance();
-
         if (hash) {
             const id = hash.replace("#", "");
-            const target = document.getElementById(id);
-            if (target) {
-                requestAnimationFrame(() => {
-                    if (lenis) {
-                        // Lenis의 리사이즈 감지는 250ms 디바운스라 이 시점의 스크롤 한계는
-                        // 아직 이전 페이지 기준이다. 갱신하지 않으면 목표가 잘못 클램프된다.
-                        lenis.resize();
-                        lenis.scrollTo(target, { offset: 0 });
-                    } else {
-                        target.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }
-                });
+            if (document.getElementById(id)) {
+                // 방금 그려진 라우트라, 한 프레임 뒤에야 위치가 확정된다.
+                requestAnimationFrame(() => scrollToSection(id));
                 return;
             }
         }
 
+        const lenis = getLenisInstance();
         if (lenis) {
             // 이전 페이지 높이 기준의 치수가 남아 있으면 목표 위치가 잘못 클램프된다.
             lenis.resize();
@@ -50,6 +41,8 @@ export function ScrollToTop() {
             return;
         }
 
+        // React는 자식 → 부모 순으로 effect를 실행하므로 최초 마운트 때는
+        // useLenis(App)보다 이 컴포넌트가 먼저 돈다 — 그때 인스턴스는 아직 null이다.
         window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
     }, [pathname, hash]);
 

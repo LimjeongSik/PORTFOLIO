@@ -6,6 +6,16 @@
         },
         {
             "path": "./tsconfig.node.json"
+        },
+        {
+            "path": "./tsconfig.api.json"
         }
-    ]
+    ],
+    /* files: []라 tsc는 이 블록을 쓰지 않는다. Bun이 스크립트를 직접 실행할 때
+       `@/` 별칭을 풀 수 있도록 여기에도 둔다(`bun run knowledge`). */
+    "compilerOptions": {
+        "paths": {
+            "@/*": ["./src/*"]
+        }
+    }
 }

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 
+import { AssistantLauncher } from "@/components/assistant/AssistantLauncher";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
@@ -28,6 +29,7 @@ function App() {
                 </Routes>
             </Suspense>
             <Footer />
+            <AssistantLauncher />
         </>
     );
 }

@@ -15,6 +15,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `bun run dev` — HMR이 적용된 Vite 개발 서버 시작
 - `bun run build` — 타입 체크(`tsc -b`) 후 프로덕션 빌드. 타입 에러가 있으면 빌드 실패
 - `bun run preview` — 프로덕션 빌드를 로컬에서 서빙
+- `bun run knowledge` — `src/data/*.ts` → `api/_lib/knowledge.generated.ts` 재생성.
+  **콘텐츠를 고쳤으면 반드시 실행**해야 AI 안내자의 답변이 따라온다
 - `bun run check` — Biome 린트 + 포맷 검사 (개별 lint/format 대신 이 명령 사용)
 - `bun run check:fix` — 린트 + 포맷 이슈 자동 수정
 - `bun run lint` / `bun run format` — 린트 전용 / 포맷 쓰기 전용 변형
@@ -45,4 +47,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 보안 주의사항
 
-`.env`(`GITHUB_PAT` 포함)와 `.mcp.json`(context7 API 키 포함)에는 실제 시크릿이 들어 있으며 git에서 무시됩니다. 이들을 커밋하거나, 내용을 출력하거나, 추적되는 파일로 시크릿을 옮기지 마세요.
+`.env`(`GITHUB_PAT` 포함), `.env.local`(`GOOGLE_GENERATIVE_AI_API_KEY` 포함), `.mcp.json`(context7 API 키 포함)에는 실제 시크릿이 들어 있으며 git에서 무시됩니다. 이들을 커밋하거나, 내용을 출력하거나, 추적되는 파일로 시크릿을 옮기지 마세요. 형식만 보여줄 일이 있으면 값이 비어 있는 `.env.example`을 씁니다.
+
+Gemini API 키는 **서버에서만** 읽습니다(`api/_lib/handler.ts` · 개발용 `vite-plugin-chat-api.ts`). `VITE_` 접두사를 붙이면 클라이언트 번들에 박히므로 절대 붙이지 마세요.
