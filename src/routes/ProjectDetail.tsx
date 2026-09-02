@@ -1,19 +1,14 @@
 import { useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
-import { ProjectCases } from "@/components/project/ProjectCases";
-import { ProjectHero } from "@/components/project/ProjectHero";
-import { ProjectScreens } from "@/components/project/ProjectScreens";
-import { ProjectSheets } from "@/components/project/ProjectSheets";
-import { Reveal } from "@/components/ui/Reveal";
+import { SanctuaryDetail } from "@/components/project/SanctuaryDetail";
+import { SignalDetail } from "@/components/project/SignalDetail";
 
 import { getAdjacentProjects, getProjectBySlug } from "@/data/projects";
 
 import type { ProjectTheme } from "@/types/content";
 
 const EMPTY_THEME = {} as ProjectTheme;
-
-const SECTION_LABEL = "font-mono text-[0.6875rem] tracking-[0.18em] text-espresso uppercase";
 
 function useProjectTheme(theme: ProjectTheme) {
     useEffect(() => {
@@ -57,50 +52,14 @@ export function ProjectDetail() {
                 </div>
             </div>
 
-            <ProjectHero project={project} />
-
-            <div className="px-6">
-                <div className="mx-auto grid max-w-4xl gap-12 md:grid-cols-2 md:gap-14">
-                    <Reveal>
-                        <section>
-                            <h2 className={SECTION_LABEL}>Context</h2>
-                            <div className="mt-4 flex flex-col gap-4">
-                                {project.context.map((paragraph) => (
-                                    <p
-                                        key={paragraph}
-                                        className="text-[0.9375rem] leading-relaxed text-ink/85"
-                                    >
-                                        {paragraph}
-                                    </p>
-                                ))}
-                            </div>
-                        </section>
-                    </Reveal>
-                    <Reveal delay={0.08}>
-                        <section>
-                            <h2 className={SECTION_LABEL}>Approach</h2>
-                            <div className="mt-4 flex flex-col gap-4">
-                                {project.approach.map((paragraph) => (
-                                    <p
-                                        key={paragraph}
-                                        className="text-[0.9375rem] leading-relaxed text-ink/85"
-                                    >
-                                        {paragraph}
-                                    </p>
-                                ))}
-                            </div>
-                        </section>
-                    </Reveal>
-                </div>
-            </div>
-
-            <ProjectScreens screens={project.screens} platform={project.platform} />
+            {project.variant === "sanctuary" ? (
+                <SanctuaryDetail project={project} />
+            ) : (
+                <SignalDetail project={project} />
+            )}
 
             <div className="px-6">
                 <div className="mx-auto max-w-4xl">
-                    <ProjectCases cases={project.cases} />
-                    <ProjectSheets sheets={project.sheets} />
-
                     {(project.links.demo || project.links.repo) && (
                         <div className="mt-12 flex flex-wrap gap-3">
                             {project.links.demo ? (

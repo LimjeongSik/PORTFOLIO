@@ -81,6 +81,12 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
     const reduced = useReducedMotion();
     // 썸네일과 본문이 좌우로 나뉘는 지점(md). 아래에서는 1열로 접히므로 모션도 달라진다.
     const split = useMediaQuery("(min-width: 768px)");
+    /**
+     * 앱 프로젝트는 세로 화면을 가로 판에 잘라 넣는 대신, 프로젝트 테마 위에 아이콘과
+     * 화면 한 장을 얹어 구성한다. 세로 스크린샷을 16:10으로 자르면 상태바와 탭 바가
+     * 잘려 나가 무슨 화면인지 알아볼 수 없다.
+     */
+    const tiled = project.platform === "mobile" && Boolean(project.icon);
     const ref = useRef<HTMLDivElement>(null);
 
     // 0~1로 정규화한 포인터 위치 (중앙 = 0.5). 썸네일 영역 기준으로만 측정한다.
@@ -95,6 +101,12 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
     // 항상 머물러야 좁은 화면에서도 이미지 가장자리가 드러나지 않는다.
     const imageX = useTransform(smoothX, [0, 1], ["-1.5%", "1.5%"]);
     const imageY = useTransform(smoothY, [0, 1], ["-1.5%", "1.5%"]);
+    // 타일 구성에서는 배경이 아니라 얹힌 두 요소가 움직인다. 화면이 아이콘보다 많이 움직여야
+    // 앞뒤가 갈린다. 판 밖으로 새지 않도록 이동량은 각 요소 크기 대비 비율로 둔다.
+    const iconX = useTransform(smoothX, [0, 1], ["-6%", "6%"]);
+    const iconY = useTransform(smoothY, [0, 1], ["-6%", "6%"]);
+    const screenX = useTransform(smoothX, [0, 1], ["-11%", "11%"]);
+    const screenY = useTransform(smoothY, [0, 1], ["-4%", "4%"]);
 
     const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
         // 1열 구간은 대부분 터치 기기 — 탭할 때마다 카드가 기우는 게 어색해 틸트를 끈다.
@@ -155,13 +167,49 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
                                 요소에 두면 Motion이 쓰는 인라인 transform이 Tailwind scale을
                                 덮어써 확대가 사라지고, 이동 여백이 없어 배경이 드러난다. */}
                             <div className="h-full w-full scale-104 transition-transform duration-700 ease-out group-hover:scale-108">
-                                <motion.img
-                                    src={project.thumbnail}
-                                    alt={project.title}
-                                    loading="lazy"
-                                    style={reduced ? undefined : { x: imageX, y: imageY }}
-                                    className="h-full w-full object-cover"
-                                />
+                                {tiled ? (
+                                    <div
+                                        className="h-full w-full"
+                                        style={{
+                                            backgroundImage: `radial-gradient(120% 95% at 78% 4%, ${project.theme.surface} 0%, ${project.theme.paper} 68%)`,
+                                        }}
+                                    >
+                                        <motion.img
+                                            src={project.icon}
+                                            alt=""
+                                            loading="lazy"
+                                            // 정사각 아이콘을 16:10 판 한가운데 두는 지점.
+                                            // 폭 24% → 높이 38.4%이므로 위 여백은 (100-38.4)/2.
+                                            style={{
+                                                top: "30.8%",
+                                                borderColor: project.theme.line,
+                                                ...(reduced ? {} : { x: iconX, y: iconY }),
+                                            }}
+                                            className="absolute left-[10%] w-[24%] rounded-[23%] border shadow-lg"
+                                        />
+                                        <motion.img
+                                            src={project.thumbnail}
+                                            alt={project.title}
+                                            loading="lazy"
+                                            // 화면은 판 아래로 흘려보낸다 — 세로 비를 지키면서
+                                            // 잘라 넣지 않으려면 한쪽이 넘쳐야 한다.
+                                            style={{
+                                                top: "9%",
+                                                borderColor: project.theme.line,
+                                                ...(reduced ? {} : { x: screenX, y: screenY }),
+                                            }}
+                                            className="absolute right-[9%] w-[34%] rounded-2xl border shadow-xl"
+                                        />
+                                    </div>
+                                ) : (
+                                    <motion.img
+                                        src={project.thumbnail}
+                                        alt={project.title}
+                                        loading="lazy"
+                                        style={reduced ? undefined : { x: imageX, y: imageY }}
+                                        className="h-full w-full object-cover"
+                                    />
+                                )}
                             </div>
                             {!reduced && (
                                 <motion.div
