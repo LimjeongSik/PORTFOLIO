@@ -18,8 +18,11 @@ export function useLenis() {
         }
 
         const lenis = new Lenis({
-            duration: 1.1,
+            duration: 1.3,
             easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
+            /* 트랙패드를 옆으로 쓸어도 같은 타임라인이 밀린다. 홈의 무대는 스크롤 하나가
+               카메라를 몰기 때문에, 입력이 세로든 가로든 출력은 하나여야 갈라지지 않는다. */
+            gestureOrientation: "both",
         });
 
         setLenisInstance(lenis);

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
 
+import { Roomy } from "@/components/home/Roomy";
 import { About } from "@/components/sections/About";
 import { Bridge } from "@/components/sections/Bridge";
 import { Experience } from "@/components/sections/Experience";
@@ -7,6 +8,10 @@ import { Hero } from "@/components/sections/Hero";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
 import { useMoodZone } from "@/hooks/useMoodZone";
+
+/* three는 압축 후 100KB를 넘는다. 첫 페인트를 이 청크에 묶지 않으려고 따로 떼어 늦게 받는다 —
+   무대가 없어도 지면색은 이미 칠해져 있어서 늦게 붙는 것이 티나지 않는다. */
+const Stage = lazy(() => import("@/components/home/Stage"));
 
 import {
     CRAFT_MOOD,
@@ -16,10 +21,6 @@ import {
     setMood,
     VOID_MOOD,
 } from "@/lib/atmosphere";
-
-/* three는 압축 후 100KB를 넘는다. 첫 페인트를 이 청크에 묶지 않으려고 따로 떼어 늦게 받는다 —
-   배경이 없어도 지면색은 이미 칠해져 있어서 늦게 붙는 것이 티나지 않는다. */
-const HomeStage = lazy(() => import("@/components/sections/HomeStage"));
 
 /** 다리에 흘려보낼 낱말. 이력의 핵심만 큰 글자로 지나간다. */
 const BRIDGE_WORDS = ["FRONTEND", "REACT", "REACT NATIVE", "TYPESCRIPT", "INTERACTION", "SEOUL"];
@@ -42,33 +43,34 @@ export function Home() {
 
     return (
         <>
-            {/* 배경은 섹션마다 새로 그리지 않는다. 화면에 고정된 3D 필드 하나가 홈 전체를 받치고,
-                스크롤이 그 배치를, 커서가 그 표면을 움직인다. */}
+            {/* 홈 전체가 하나의 3D 공간이다. 구간은 그 공간 안의 장소고(복도 → 비석 → 드럼 →
+                계단 → 갤러리), 카메라 하나가 스크롤을 따라 그 사이를 난다. */}
             <Suspense fallback={null}>
-                <HomeStage />
+                <Stage />
             </Suspense>
-            {/* 얇은 베일 한 겹. 카드를 가운데에서 밀어내는 대신 **본문 뒤에 그대로 두고**
-                전체를 살짝 눌러 글자만 앞으로 나오게 한다. 가운데를 웅덩이로 파면 배경이
-                도넛처럼 비어 광활한 느낌이 사라진다. */}
+            {/* 글이 앉는 한가운데를 아주 얕게 눌러 준다. 판은 이미 가까워질수록 지워지므로
+                가릴 일이 없지만, 낱말 판이 스칠 때의 대비까지 이 한 겹이 받아 준다. */}
             <div
                 aria-hidden
                 className="pointer-events-none fixed inset-0 z-0"
                 style={{
                     background:
-                        "radial-gradient(125% 95% at 50% 46%, color-mix(in srgb, var(--color-paper) 74%, transparent) 0%, color-mix(in srgb, var(--color-paper) 58%, transparent) 46%, color-mix(in srgb, var(--color-paper) 28%, transparent) 78%, transparent 100%)",
+                        "radial-gradient(52% 44% at 50% 50%, color-mix(in srgb, var(--color-paper) 72%, transparent) 0%, color-mix(in srgb, var(--color-paper) 38%, transparent) 58%, transparent 100%)",
                 }}
             />
             <main className="relative z-10">
                 <Hero />
                 {/* 히어로 무드를 그대로 쥔 채 다음 구간으로 눈을 넘긴다 — 어느 존에도 속하지 않는다. */}
                 <Bridge words={BRIDGE_WORDS} />
-                <div ref={aboutZone}>
+                <Roomy zoneRef={aboutZone} zone="about" length={280}>
                     <About />
-                </div>
-                <div ref={skillsZone}>
+                </Roomy>
+                <Roomy zoneRef={skillsZone} zone="skills" length={300}>
                     <Skills />
-                </div>
-                <div ref={experienceZone}>
+                </Roomy>
+                {/* 경력은 항목이 다섯이라 화면 하나에 담기지 않는다 — 붙이지 않고 흐르게 두되,
+                    터널을 통과하는 동안 읽히도록 구간만 길게 잡는다. */}
+                <div ref={experienceZone} data-stage-zone="experience" className="min-h-[320svh]">
                     <Experience />
                 </div>
                 <Projects />

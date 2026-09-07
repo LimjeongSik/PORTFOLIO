@@ -1,0 +1,258 @@
+import type { Vector3 } from "three";
+
+/**
+ * 스크롤 → 카메라의 단일 축.
+ *
+ * 무대의 모든 값은 **지금 스크롤 위치의 순수 함수**다. 시간으로 흐르는 트윈이나 러프를 사이에
+ * 끼우지 않는다 — 1px 굴리면 1px만큼만 움직이고, 손을 떼면 그 자리에 선다.
+ *
+ * 카메라 경로는 구간(`data-stage-zone`)마다 **구간 안의 자리(0~1)** 로 적어 둔 키프레임이다.
+ * 실제 스크롤 픽셀은 레이아웃이 정해진 뒤에야 알 수 있으므로, 잴 때마다 키를 픽셀 위치로
+ * 풀어 스플라인에 다시 올린다. 구간과 구간 사이(다리·섹션 제목)는 키가 없어도 스플라인이
+ * 이어 주므로, 그 사이 스크롤이 곧 카메라가 다음 장소로 날아가는 시간이 된다.
+ *
+ * 스플라인은 **단조 큐빅**(Fritsch–Carlson)이다. 키 사이 간격이 몹시 고르지 않다 — 구간 안의
+ * 키는 150px 간격인데 구간 사이는 1,000px이 넘는다. 보통의 캣멀롬은 긴 구간의 속도를 짧은
+ * 구간에 물려주어 키를 지나쳐 튀고(드럼 한가운데 서야 할 카메라가 벽에 붙는다), 단조 큐빅은
+ * 성분마다 키 사이에서 절대 키 밖으로 나가지 않는다.
+ */
+
+export const ZONES = ["hero", "about", "skills", "experience", "projects"] as const;
+export type ZoneName = (typeof ZONES)[number];
+
+export interface CameraKey {
+    zone: ZoneName;
+    /** 구간 안의 자리(0~1). 0은 구간이 화면에 붙는 순간, 1은 떠나기 직전. */
+    at: number;
+    position: readonly [number, number, number];
+    look: readonly [number, number, number];
+    fov: number;
+}
+
+interface Range {
+    start: number;
+    end: number;
+}
+
+function clamp01(value: number) {
+    return value < 0 ? 0 : value > 1 ? 1 : value;
+}
+
+/** 성분별 단조 큐빅 에르미트 스플라인. 키 사이에서 키 값의 범위를 넘지 않는다. */
+class Spline {
+    private times: Float32Array;
+    private values: Float32Array;
+    private size: number;
+    private tangents: Float32Array;
+
+    constructor(times: Float32Array, values: Float32Array, size: number) {
+        this.times = times;
+        this.values = values;
+        this.size = size;
+        const count = times.length;
+        this.tangents = new Float32Array(count * size);
+        for (let c = 0; c < size; c += 1) {
+            const value = (k: number) => values[k * size + c];
+            const slopes = new Float32Array(Math.max(1, count - 1));
+            for (let k = 0; k < count - 1; k += 1) {
+                slopes[k] = (value(k + 1) - value(k)) / (times[k + 1] - times[k]);
+            }
+            for (let k = 0; k < count; k += 1) {
+                let m: number;
+                if (count === 1) {
+                    m = 0;
+                } else if (k === 0) {
+                    m = slopes[0];
+                } else if (k === count - 1) {
+                    m = slopes[count - 2];
+                } else if (slopes[k - 1] * slopes[k] <= 0) {
+                    // 방향이 꺾이는 키 — 접선을 0으로 눌러 지나치지 않게 한다.
+                    m = 0;
+                } else {
+                    const h0 = times[k] - times[k - 1];
+                    const h1 = times[k + 1] - times[k];
+                    const w0 = 2 * h1 + h0;
+                    const w1 = h1 + 2 * h0;
+                    m = (w0 + w1) / (w0 / slopes[k - 1] + w1 / slopes[k]);
+                }
+                this.tangents[k * size + c] = m;
+            }
+        }
+    }
+
+    evaluate(t: number, out: Float32Array) {
+        const times = this.times;
+        const values = this.values;
+        const size = this.size;
+        const tangents = this.tangents;
+        const count = times.length;
+        if (t <= times[0]) {
+            out.set(values.subarray(0, size));
+            return out;
+        }
+        if (t >= times[count - 1]) {
+            out.set(values.subarray((count - 1) * size, count * size));
+            return out;
+        }
+        let lo = 0;
+        let hi = count - 1;
+        while (hi - lo > 1) {
+            const mid = (lo + hi) >> 1;
+            if (times[mid] <= t) {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        const h = times[hi] - times[lo];
+        const s = (t - times[lo]) / h;
+        const s2 = s * s;
+        const s3 = s2 * s;
+        const h00 = 2 * s3 - 3 * s2 + 1;
+        const h10 = s3 - 2 * s2 + s;
+        const h01 = -2 * s3 + 3 * s2;
+        const h11 = s3 - s2;
+        for (let c = 0; c < size; c += 1) {
+            out[c] =
+                h00 * values[lo * size + c] +
+                h10 * h * tangents[lo * size + c] +
+                h01 * values[hi * size + c] +
+                h11 * h * tangents[hi * size + c];
+        }
+        return out;
+    }
+}
+
+export class Timeline {
+    private ranges = new Map<ZoneName, Range>();
+    private position: Spline | null = null;
+    private look: Spline | null = null;
+    private fov: Spline | null = null;
+    private viewport = 1;
+    private out3 = new Float32Array(3);
+    private out1 = new Float32Array(1);
+
+    /** 구간 요소를 다시 재고, 키를 픽셀 위치로 풀어 보간기를 세운다. */
+    measure(keys: readonly CameraKey[]) {
+        this.viewport = window.innerHeight;
+        this.ranges.clear();
+        for (const name of ZONES) {
+            const node = document.querySelector<HTMLElement>(`[data-stage-zone="${name}"]`);
+            if (!node) {
+                continue;
+            }
+            const rect = node.getBoundingClientRect();
+            const start = rect.top + window.scrollY;
+            this.ranges.set(name, {
+                start,
+                end: start + Math.max(1, rect.height - this.viewport),
+            });
+        }
+        this.build(keys);
+    }
+
+    has(zone: ZoneName) {
+        return this.ranges.has(zone);
+    }
+
+    /** 구간이 차지한 스크롤 안에서 지금 어디까지 왔는가(0~1). */
+    localOf(zone: ZoneName, scroll: number) {
+        const range = this.ranges.get(zone);
+        if (!range) {
+            return 0;
+        }
+        return clamp01((scroll - range.start) / (range.end - range.start));
+    }
+
+    /** 구간에서 얼마나 떨어져 있는가 — 화면 높이 단위. 안에 있으면 0. */
+    proximity(zone: ZoneName, scroll: number) {
+        const range = this.ranges.get(zone);
+        if (!range) {
+            return Number.POSITIVE_INFINITY;
+        }
+        if (scroll < range.start) {
+            return (range.start - scroll) / this.viewport;
+        }
+        if (scroll > range.end) {
+            return (scroll - range.end) / this.viewport;
+        }
+        return 0;
+    }
+
+    /** 구간 안의 자리(0~1)를 실제 스크롤 픽셀로. */
+    scrollOf(zone: ZoneName, at: number) {
+        const range = this.ranges.get(zone);
+        if (!range) {
+            return null;
+        }
+        return range.start + (range.end - range.start) * at;
+    }
+
+    /**
+     * 동작 줄이기 — 스크롤이 흐르는 동안의 카메라 이동을 걷어내고, 가장 가까운 구간의
+     * 한가운데 시점에 세운다. 구간이 바뀔 때만 화면이 바뀐다.
+     */
+    settle(scroll: number) {
+        let best: ZoneName | null = null;
+        let distance = Number.POSITIVE_INFINITY;
+        for (const name of ZONES) {
+            const near = this.proximity(name, scroll);
+            if (near < distance) {
+                distance = near;
+                best = name;
+            }
+        }
+        return best ? (this.scrollOf(best, 0.5) ?? scroll) : scroll;
+    }
+
+    /** 스크롤 위치의 카메라 자리·시선을 채우고 화각을 돌려준다. */
+    sample(scroll: number, outPosition: Vector3, outLook: Vector3) {
+        if (!this.position || !this.look || !this.fov) {
+            outPosition.set(0, 0, 9);
+            outLook.set(0, 0, -10);
+            return 52;
+        }
+        const p = this.position.evaluate(scroll, this.out3);
+        outPosition.set(p[0], p[1], p[2]);
+        const l = this.look.evaluate(scroll, this.out3);
+        outLook.set(l[0], l[1], l[2]);
+        return this.fov.evaluate(scroll, this.out1)[0];
+    }
+
+    private build(keys: readonly CameraKey[]) {
+        const resolved = keys
+            .map((key) => ({ key, time: this.scrollOf(key.zone, key.at) }))
+            .filter((item): item is { key: CameraKey; time: number } => item.time !== null)
+            .sort((a, b) => a.time - b.time);
+
+        if (resolved.length === 0) {
+            this.position = null;
+            this.look = null;
+            this.fov = null;
+            return;
+        }
+        if (resolved.length === 1) {
+            resolved.push({ key: resolved[0].key, time: resolved[0].time + 1 });
+        }
+
+        const times = new Float32Array(resolved.length);
+        const positions = new Float32Array(resolved.length * 3);
+        const looks = new Float32Array(resolved.length * 3);
+        const fovs = new Float32Array(resolved.length);
+
+        let previous = Number.NEGATIVE_INFINITY;
+        resolved.forEach(({ key, time }, index) => {
+            // 보간기는 시간이 엄격히 증가해야 한다. 같은 픽셀에 두 키가 겹치면 1px 벌린다.
+            const t = time <= previous ? previous + 1 : time;
+            previous = t;
+            times[index] = t;
+            positions.set(key.position, index * 3);
+            looks.set(key.look, index * 3);
+            fovs[index] = key.fov;
+        });
+
+        this.position = new Spline(times, positions, 3);
+        this.look = new Spline(times, looks, 3);
+        this.fov = new Spline(times, fovs, 1);
+    }
+}

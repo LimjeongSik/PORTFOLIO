@@ -1,57 +1,45 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
-
-import { Magnetic } from "@/components/ui/Magnetic";
-import { PhoneShot } from "@/components/ui/PhoneShot";
+import { Tag } from "@/components/ui/Tag";
 
 import { moodFromAccent, setMood } from "@/lib/atmosphere";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { getLenisInstance } from "@/lib/lenis";
 
-import type { PointerEvent } from "react";
 import type { Mood } from "@/lib/atmosphere";
 import type { Project } from "@/types/content";
 
 interface ProjectStageProps {
     projects: Project[];
-    /** 무대를 벗어나 위로 올라갔을 때 돌아갈 무드 */
+    /** 갤러리를 벗어나 위로 올라갔을 때 돌아갈 무드 */
     leadMood: Mood;
 }
 
+/** 카드 하나가 지나가는 데 쓰는 세로 스크롤(vh). */
+const PER_CARD = 104;
+
+/** 가장자리 카드가 정면에서 벗어나는 최대 각도(도). */
+const MAX_YAW = 26;
+
 /**
- * 한 화면을 통째로 쓰는 프로젝트 전시대.
+ * 프로젝트가 옆으로 흐르는 갤러리.
  *
- * 트랙(프로젝트 수 × 한 화면)을 스크롤하면 안쪽 무대가 sticky로 붙어 있고, 진행률이
- * 현재 인덱스를 정한다. 인덱스가 바뀌면 세 가지가 동시에 움직인다 —
- * 지면 전체의 색(그 프로젝트의 방), 표지 이미지, 본문.
+ * 첫 화면의 원통을 펼친 것이다 — 거기서는 화면들이 축을 돌고, 여기서는 그 축이 풀려 일렬로
+ * 지나간다. 그래서 가운데 온 것만 정면을 보고 좌우로 갈수록 판이 비스듬히 눕는다.
  *
- * 왜 GSAP pin이 아니라 sticky인가: pin은 스페이서를 끼워 넣어 위아래 섹션의 여백을 다시
- * 계산하게 만든다. 여기서 ScrollTrigger가 필요한 건 진행률뿐이라 레이아웃은 CSS에 맡겼다.
+ * 기기 틀에 담지 않는다. 화면 자체가 판이고, 판이 각도를 갖는다.
+ *
+ * 세로 스크롤이 가로 이동을 몬다. 휠·키보드·터치가 전부 평소대로 동작해야 하므로 가로
+ * 스크롤 컨테이너를 쓰지 않고, 세로로 번 거리를 `translate3d`로 옮긴다.
+ *
+ * 카드 위치는 마운트할 때 한 번 재고 그 뒤로는 계산으로 얻는다. 매 프레임
+ * `getBoundingClientRect`를 부르면 방금 쓴 transform 때문에 레이아웃이 강제로 다시 계산된다.
  */
 export function ProjectStage({ projects, leadMood }: ProjectStageProps) {
     const trackRef = useRef<HTMLDivElement>(null);
-    const stageRef = useRef<HTMLDivElement>(null);
-    const [index, setIndex] = useState(0);
-
-    // 표지를 포인터 쪽으로 살짝 기울인다. 원근이 붙은 판이라 각도가 작아도 입체로 읽힌다.
-    const pointerX = useMotionValue(0);
-    const pointerY = useMotionValue(0);
-    const smoothX = useSpring(pointerX, { stiffness: 90, damping: 18, mass: 0.4 });
-    const smoothY = useSpring(pointerY, { stiffness: 90, damping: 18, mass: 0.4 });
-    const tiltY = useTransform(smoothX, [-1, 1], [-7, 7]);
-    const tiltX = useTransform(smoothY, [-1, 1], [5, -5]);
-
-    const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        pointerX.set(((event.clientX - rect.left) / rect.width) * 2 - 1);
-        pointerY.set(((event.clientY - rect.top) / rect.height) * 2 - 1);
-    };
-
-    const onPointerLeave = () => {
-        pointerX.set(0);
-        pointerY.set(0);
-    };
+    const railRef = useRef<HTMLUListElement>(null);
+    const cards = useRef<(HTMLLIElement | null)[]>([]);
 
     // 프로젝트별 방은 색 계산이 들어가므로 한 번만 만들어 둔다.
     const moods = useMemo(
@@ -61,228 +49,210 @@ export function ProjectStage({ projects, leadMood }: ProjectStageProps) {
 
     useGSAP(
         () => {
+            const rail = railRef.current;
             const track = trackRef.current;
-            if (!track) {
+            if (!rail || !track) {
                 return;
             }
 
-            const count = projects.length;
+            /** 레일 안에서의 카드 중심 위치. 리사이즈 때 다시 잰다. */
+            let centers: number[] = [];
+
+            const measure = () => {
+                const nodes = cards.current.filter((node): node is HTMLLIElement => node !== null);
+                centers = nodes.map((node) => node.offsetLeft + node.offsetWidth / 2);
+            };
+
             let last = -1;
+
+            const paint = (progress: number) => {
+                const count = centers.length;
+                if (count === 0) {
+                    return;
+                }
+
+                /* 스크롤을 거리에 균등하게 나누면 카드가 화면 한가운데에 서 있는 시간보다
+                   두 카드가 반씩 걸쳐 있는 시간이 길어진다. 대신 **카드 중심 사이를** 오가되
+                   그 사이를 빠르게 지나는 곡선을 쓴다 — 카드는 중앙에 머물고 전환만 짧다. */
+                const t = progress * (count - 1);
+                const from = Math.max(0, Math.min(count - 2, Math.floor(t)));
+                const f = Math.max(0, Math.min(1, t - from));
+                const eased = f * f * f * (f * (f * 6 - 15) + 10);
+                const center =
+                    count > 1
+                        ? centers[from] + (centers[from + 1] - centers[from]) * eased
+                        : centers[0];
+
+                const middle = window.innerWidth / 2;
+                const shift = middle - center;
+                rail.style.transform = `translate3d(${shift}px, 0, 0)`;
+
+                centers.forEach((cardCenter, index) => {
+                    const node = cards.current[index];
+                    if (!node) {
+                        return;
+                    }
+                    // 이 카드의 중심이 지금 화면 어디에 있는가.
+                    const offset = cardCenter + shift - middle;
+                    const ratio = Math.max(-1.4, Math.min(1.4, offset / middle));
+
+                    node.style.transform = `rotateY(${-ratio * MAX_YAW}deg) translateZ(${-Math.abs(ratio) * 90}px)`;
+                    node.style.opacity = String(1 - Math.min(1, Math.abs(ratio)) * 0.62);
+                });
+
+                const nearest = Math.max(0, Math.min(count - 1, Math.round(t)));
+                if (nearest !== last) {
+                    last = nearest;
+                    setMood(projects[nearest].slug, moods[nearest], { scene: 4 });
+                }
+            };
+
+            measure();
 
             const trigger = ScrollTrigger.create({
                 trigger: track,
                 start: "top top",
                 end: "bottom bottom",
-                onUpdate: (self) => {
-                    // 마지막 한 화면은 다음 섹션으로 빠져나가는 여백이라 진행률을 count로 나눈다.
-                    const next = Math.min(count - 1, Math.floor(self.progress * count));
-                    if (next === last) {
-                        return;
-                    }
-                    last = next;
-                    setIndex(next);
-                    setMood(projects[next].slug, moods[next], { scene: 4 });
-                },
+                onUpdate: (self) => paint(self.progress),
                 onLeaveBack: () => {
                     last = -1;
                     setMood("work-lead", leadMood, { scene: 4 });
                 },
-                /**
-                 * 다시 잴 때 무대가 화면을 잡고 있으면 자기 방을 한 번 더 주장한다.
-                 *
-                 * 스크롤이 한 번에 건너뛰면(뒤로가기 복원) `onUpdate`는 인덱스가 이미 맞아
-                 * 그냥 빠져나가는데, 같은 순간 위쪽 구간의 트리거들이 지면색을 자기 것으로
-                 * 덮는다 — 무대는 침례교를 띄운 채 지면만 경력 구간의 모래색이 되던 이유다.
-                 * 캐시를 비우고 다시 칠하면 마지막에 말하는 쪽이 무대가 된다(트리거는 start가
-                 * 이른 순서로 평가되고, 무대의 트랙은 그 구간들보다 아래에 있다).
-                 */
+                /* 다시 잴 때 갤러리가 화면을 잡고 있으면 자기 방을 한 번 더 주장한다.
+                   스크롤이 한 번에 건너뛰면(뒤로가기 복원) 위쪽 구간의 트리거들이 지면색을
+                   자기 것으로 덮는다 — 마지막에 말하는 쪽이 갤러리여야 한다. */
                 onRefresh: (self) => {
-                    if (!self.isActive) {
-                        return;
+                    measure();
+                    if (self.isActive) {
+                        last = -1;
+                        paint(self.progress);
                     }
-                    const next = Math.min(count - 1, Math.floor(self.progress * count));
-                    last = next;
-                    setIndex(next);
-                    setMood(projects[next].slug, moods[next], { scene: 4 });
                 },
             });
 
-            return () => trigger.kill();
-        },
-        { scope: stageRef, dependencies: [projects, moods, leadMood] },
-    );
+            paint(0);
 
-    const active = projects[index];
+            // ← → 로 한 장씩. 갤러리가 화면을 잡고 있을 때만 받는다.
+            const onKeyDown = (event: KeyboardEvent) => {
+                if (
+                    !trigger.isActive ||
+                    (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
+                ) {
+                    return;
+                }
+                const active = document.activeElement;
+                if (
+                    active instanceof HTMLElement &&
+                    active.closest("input, textarea, [contenteditable]")
+                ) {
+                    return;
+                }
+                event.preventDefault();
+                const count = centers.length;
+                if (count < 2) {
+                    return;
+                }
+                const perCard = (track.offsetHeight - window.innerHeight) / (count - 1);
+                const current = Math.round(trigger.progress * (count - 1));
+                const next = Math.max(
+                    0,
+                    Math.min(count - 1, current + (event.key === "ArrowRight" ? 1 : -1)),
+                );
+                const target = track.offsetTop + next * perCard;
+                const lenis = getLenisInstance();
+                if (lenis) {
+                    lenis.scrollTo(target, { duration: 0.9 });
+                } else {
+                    window.scrollTo({ top: target, behavior: "smooth" });
+                }
+            };
 
-    // 본문이 교체될 때마다 줄 단위로 다시 올라온다. revertOnUpdate를 켜지 않으므로
-    // 이전 트윈을 되돌리지 않고, key 교체로 새로 마운트된 노드에만 걸린다.
-    useGSAP(
-        () => {
-            gsap.from(".stage-line", {
-                opacity: 0,
-                y: 24,
-                duration: 0.7,
-                stagger: 0.07,
-                ease: "power3.out",
-            });
+            window.addEventListener("keydown", onKeyDown);
+
+            return () => {
+                trigger.kill();
+                window.removeEventListener("keydown", onKeyDown);
+            };
         },
-        { scope: stageRef, dependencies: [active.slug] },
+        { scope: trackRef, dependencies: [projects, moods, leadMood] },
     );
 
     return (
-        <div ref={trackRef} style={{ height: `${(projects.length + 1) * 100}vh` }}>
-            <div
-                ref={stageRef}
-                className="sticky top-0 flex h-svh items-center overflow-hidden px-6"
-            >
-                <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-16">
-                    {/* --- 본문 --- */}
-                    <div className="relative">
-                        <div className="flex items-baseline gap-4 font-mono text-xs tracking-widest text-muted uppercase">
-                            <span className="font-display text-[clamp(3rem,7vw,5.5rem)] leading-none font-bold text-espresso tabular-nums">
-                                {String(index + 1).padStart(2, "0")}
-                            </span>
-                            <span className="flex flex-col gap-1">
-                                <span>{active.year}</span>
-                                <span>{active.role}</span>
-                            </span>
-                        </div>
+        <div
+            ref={trackRef}
+            data-stage-zone="projects"
+            style={{ height: `${projects.length * PER_CARD}vh` }}
+        >
+            <div className="sticky top-0 flex h-svh items-center overflow-hidden">
+                <ul
+                    ref={railRef}
+                    /* 여백을 두지 않는다 — 레일은 언제나 "지금 카드의 중심"이 화면 한가운데
+                       오도록 옮겨지므로, 양 끝을 패딩으로 맞출 필요가 없다.
 
-                        {/* 프로젝트가 바뀌면 통째로 갈아 끼운다. key가 바뀌며 리빌이 다시 돈다. */}
-                        <div key={active.slug} className="stage-body">
-                            <h3 className="stage-line mt-6 font-display text-[clamp(2rem,5vw,3.75rem)] leading-[1.02] font-bold tracking-tight text-ink">
-                                {active.title}
-                            </h3>
-                            <p className="stage-line mt-5 max-w-lg text-base leading-relaxed text-muted sm:text-lg">
-                                {active.summary}
-                            </p>
-                            <ul className="stage-line mt-6 flex flex-wrap gap-2">
-                                {active.tech.slice(0, 6).map((item) => (
-                                    <li
-                                        key={item}
-                                        className="rounded-full border border-line px-3 py-1 font-mono text-[11px] tracking-wide text-muted"
-                                    >
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                            <div className="stage-line mt-8">
-                                <Magnetic strength={16}>
-                                    <Link
-                                        to={`/projects/${active.slug}`}
-                                        className="group inline-flex items-center gap-3 rounded-full bg-espresso px-6 py-3 text-sm font-medium text-paper"
-                                    >
-                                        자세히 보기
-                                        <span
-                                            aria-hidden
-                                            className="transition-transform group-hover:translate-x-1"
-                                        >
-                                            →
-                                        </span>
-                                    </Link>
-                                </Magnetic>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* --- 표지 --- */}
-                    <motion.div
-                        onPointerMove={onPointerMove}
-                        onPointerLeave={onPointerLeave}
-                        style={{ perspective: 1200 }}
-                        className="relative h-[58vh] max-h-[620px] w-full"
-                    >
-                        <motion.div
-                            className="relative h-full w-full"
-                            style={{
-                                rotateX: tiltX,
-                                rotateY: tiltY,
-                                transformStyle: "preserve-3d",
+                       원근은 레일에 두고 3D 컨텍스트는 보존하지 않는다. `preserve-3d` 안에서
+                       카드를 `translateZ(음수)`로 눌러 두면 부모 평면 뒤로 넘어가, 눈에는 보여도
+                       히트 테스트에서는 레일이 맞는다 — "자세히 보기"가 눌리지 않던 원인이다.
+                       카드끼리 교차하지 않으므로 평탄화해도 보이는 모양은 같다. */
+                    className="flex items-center gap-[9vw] will-change-transform"
+                    style={{ perspective: "1600px" }}
+                >
+                    {projects.map((project, index) => (
+                        <li
+                            key={project.slug}
+                            ref={(node) => {
+                                cards.current[index] = node;
                             }}
+                            className="w-[62vw] max-w-4xl shrink-0"
                         >
-                            {projects.map((project, order) => {
-                                const current = order === index;
-                                const mobile = project.platform === "mobile";
-                                return (
-                                    <figure
-                                        key={project.slug}
-                                        aria-hidden={!current}
-                                        className="absolute inset-0 overflow-hidden rounded-3xl border border-line bg-surface transition-[opacity,transform,filter] duration-700 ease-out"
-                                        style={{
-                                            opacity: current ? 1 : 0,
-                                            transform: current
-                                                ? "scale(1) translateY(0)"
-                                                : `scale(1.05) translateY(${order < index ? "-2.5%" : "2.5%"})`,
-                                            filter: current ? "none" : "blur(14px)",
-                                        }}
-                                    >
-                                        {/* 방의 색이 표지 안쪽까지 이어지도록 액센트를 아래에서 피워 올린다. */}
-                                        <span
-                                            aria-hidden
-                                            className="absolute inset-0"
-                                            style={{
-                                                background:
-                                                    "radial-gradient(115% 80% at 50% 112%, color-mix(in srgb, var(--color-espresso) 30%, transparent), transparent 64%)",
-                                            }}
-                                        />
-
-                                        {mobile ? (
-                                            /* 세로 화면은 판에 맞춰 자르지 않는다. 아이콘과 함께 세워 두고
-                                               아래로 흘려보내야 무슨 앱인지 알아볼 수 있다(ProjectCard와 같은 규칙). */
-                                            <div className="relative flex h-full items-end justify-center">
-                                                {project.icon ? (
-                                                    <img
-                                                        src={project.icon}
-                                                        alt=""
-                                                        aria-hidden
-                                                        className="absolute top-7 left-7 h-14 w-14 rounded-2xl border border-line/60 shadow-lg"
-                                                    />
-                                                ) : null}
-                                                <PhoneShot
-                                                    src={project.thumbnail}
-                                                    alt={
-                                                        current ? `${project.title} 대표 화면` : ""
-                                                    }
-                                                    loading={order === 0 ? "eager" : "lazy"}
-                                                    // 아래로 살짝 내려 밑동을 판 밖으로 흘린다 —
-                                                    // 바닥 모서리까지 둥글면 판 위에 얹힌 그림이
-                                                    // 되고, 잘려 나가야 세워 둔 기기로 읽힌다.
-                                                    className="h-[88%] w-auto max-w-none translate-y-[5%] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.75)]"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <img
-                                                src={project.thumbnail}
-                                                alt={current ? `${project.title} 대표 화면` : ""}
-                                                loading={order === 0 ? "eager" : "lazy"}
-                                                decoding="async"
-                                                className="relative h-full w-full object-cover"
-                                            />
-                                        )}
-                                    </figure>
-                                );
-                            })}
-                        </motion.div>
-                    </motion.div>
-                </div>
-
-                {/* --- 진행 레일 --- */}
-                <div className="pointer-events-none absolute inset-x-6 bottom-8">
-                    <ul className="mx-auto flex max-w-6xl items-center gap-2">
-                        {projects.map((project, order) => (
-                            <li key={project.slug} className="h-px flex-1 bg-line">
-                                <span
-                                    className="block h-px origin-left bg-espresso transition-transform duration-500 ease-out"
-                                    style={{ transform: `scaleX(${order <= index ? 1 : 0})` }}
+                            <article className="grid grid-cols-[minmax(0,18rem)_1fr] items-center gap-12">
+                                {/* 기기 틀 없이 화면 그대로. 각도가 붙은 판이라 그림자만으로 뜬다.
+                                    세로 화면이라 폭만 정해 두면 낮은 화면(예: 1024×600)에서
+                                    `h-svh` 무대를 넘겨 잘린다 — 높이도 함께 죄어 둔다. */}
+                                <img
+                                    src={project.thumbnail}
+                                    alt={`${project.title} 화면`}
+                                    loading="lazy"
+                                    decoding="async"
+                                    draggable={false}
+                                    className="mx-auto max-h-[62svh] max-w-full rounded-2xl shadow-[0_40px_90px_-40px_rgba(0,0,0,0.85)]"
                                 />
-                            </li>
-                        ))}
-                    </ul>
-                    <p className="mx-auto mt-3 max-w-6xl font-mono text-[10px] tracking-widest text-muted uppercase">
-                        {String(index + 1).padStart(2, "0")} /{" "}
-                        {String(projects.length).padStart(2, "0")}
-                    </p>
-                </div>
+
+                                <div>
+                                    <div className="flex items-baseline gap-4 font-mono text-[0.6875rem] tracking-[0.18em] text-muted uppercase">
+                                        <span className="text-espresso tabular-nums">
+                                            {String(index + 1).padStart(2, "0")}
+                                        </span>
+                                        <span>{project.year}</span>
+                                        <span aria-hidden className="h-px flex-1 bg-line" />
+                                    </div>
+
+                                    <h3 className="mt-5 font-display text-[clamp(1.75rem,3.4vw,3rem)] leading-[1.05] font-bold tracking-[-0.03em] text-ink">
+                                        {project.title}
+                                    </h3>
+
+                                    <p className="mt-4 max-w-lg text-[0.9375rem] leading-[1.8] text-muted">
+                                        {project.summary}
+                                    </p>
+
+                                    <ul className="mt-6 flex flex-wrap gap-1.5">
+                                        {project.tech.slice(0, 5).map((tech) => (
+                                            <li key={tech}>
+                                                <Tag>{tech}</Tag>
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    <Link
+                                        to={`/projects/${project.slug}`}
+                                        className="mt-8 inline-flex items-center gap-2 rounded-full bg-espresso px-5 py-2.5 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5"
+                                    >
+                                        자세히 보기 <span aria-hidden>→</span>
+                                    </Link>
+                                </div>
+                            </article>
+                        </li>
+                    ))}
+                </ul>
             </div>
         </div>
     );

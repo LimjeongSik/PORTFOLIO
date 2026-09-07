@@ -161,7 +161,11 @@ export function ProjectProcession({ screens }: ProjectProcessionProps) {
                             넘겨 보세요.
                         </p>
                     </div>
-                    <div className="mt-8 flex snap-x snap-mandatory gap-8 overflow-x-auto px-6 pb-4">
+                    <div
+                        /* Lenis가 가로 제스처도 받으므로(홈 무대 때문), 이 가로 스크롤만은 제 것으로 남긴다. */
+                        data-lenis-prevent-wheel
+                        className="mt-8 flex snap-x snap-mandatory gap-8 overflow-x-auto px-6 pb-4"
+                    >
                         {cards}
                     </div>
                 </div>
