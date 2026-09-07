@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
+import { KeyringDetail } from "@/components/project/KeyringDetail";
 import { SanctuaryDetail } from "@/components/project/SanctuaryDetail";
 import { SignalDetail } from "@/components/project/SignalDetail";
 
@@ -55,6 +56,8 @@ export function ProjectDetail() {
 
             {project.variant === "sanctuary" ? (
                 <SanctuaryDetail project={project} />
+            ) : project.variant === "keyring" ? (
+                <KeyringDetail project={project} />
             ) : (
                 <SignalDetail project={project} />
             )}

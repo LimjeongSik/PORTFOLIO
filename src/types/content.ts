@@ -58,8 +58,9 @@ export interface ProjectCase {
  * 상세 페이지의 연출 갈래. 프로젝트마다 스크롤 문법이 다르다.
  * - `signal`   신호 필드 표지 + 제자리 크로스페이드 전시 (SafeOps)
  * - `sanctuary` 빛이 드는 표지 + 가로 행렬 · 화면 해부 · 대비 실측 (침례교 전용앱)
+ * - `keyring`  열쇠 네 개의 시간축 + 웹↔앱 통신 + 세로로 넘어가는 피드 (아이머그)
  */
-export type ProjectVariant = "signal" | "sanctuary";
+export type ProjectVariant = "signal" | "sanctuary" | "keyring";
 
 export interface ProjectAnatomyNote {
     /** 이 주석이 켜지는 스크롤 진행률(0~1). 오름차순으로 적는다. */
@@ -124,6 +125,60 @@ export interface ProjectPipeline {
     note: string;
 }
 
+/** 인증 열쇠 한 개 — 자기 수명과 갱신 임계, 그리고 그것이 여는 문. */
+export interface ProjectKey {
+    name: string;
+    /** 요청에 실려 나가는 헤더 이름 */
+    header: string;
+    /** 이 열쇠가 여는 곳 */
+    opens: string;
+    /** 발급 직후 수명(초). 화면에서는 시간을 감아 돌린다. */
+    life: number;
+    /** 남은 시간이 이 값(초) 이하로 떨어지면 갱신한다. 0이면 스스로 갱신하지 않는다. */
+    renewAt: number;
+    /** 갱신을 요청하는 자리. 스스로 갱신하지 않는 열쇠는 비워 둔다. */
+    renewVia?: string;
+    note: string;
+}
+
+/** 열쇠들이 각자 다른 속도로 닳는 시간축. */
+export interface ProjectKeyring {
+    title: string;
+    lede: string;
+    keys: ProjectKey[];
+    /** 동시에 터뜨려 볼 요청 수 — 갱신이 하나로 합쳐지는 걸 보여줄 때 쓴다. */
+    burst: number;
+    note: string;
+}
+
+/** 말을 거는 쪽. 웹이 앱 안에서 돌 때 통로는 양방향이다. */
+export type ProjectBridgeSide = "app" | "web";
+
+export interface ProjectBridgeCall {
+    from: ProjectBridgeSide;
+    /** 사람이 읽는 이름 */
+    label: string;
+    /** 한 창구로 끝나는 호출. 플랫폼이 갈리면 비우고 `ios` · `android`를 쓴다. */
+    call?: string;
+    ios?: string;
+    android?: string;
+    /** 이 말이 닿아서 실제로 벌어지는 일들 */
+    effects: string[];
+    /** 말이 닿은 뒤 WebView가 놓이는 상태. 생략하면 아무것도 바뀌지 않는다. */
+    applies?: {
+        playing: boolean;
+        locked: boolean;
+        protect: boolean;
+    };
+}
+
+export interface ProjectBridgeMap {
+    title: string;
+    lede: string;
+    calls: ProjectBridgeCall[];
+    note: string;
+}
+
 export interface ProjectTheme {
     paper: string;
     surface: string;
@@ -157,6 +212,8 @@ export interface Project {
     anatomy?: ProjectAnatomy;
     runtime?: ProjectRuntimeMap;
     pipeline?: ProjectPipeline;
+    keyring?: ProjectKeyring;
+    bridge?: ProjectBridgeMap;
 }
 
 export interface SocialLink {
