@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useScroll, useSpring } from "motion/react";
 import { navItems } from "@/data/nav";
 import { profile } from "@/data/profile";
 import { scrollToSection, scrollToTop } from "@/lib/scroll";
+import { startPageTransition } from "@/lib/transition";
 
 export function Navbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -66,7 +67,10 @@ export function Navbar() {
     const goToSection = (id: string) => {
         setMenuOpen(false);
         if (!isHome) {
-            navigate(`/#${id}`);
+            // 링크와 같은 커튼을 태운다 — 여기만 즉시 이동하면 전환이 한 곳에서만 튄다.
+            if (!startPageTransition(`/#${id}`)) {
+                navigate(`/#${id}`);
+            }
             return;
         }
         scrollToSection(id);

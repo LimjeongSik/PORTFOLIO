@@ -97,7 +97,7 @@ export function ProjectProcession({ screens }: ProjectProcessionProps) {
                 </span>
                 <span aria-hidden className="h-px flex-1 bg-line" />
             </div>
-            <div className="mt-4 aspect-[9/19.5] overflow-hidden rounded-4xl border border-line bg-surface transition-[transform,border-color] duration-500 ease-out group-hover:-translate-y-1.5 group-hover:border-espresso">
+            <div className="mt-4 aspect-9/19.5 overflow-hidden rounded-4xl border border-line bg-surface transition-[transform,border-color] duration-500 ease-out group-hover:-translate-y-1.5 group-hover:border-espresso">
                 <img
                     src={screen.src}
                     alt=""

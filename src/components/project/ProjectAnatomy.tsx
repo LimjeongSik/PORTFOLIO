@@ -147,7 +147,7 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
                     <figure className="w-[clamp(13rem,28vh,16.25rem)] shrink-0">
                         <div
                             ref={frame}
-                            className="aspect-[9/19.5] w-full overflow-hidden rounded-4xl border border-line bg-surface"
+                            className="aspect-9/19.5 w-full overflow-hidden rounded-4xl border border-line bg-surface"
                         >
                             {/* 프레임 폭을 정확히 채우고 세로로만 흐른다 — 가로로 밀면 상태바가 잘린다. */}
                             <img

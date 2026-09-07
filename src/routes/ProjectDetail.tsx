@@ -5,33 +5,34 @@ import { SanctuaryDetail } from "@/components/project/SanctuaryDetail";
 import { SignalDetail } from "@/components/project/SignalDetail";
 
 import { getAdjacentProjects, getProjectBySlug } from "@/data/projects";
+import { applyTheme, releaseTheme } from "@/lib/atmosphere";
 
 import type { ProjectTheme } from "@/types/content";
 
 const EMPTY_THEME = {} as ProjectTheme;
 
-function useProjectTheme(theme: ProjectTheme) {
+/**
+ * 이 프로젝트의 테마를 지면에 얹는다.
+ *
+ * 페이지를 넘기는 동안에는 홈과 상세가 잠시 함께 살아 있어, 언마운트가 마운트보다 나중에 온다.
+ * 그래서 색의 소유권은 `@/lib/atmosphere`가 한곳에서 들고 있고, 걷어내는 것도 아직 내가
+ * 주인일 때만 한다 — 직접 `removeProperty`를 부르면 도착한 쪽이 칠한 값까지 지운다.
+ */
+function useProjectTheme(slug: string, theme: ProjectTheme) {
     useEffect(() => {
-        const root = document.documentElement;
-        const keys = Object.keys(theme) as (keyof ProjectTheme)[];
-
-        for (const key of keys) {
-            root.style.setProperty(`--color-${key}`, theme[key]);
+        if (!slug) {
+            return;
         }
-
-        return () => {
-            for (const key of keys) {
-                root.style.removeProperty(`--color-${key}`);
-            }
-        };
-    }, [theme]);
+        applyTheme(slug, theme);
+        return () => releaseTheme(slug);
+    }, [slug, theme]);
 }
 
 export function ProjectDetail() {
     const { slug } = useParams();
     const project = getProjectBySlug(slug);
 
-    useProjectTheme(project?.theme ?? EMPTY_THEME);
+    useProjectTheme(project?.slug ?? "", project?.theme ?? EMPTY_THEME);
 
     if (!project) {
         return <Navigate to="/" replace />;

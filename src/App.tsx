@@ -1,19 +1,10 @@
-import { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
-
 import { AssistantLauncher } from "@/components/assistant/AssistantLauncher";
+import { Cursor } from "@/components/layout/Cursor";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { PageDissolve } from "@/components/layout/PageDissolve";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { useLenis } from "@/hooks/useLenis";
-
-import { Home } from "@/routes/Home";
-
-// 홈은 첫 진입 경로라 그대로 두고(지연 로드하면 요청만 한 단계 늘어난다),
-// 상세 페이지는 카드에서 이동할 때 받도록 분리한다.
-const ProjectDetail = lazy(() =>
-    import("@/routes/ProjectDetail").then((module) => ({ default: module.ProjectDetail })),
-);
 
 function App() {
     useLenis();
@@ -21,13 +12,11 @@ function App() {
     return (
         <>
             <ScrollToTop />
+            <Cursor />
             <Navbar />
-            <Suspense fallback={<div className="min-h-screen" />}>
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/projects/:slug" element={<ProjectDetail />} />
-                </Routes>
-            </Suspense>
+            {/* 라우트는 PageDissolve가 들고 있다 — 이동할 때 본문을 지면색으로 잠갔다가
+                다시 띄우기 위해서다. Navbar·Footer는 잠기지 않고 지면에 남는다. */}
+            <PageDissolve />
             <Footer />
             <AssistantLauncher />
         </>

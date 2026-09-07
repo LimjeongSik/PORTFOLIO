@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 
+import { PhoneShot } from "@/components/ui/PhoneShot";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import type { Variants } from "motion/react";
@@ -187,18 +188,16 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
                                             }}
                                             className="absolute left-[10%] w-[24%] rounded-[23%] border shadow-lg"
                                         />
-                                        <motion.img
+                                        <PhoneShot
                                             src={project.thumbnail}
                                             alt={project.title}
-                                            loading="lazy"
                                             // 화면은 판 아래로 흘려보낸다 — 세로 비를 지키면서
                                             // 잘라 넣지 않으려면 한쪽이 넘쳐야 한다.
                                             style={{
                                                 top: "9%",
-                                                borderColor: project.theme.line,
                                                 ...(reduced ? {} : { x: screenX, y: screenY }),
                                             }}
-                                            className="absolute right-[9%] w-[34%] rounded-2xl border shadow-xl"
+                                            className="absolute right-[9%] w-[34%] shadow-xl"
                                         />
                                     </div>
                                 ) : (

@@ -34,13 +34,16 @@
 }
 
 @theme {
-    --color-paper: #f4eee3;
-    --color-surface: #eae1d2;
-    --color-ink: #2c2722;
-    --color-muted: #8b8173;
-    --color-line: #d8cdbb;
-    --color-sand: #e4d3b2;
-    --color-espresso: #3b372f;
+    /* 홈의 기본 지면은 어두운 잉크다. 스크롤이 구간마다 이 값들을 프로젝트 테마로
+       갈아 끼우므로(@/lib/atmosphere) 여기 적힌 건 "아무 무드도 걸리지 않았을 때"의 바닥이다.
+       프로젝트 상세는 예전처럼 자기 theme을 :root에 주입해 이 값을 덮는다. */
+    --color-paper: #08070c;
+    --color-surface: #141119;
+    --color-ink: #f2efe9;
+    --color-muted: #8b8598;
+    --color-line: #26232f;
+    --color-sand: #1c1926;
+    --color-espresso: #e7e0d2;
 
     --font-display: "Space Grotesk", "Pretendard", sans-serif;
     --font-sans:
@@ -51,7 +54,7 @@
 }
 
 :root {
-    color-scheme: light;
+    color-scheme: dark;
 }
 
 html {
@@ -62,9 +65,11 @@ body {
     margin: 0;
     background-color: var(--color-paper);
     color: var(--color-ink);
+    /* 홈에서는 @/lib/atmosphere가 --color-* 자체를 트윈하므로 여기서 또 0.6s를 걸면
+       이징이 두 번 겹쳐 뭉개진다. 라우트 전환의 급변만 다듬을 만큼 짧게 남긴다. */
     transition:
-        background-color 0.6s var(--ease-out-expo),
-        color 0.6s var(--ease-out-expo);
+        background-color 0.25s linear,
+        color 0.25s linear;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;

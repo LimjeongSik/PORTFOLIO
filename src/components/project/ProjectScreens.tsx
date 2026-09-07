@@ -84,7 +84,7 @@ export function ProjectScreens({ screens, platform }: ProjectScreensProps) {
         return null;
     }
 
-    const frameShape = isMobile ? "aspect-[9/19.5] rounded-4xl" : "aspect-16/10 rounded-2xl";
+    const frameShape = isMobile ? "aspect-9/19.5 rounded-4xl" : "aspect-16/10 rounded-2xl";
     const frameChrome = "overflow-hidden border border-line bg-surface";
 
     return (
