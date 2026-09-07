@@ -1,5 +1,7 @@
-import { Suspense, useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+
+import { RouteBoundary } from "@/components/layout/RouteBoundary";
 
 import { projects } from "@/data/projects";
 import { closeAssistant } from "@/lib/assistant/bridge";
@@ -9,7 +11,7 @@ import { onLeaving } from "@/lib/leaving";
 import { seal } from "@/lib/scrollMemory";
 import { setTransitionRunner } from "@/lib/transition";
 import { Home } from "@/routes/Home";
-import { loadProjectDetail, ProjectDetailRoute } from "@/routes/lazy";
+import { createProjectDetailRoute, loadProjectDetail } from "@/routes/lazy";
 
 /**
  * 잠기는 시간과 떠오르는 시간.
@@ -126,6 +128,17 @@ export function PageDissolve() {
     keyRef.current = location.key;
     /** 뒤로가기로 떠나온 화면의 지면색. popstate 시점에는 아직 :root에 그 색이 남아 있다. */
     const leavingPaperRef = useRef<string | null>(null);
+
+    /**
+     * 상세 라우트는 상수가 아니라 **지금 쓰는 것**을 들고 있는다.
+     *
+     * 청크를 못 받아 한 번 넘어지면 그 `lazy`는 이후 렌더마다 같은 에러만 던진다
+     * (`routes/lazy.ts` 참고). 다시 시도할 때 새것으로 갈아 끼워야 되살아난다.
+     */
+    const [ProjectDetailRoute, setProjectDetailRoute] = useState(createProjectDetailRoute);
+    const retryProjectDetail = useCallback(() => {
+        setProjectDetailRoute(() => createProjectDetailRoute());
+    }, []);
 
     /**
      * 도착한 화면을 띄운다 — 링크로 왔든 뒤로가기로 왔든 뒷절반은 같다.
@@ -350,12 +363,14 @@ export function PageDissolve() {
             {/* 라우트는 문서 흐름에 그대로 둔다 — 감싸는 상자가 레이아웃에 끼어들면
                 안쪽의 fixed 배경이 그 상자를 기준으로 잡혀 버린다. */}
             <div ref={pageRef} style={{ display: "contents" }}>
-                <Suspense fallback={<div className="min-h-screen" />}>
-                    <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/projects/:slug" element={<ProjectDetailRoute />} />
-                    </Routes>
-                </Suspense>
+                <RouteBoundary resetKey={location.pathname} onRetry={retryProjectDetail}>
+                    <Suspense fallback={<div className="min-h-screen" />}>
+                        <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/projects/:slug" element={<ProjectDetailRoute />} />
+                        </Routes>
+                    </Suspense>
+                </RouteBoundary>
             </div>
 
             <div

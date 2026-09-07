@@ -47,11 +47,13 @@ src/
                                # useMoodZone(구간이 화면 가운데면 그 무드로 유지)
   routes/                      # Home(원페이지 조합) · ProjectDetail(slug 조회)
   routes/lazy.ts               # 상세 청크의 팩토리 — 화면을 굳히기 전에 미리 받는다
+                               # lazy는 상수가 아니라 공장이다(실패 후 갈아 끼우려고)
   components/
     layout/                    # Navbar · Footer · Cursor
                                # ScrollToTop(라우트별 스크롤 · POP이면 보던 자리로)
                                # PageDissolve(라우트 + 지면색으로 잠겼다 떠오르는 전환
                                #              · 링크 가로채기)
+                               # RouteBoundary(청크를 못 받았을 때 · 새 lazy로 재시도)
     sections/                  # Hero · About · Skills · Experience · Projects
     project/                   # ProjectCard · ProjectSheets(공용)
                                # SignalDetail  : ProjectHero · ProjectAmbient(canvas)
@@ -486,6 +488,11 @@ done
   Suspense 폴백(빈 화면)이 자리를 차지하고, 장이 걷힌 자리에 그것이 남는다.
   팩토리를 `routes/lazy.ts`로 꺼내 `navigate` 전에 미리 받는다
   (프로미스를 캐시하므로 `lazy`는 같은 것을 받는다).
+- **실패한 `lazy`는 다시 그려도 되살아나지 않는다**: React는 팩토리를 딱 한 번만 부르고 거부된
+  결과를 `Rejected`로 굳혀(`react.development.js`의 `lazyInitializer`) 이후 렌더마다 같은 에러를
+  던진다. **회선이 돌아와도 import를 재시도조차 하지 않는다** — 실제로 확인했다. 그래서
+  `routes/lazy.ts`의 프로미스 캐시에서 실패를 비우는 것만으로는 부족하고, `createProjectDetailRoute()`로
+  **새 `lazy`를 만들어 갈아 끼워야** 한다. 그 신호는 실패를 실제로 받아 내는 `RouteBoundary`가 준다.
 - **미리 받기의 상한은 하나로 못 쓴다**: 청크를 기다리는 상한이 하나뿐이면 짧을 때는 빈 화면이
   드러나고 길게 잡으면 클릭이 씹힌다. `PageDissolve`는 둘로 나눠 둔다 — `HOLD_BEFORE_DIM`(1.2초)은
   **잠그기 시작할 때**를, `HOLD_BEFORE_LIFT`(4초)는 **걷어도 되는 때**를 정한다. 베일이 덮인
