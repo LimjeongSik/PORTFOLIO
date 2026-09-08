@@ -104,9 +104,11 @@ export function ProjectShowcase({ screens, platform, title }: ProjectShowcasePro
                                     key={screen.name}
                                     className="flex flex-col justify-center gap-6 py-14 lg:min-h-[58svh] lg:py-0"
                                 >
-                                    {/* 좁은 창에서는 설명 위에 그 화면이 그대로 선다. */}
+                                    {/* 좁은 창에서는 설명 위에 그 화면이 그대로 선다 —
+                                        화면은 가운데, 글은 왼쪽이다. 한글 본문까지 가운데로
+                                        맞추면 줄 시작이 들쭉날쭉해 읽기 어렵다. */}
                                     <div
-                                        className={`w-full max-w-56 self-start lg:hidden ${frame}`}
+                                        className={`w-full max-w-56 self-center lg:hidden ${frame}`}
                                     >
                                         <img
                                             src={screen.src}
