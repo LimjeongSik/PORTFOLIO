@@ -408,22 +408,17 @@ export function mountStage(options: MountOptions): StageHandle | null {
      * 라우트가 갈리는 순간 지난 세계를 곧바로 버리면 물건들이 눈앞에서 사라진다. 그 한
      * 프레임이 "화면이 찰나에 꺼졌다"로 읽힌다(사용자 지적). 카메라가 착지한 뒤에 버리면
      * 그때는 이미 등 뒤이거나 안개 너머다.
+     *
+     * **살아 있는 세계로 세지 않는다.** 물러난 장소는 마지막 자세 그대로 씬에 남아 있을
+     * 뿐이고, 카메라 경로에도 갱신 루프에도 끼지 않는다 — 상세끼리 넘어갈 때 두 세계의
+     * 구간 이름이 똑같기 때문이다(§4 함정).
      */
     let retiring: Built | null = null;
     /* 갈아 끼워지는 장소를 `Set`으로 들면 버린 세계가 영영 남는다 — 약한 참조로 둔다. */
     const warmed = new WeakSet<Zone>();
 
-    const liveZones = () => {
-        if (!detailBuilt && !retiring) {
-            return homeBuilt.zones;
-        }
-        return [
-            ...homeBuilt.zones,
-            ...(detailBuilt?.zones ?? []),
-            // 물러나는 세계도 그리기에는 남는다. DOM에 제 구간이 없으니 키는 어차피 버려진다.
-            ...(retiring?.zones ?? []),
-        ];
-    };
+    const liveZones = () =>
+        detailBuilt ? [...homeBuilt.zones, ...detailBuilt.zones] : homeBuilt.zones;
     const keysFor = (aspect: number) => liveZones().flatMap((zone) => zone.keys(aspect));
 
     const resize = () => {
