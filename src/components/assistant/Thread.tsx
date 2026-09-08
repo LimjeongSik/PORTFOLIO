@@ -42,7 +42,13 @@ export function Thread() {
 
     return (
         <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col">
-            <ThreadPrimitive.Viewport className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
+            {/* Lenis가 window의 휠을 통째로 소유하므로, 그냥 두면 패널 안에서 굴려도 대화가
+                아니라 지면이 내려간다(사용자 지적). `data-lenis-prevent`는 이 상자 안에서
+                시작된 휠·터치를 Lenis가 건너뛰게 해, 포인터가 얹힌 쪽이 스크롤된다. */}
+            <ThreadPrimitive.Viewport
+                data-lenis-prevent
+                className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4"
+            >
                 <ThreadPrimitive.Empty>
                     <div className="flex flex-col gap-3">
                         <p className="text-sm leading-relaxed text-ink">
@@ -70,9 +76,12 @@ export function Thread() {
             </ThreadPrimitive.Viewport>
 
             <ComposerPrimitive.Root className="flex items-end gap-2 border-line border-t px-3 py-3">
+                {/* 입력칸도 길어지면 제 안에서 스크롤된다(`max-h-24`) — 대화 목록과 같은 이유로
+                    이 안에서 시작된 휠은 Lenis가 건드리지 않아야 한다. */}
                 <ComposerPrimitive.Input
                     rows={1}
                     autoFocus={pointerIsFine}
+                    data-lenis-prevent
                     placeholder="무엇이 궁금하신가요?"
                     className="max-h-24 min-h-9 flex-1 resize-none rounded-xl border border-line bg-paper px-3 py-2 text-sm text-ink placeholder:text-muted"
                 />
