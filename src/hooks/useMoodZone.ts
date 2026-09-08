@@ -25,7 +25,17 @@ export function useMoodZone(
             return;
         }
 
-        const apply = () => setMood(id, mood, { scene });
+        /* 트리거가 만들어지는 순간 스크롤이 이미 구간을 지나 있으면 ScrollTrigger는
+           onEnter와 onLeave를 연달아 쏜다(건너뛴 구간의 콜백을 채워 주는 기본 동작).
+           그러면 방금 마운트된 구간들이 문서 순서로 차례차례 지면을 칠하고, 마지막에 도는
+           부모(섹션)의 무드가 실제로 화면 가운데 있는 자식(카드)의 무드를 덮는다 —
+           창을 `lg` 경계 너머로 줄였다 늘릴 때 갤러리가 제목의 모래색으로 돌아가던 이유다.
+           지금 실제로 화면을 잡고 있을 때만 주장한다. */
+        const apply = (self: ScrollTrigger) => {
+            if (self.isActive) {
+                setMood(id, mood, { scene });
+            }
+        };
         const trigger = ScrollTrigger.create({
             trigger: element,
             start: "top 55%",

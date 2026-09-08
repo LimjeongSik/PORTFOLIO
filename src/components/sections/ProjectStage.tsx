@@ -1,10 +1,10 @@
-import { useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 
 import { Tag } from "@/components/ui/Tag";
 
 import { moodFromAccent, setMood } from "@/lib/atmosphere";
-import { ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { ScrollTrigger } from "@/lib/gsap";
 import { getLenisInstance } from "@/lib/lenis";
 
 import type { Mood } from "@/lib/atmosphere";
@@ -47,135 +47,143 @@ export function ProjectStage({ projects, leadMood }: ProjectStageProps) {
         [projects],
     );
 
-    useGSAP(
-        () => {
-            const rail = railRef.current;
-            const track = trackRef.current;
-            if (!rail || !track) {
+    /* `useGSAP`을 쓰지 않는다 — 여기서 만드는 건 트리거 하나뿐이고 트윈이 없다. 그런데
+       `useGSAP`의 컨텍스트는 콜백 안에서 동기로 만들어지는 트윈을 전부 포획하므로, 첫 자세를
+       잡으며 부른 `setMood`의 지면색 트윈까지 붙잡는다. 개발 서버의 StrictMode가 이펙트를
+       두 번 돌리면 첫 컨텍스트의 revert가 그 트윈을 죽이고, 두 번째 호출은 같은 id라
+       건너뛴다 — 무드는 바뀌었다고 기록됐는데 화면은 그대로인 반쪽 상태가 된다.
+       레이아웃 이펙트인 이유는 첫 페인트 전에 레일을 제자리에 두기 위해서다. */
+    useLayoutEffect(() => {
+        const rail = railRef.current;
+        const track = trackRef.current;
+        if (!rail || !track) {
+            return;
+        }
+
+        /** 레일 안에서의 카드 중심 위치. 리사이즈 때 다시 잰다. */
+        let centers: number[] = [];
+
+        const measure = () => {
+            const nodes = cards.current.filter((node): node is HTMLLIElement => node !== null);
+            centers = nodes.map((node) => node.offsetLeft + node.offsetWidth / 2);
+        };
+
+        /**
+         * 레일과 카드의 자세를 진행률에 맞춘다. `claim`이 참일 때만 가운데 카드의 방을
+         * 지면에 주장한다 — 갤러리가 화면을 잡고 있지 않은데 색을 칠하면 안 된다.
+         *
+         * "마지막에 주장한 카드"를 여기서 따로 기억하지 않는다. 그 사이 다른 구간이 지면을
+         * 칠했으면 그 기억은 거짓이 되고, 같은 카드라며 다시 칠하지 않는다(뒤로가기 복원 ·
+         * 리사이즈 재마운트에서 실제로 그랬다). 같은 id면 `setMood`가 알아서 건너뛴다.
+         */
+        const paint = (progress: number, claim: boolean) => {
+            const count = centers.length;
+            if (count === 0) {
                 return;
             }
 
-            /** 레일 안에서의 카드 중심 위치. 리사이즈 때 다시 잰다. */
-            let centers: number[] = [];
-
-            const measure = () => {
-                const nodes = cards.current.filter((node): node is HTMLLIElement => node !== null);
-                centers = nodes.map((node) => node.offsetLeft + node.offsetWidth / 2);
-            };
-
-            let last = -1;
-
-            const paint = (progress: number) => {
-                const count = centers.length;
-                if (count === 0) {
-                    return;
-                }
-
-                /* 스크롤을 거리에 균등하게 나누면 카드가 화면 한가운데에 서 있는 시간보다
+            /* 스크롤을 거리에 균등하게 나누면 카드가 화면 한가운데에 서 있는 시간보다
                    두 카드가 반씩 걸쳐 있는 시간이 길어진다. 대신 **카드 중심 사이를** 오가되
                    그 사이를 빠르게 지나는 곡선을 쓴다 — 카드는 중앙에 머물고 전환만 짧다. */
-                const t = progress * (count - 1);
-                const from = Math.max(0, Math.min(count - 2, Math.floor(t)));
-                const f = Math.max(0, Math.min(1, t - from));
-                const eased = f * f * f * (f * (f * 6 - 15) + 10);
-                const center =
-                    count > 1
-                        ? centers[from] + (centers[from + 1] - centers[from]) * eased
-                        : centers[0];
+            const t = progress * (count - 1);
+            const from = Math.max(0, Math.min(count - 2, Math.floor(t)));
+            const f = Math.max(0, Math.min(1, t - from));
+            const eased = f * f * f * (f * (f * 6 - 15) + 10);
+            const center =
+                count > 1
+                    ? centers[from] + (centers[from + 1] - centers[from]) * eased
+                    : centers[0];
 
-                const middle = window.innerWidth / 2;
-                const shift = middle - center;
-                rail.style.transform = `translate3d(${shift}px, 0, 0)`;
+            const middle = window.innerWidth / 2;
+            const shift = middle - center;
+            rail.style.transform = `translate3d(${shift}px, 0, 0)`;
 
-                centers.forEach((cardCenter, index) => {
-                    const node = cards.current[index];
-                    if (!node) {
-                        return;
-                    }
-                    // 이 카드의 중심이 지금 화면 어디에 있는가.
-                    const offset = cardCenter + shift - middle;
-                    const ratio = Math.max(-1.4, Math.min(1.4, offset / middle));
-
-                    node.style.transform = `rotateY(${-ratio * MAX_YAW}deg) translateZ(${-Math.abs(ratio) * 90}px)`;
-                    node.style.opacity = String(1 - Math.min(1, Math.abs(ratio)) * 0.62);
-                });
-
-                const nearest = Math.max(0, Math.min(count - 1, Math.round(t)));
-                if (nearest !== last) {
-                    last = nearest;
-                    setMood(projects[nearest].slug, moods[nearest], { scene: 4 });
+            centers.forEach((cardCenter, index) => {
+                const node = cards.current[index];
+                if (!node) {
+                    return;
                 }
-            };
+                // 이 카드의 중심이 지금 화면 어디에 있는가.
+                const offset = cardCenter + shift - middle;
+                const ratio = Math.max(-1.4, Math.min(1.4, offset / middle));
 
-            measure();
-
-            const trigger = ScrollTrigger.create({
-                trigger: track,
-                start: "top top",
-                end: "bottom bottom",
-                onUpdate: (self) => paint(self.progress),
-                onLeaveBack: () => {
-                    last = -1;
-                    setMood("work-lead", leadMood, { scene: 4 });
-                },
-                /* 다시 잴 때 갤러리가 화면을 잡고 있으면 자기 방을 한 번 더 주장한다.
-                   스크롤이 한 번에 건너뛰면(뒤로가기 복원) 위쪽 구간의 트리거들이 지면색을
-                   자기 것으로 덮는다 — 마지막에 말하는 쪽이 갤러리여야 한다. */
-                onRefresh: (self) => {
-                    measure();
-                    if (self.isActive) {
-                        last = -1;
-                        paint(self.progress);
-                    }
-                },
+                node.style.transform = `rotateY(${-ratio * MAX_YAW}deg) translateZ(${-Math.abs(ratio) * 90}px)`;
+                node.style.opacity = String(1 - Math.min(1, Math.abs(ratio)) * 0.62);
             });
 
-            paint(0);
+            if (!claim) {
+                return;
+            }
+            const nearest = Math.max(0, Math.min(count - 1, Math.round(t)));
+            setMood(projects[nearest].slug, moods[nearest], { scene: 4 });
+        };
 
-            // ← → 로 한 장씩. 갤러리가 화면을 잡고 있을 때만 받는다.
-            const onKeyDown = (event: KeyboardEvent) => {
-                if (
-                    !trigger.isActive ||
-                    (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
-                ) {
-                    return;
-                }
-                const active = document.activeElement;
-                if (
-                    active instanceof HTMLElement &&
-                    active.closest("input, textarea, [contenteditable]")
-                ) {
-                    return;
-                }
-                event.preventDefault();
-                const count = centers.length;
-                if (count < 2) {
-                    return;
-                }
-                const perCard = (track.offsetHeight - window.innerHeight) / (count - 1);
-                const current = Math.round(trigger.progress * (count - 1));
-                const next = Math.max(
-                    0,
-                    Math.min(count - 1, current + (event.key === "ArrowRight" ? 1 : -1)),
-                );
-                const target = track.offsetTop + next * perCard;
-                const lenis = getLenisInstance();
-                if (lenis) {
-                    lenis.scrollTo(target, { duration: 0.9 });
-                } else {
-                    window.scrollTo({ top: target, behavior: "smooth" });
-                }
-            };
+        measure();
 
-            window.addEventListener("keydown", onKeyDown);
+        /* 갤러리가 지면색을 말할 자격이 있는가 — 화면을 잡고 있거나, 이미 끝까지 지나
+               아래(푸터)에 있을 때. 위로 벗어난 경우(진행률 0)만 자격이 없다. */
+        const holds = (self: ScrollTrigger) => self.isActive || self.progress >= 1;
 
-            return () => {
-                trigger.kill();
-                window.removeEventListener("keydown", onKeyDown);
-            };
-        },
-        { scope: trackRef, dependencies: [projects, moods, leadMood] },
-    );
+        const trigger = ScrollTrigger.create({
+            trigger: track,
+            start: "top top",
+            end: "bottom bottom",
+            onUpdate: (self) => paint(self.progress, holds(self)),
+            onLeaveBack: () => setMood("work-lead", leadMood, { scene: 4 }),
+            /* 다시 잴 때 갤러리가 화면을 잡고 있으면 자기 방을 한 번 더 주장한다.
+                   스크롤이 한 번에 건너뛰면(뒤로가기 복원) 위쪽 구간의 트리거들이 지면색을
+                   자기 것으로 덮는다 — 마지막에 말하는 쪽이 갤러리여야 한다. */
+            onRefresh: (self) => {
+                measure();
+                paint(self.progress, holds(self));
+            },
+        });
+
+        /* 처음 자세는 지금 스크롤 위치에서 잰다. 색은 갤러리가 화면을 잡고 있을 때만 —
+               무조건 첫 프로젝트의 방을 칠하면, 창을 `lg` 아래로 줄였다 늘려 무대가 다시
+               마운트될 때 히어로에 서 있어도 지면이 SafeOps의 주황으로 물든다(사용자 지적).
+               첫 로드에서는 뒤이어 도는 히어로 트리거가 덮어 주어 보이지 않던 버그다. */
+        paint(trigger.progress, holds(trigger));
+
+        // ← → 로 한 장씩. 갤러리가 화면을 잡고 있을 때만 받는다.
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (!trigger.isActive || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) {
+                return;
+            }
+            const active = document.activeElement;
+            if (
+                active instanceof HTMLElement &&
+                active.closest("input, textarea, [contenteditable]")
+            ) {
+                return;
+            }
+            event.preventDefault();
+            const count = centers.length;
+            if (count < 2) {
+                return;
+            }
+            const perCard = (track.offsetHeight - window.innerHeight) / (count - 1);
+            const current = Math.round(trigger.progress * (count - 1));
+            const next = Math.max(
+                0,
+                Math.min(count - 1, current + (event.key === "ArrowRight" ? 1 : -1)),
+            );
+            const target = track.offsetTop + next * perCard;
+            const lenis = getLenisInstance();
+            if (lenis) {
+                lenis.scrollTo(target, { duration: 0.9 });
+            } else {
+                window.scrollTo({ top: target, behavior: "smooth" });
+            }
+        };
+
+        window.addEventListener("keydown", onKeyDown);
+
+        return () => {
+            trigger.kill();
+            window.removeEventListener("keydown", onKeyDown);
+        };
+    }, [projects, moods, leadMood]);
 
     return (
         <div

@@ -14,7 +14,7 @@ import { CRAFT_MOOD, moodFromAccent } from "@/lib/atmosphere";
 import type { Project } from "@/types/content";
 
 export function Projects() {
-    const root = useRef<HTMLElement>(null);
+    const lead = useRef<HTMLDivElement>(null);
     const reduced = useReducedMotion();
     const wide = useMediaQuery("(min-width: 1024px)");
 
@@ -22,12 +22,15 @@ export function Projects() {
     // 그 밖에서는 지금까지의 지그재그 목록을 그대로 쓴다 — 같은 내용을 스크롤 없이 펼쳐 준다.
     const staged = wide && !reduced;
 
-    // 목록으로 떨어질 때는 무대가 무드를 몰지 않으므로, 이 섹션이 직접 자기 방을 잡는다.
-    useMoodZone(root, staged ? "work-lead" : "work-list", CRAFT_MOOD, 4);
+    /* 제목 영역만 이 섹션의 방이다 — 섹션 전체를 존으로 잡으면 갤러리·카드의 방과 겹쳐,
+       트리거가 한꺼번에 다시 만들어질 때(리사이즈 · 복원) 나중에 도는 이쪽이 이긴다.
+       제목을 지나 무대에 들어가면 카드가 제 방을 주장하고, 위로 되돌아오면 무대의
+       onLeaveBack이 이 방으로 돌려놓는다. */
+    useMoodZone(lead, staged ? "work-lead" : "work-list", CRAFT_MOOD, 4);
 
     return (
-        <section ref={root} id="projects" className="scroll-mt-20 px-0 pt-24 sm:pt-32">
-            <div className="px-6">
+        <section id="projects" className="scroll-mt-20 px-0 pt-24 sm:pt-32">
+            <div ref={lead} className="px-6">
                 <div className="mx-auto max-w-6xl">
                     <SectionHeading
                         index="04"
