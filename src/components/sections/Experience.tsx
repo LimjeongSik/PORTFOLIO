@@ -94,6 +94,9 @@ export function Experience() {
                             <article
                                 key={`${exp.company}-${exp.period}`}
                                 className="timeline-entry relative"
+                                // 홈 무대의 카메라가 이 항목이 화면 가운데 올 때 같은 순서의
+                                // 연도 판을 보도록 잡아 주는 닻(stage/timeline).
+                                data-stage-anchor=""
                             >
                                 <span className="timeline-dot absolute top-1.5 -left-8 h-2 w-2 rounded-full bg-espresso ring-4 ring-paper sm:-left-12 sm:h-3.5 sm:w-3.5" />
                                 <div className="timeline-card origin-top">

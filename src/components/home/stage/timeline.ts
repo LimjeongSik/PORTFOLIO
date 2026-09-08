@@ -11,6 +11,12 @@ import type { Vector3 } from "three";
  * 풀어 스플라인에 다시 올린다. 구간과 구간 사이(다리·섹션 제목)는 키가 없어도 스플라인이
  * 이어 주므로, 그 사이 스크롤이 곧 카메라가 다음 장소로 날아가는 시간이 된다.
  *
+ * 구간 안에 **닻(`data-stage-anchor`)** 이 둘 이상 있으면 자리는 구간 상자가 아니라 닻을
+ * 따른다 — 0은 첫 닻이, 1은 마지막 닻이 화면 가운데 오는 순간이고 그 사이는 닻 사이를 고르게
+ * 나눈다. 내용이 구간보다 짧거나 항목 높이가 제각각인 구간(경력)에서, 카메라가 보는 판과
+ * 화면에 읽히는 항목이 같은 순간에 맞아야 하기 때문이다. 구간 상자로 재면 화면 비율마다
+ * 다르게 어긋난다.
+ *
  * 스플라인은 **단조 큐빅**(Fritsch–Carlson)이다. 키 사이 간격이 몹시 고르지 않다 — 구간 안의
  * 키는 150px 간격인데 구간 사이는 1,000px이 넘는다. 보통의 캣멀롬은 긴 구간의 속도를 짧은
  * 구간에 물려주어 키를 지나쳐 튀고(드럼 한가운데 서야 할 카메라가 벽에 붙는다), 단조 큐빅은
@@ -22,7 +28,11 @@ export type ZoneName = (typeof ZONES)[number];
 
 export interface CameraKey {
     zone: ZoneName;
-    /** 구간 안의 자리(0~1). 0은 구간이 화면에 붙는 순간, 1은 떠나기 직전. */
+    /**
+     * 구간 안의 자리(0~1). 0은 구간이 화면에 붙는 순간, 1은 떠나기 직전.
+     * 닻이 있는 구간에서는 0이 첫 닻, 1이 마지막 닻이고, **1~2는 마지막 닻에서 구간 끝까지**다 —
+     * 마지막 항목을 읽는 동안 카메라를 그 자리에 붙들어 두는 데 쓴다(`at: 2`).
+     */
     at: number;
     position: readonly [number, number, number];
     look: readonly [number, number, number];
@@ -32,7 +42,12 @@ export interface CameraKey {
 interface Range {
     start: number;
     end: number;
+    /** 닻마다 그것이 화면 가운데 오는 스크롤 위치. 닻이 둘 미만이면 없다. */
+    anchors: number[] | null;
 }
+
+/** 닻이 화면의 어느 높이에 왔을 때 "도착"으로 치는가 — 경력의 점이 켜지는 선과 맞춘다. */
+const ANCHOR_LINE = 0.5;
 
 function clamp01(value: number) {
     return value < 0 ? 0 : value > 1 ? 1 : value;
@@ -143,9 +158,18 @@ export class Timeline {
             }
             const rect = node.getBoundingClientRect();
             const start = rect.top + window.scrollY;
+            const anchors = Array.from(node.querySelectorAll<HTMLElement>("[data-stage-anchor]"))
+                .map(
+                    (anchor) =>
+                        anchor.getBoundingClientRect().top +
+                        window.scrollY -
+                        this.viewport * ANCHOR_LINE,
+                )
+                .sort((a, b) => a - b);
             this.ranges.set(name, {
                 start,
                 end: start + Math.max(1, rect.height - this.viewport),
+                anchors: anchors.length >= 2 ? anchors : null,
             });
         }
         this.build(keys);
@@ -155,13 +179,29 @@ export class Timeline {
         return this.ranges.has(zone);
     }
 
-    /** 구간이 차지한 스크롤 안에서 지금 어디까지 왔는가(0~1). */
+    /** 구간이 차지한 스크롤 안에서 지금 어디까지 왔는가(0~1). 닻이 있으면 닻 사이의 자리다. */
     localOf(zone: ZoneName, scroll: number) {
         const range = this.ranges.get(zone);
         if (!range) {
             return 0;
         }
-        return clamp01((scroll - range.start) / (range.end - range.start));
+        const anchors = range.anchors;
+        if (!anchors) {
+            return clamp01((scroll - range.start) / (range.end - range.start));
+        }
+        const last = anchors.length - 1;
+        if (scroll <= anchors[0]) {
+            return 0;
+        }
+        if (scroll >= anchors[last]) {
+            return 1;
+        }
+        let lo = 0;
+        while (lo < last - 1 && anchors[lo + 1] <= scroll) {
+            lo += 1;
+        }
+        const span = Math.max(1, anchors[lo + 1] - anchors[lo]);
+        return (lo + (scroll - anchors[lo]) / span) / last;
     }
 
     /** 구간에서 얼마나 떨어져 있는가 — 화면 높이 단위. 안에 있으면 0. */
@@ -179,13 +219,25 @@ export class Timeline {
         return 0;
     }
 
-    /** 구간 안의 자리(0~1)를 실제 스크롤 픽셀로. */
+    /** 구간 안의 자리(0~1)를 실제 스크롤 픽셀로. 닻이 있으면 닻 사이를 고르게 나눈 자리다. */
     scrollOf(zone: ZoneName, at: number) {
         const range = this.ranges.get(zone);
         if (!range) {
             return null;
         }
-        return range.start + (range.end - range.start) * at;
+        const anchors = range.anchors;
+        if (!anchors) {
+            return range.start + (range.end - range.start) * at;
+        }
+        const last = anchors.length - 1;
+        if (at > 1) {
+            // 마지막 닻 뒤는 구간 끝까지 — 구간이 닻보다 먼저 끝나면 그 자리에 겹친다.
+            const tail = Math.max(anchors[last], range.end);
+            return anchors[last] + (tail - anchors[last]) * (Math.min(at, 2) - 1);
+        }
+        const spot = clamp01(at) * last;
+        const lo = Math.min(last - 1, Math.floor(spot));
+        return anchors[lo] + (anchors[lo + 1] - anchors[lo]) * (spot - lo);
     }
 
     /**

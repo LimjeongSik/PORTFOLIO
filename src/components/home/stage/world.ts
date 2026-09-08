@@ -520,6 +520,9 @@ export function buildStair(ctx: WorldContext): Zone {
         );
         keys.push(key("experience", t, position, look, 50));
     }
+    // 마지막 항목이 화면 가운데 온 뒤 구간이 끝날 때까지 꼭대기에 머문다. 바로 떠나면
+    // 카메라가 마지막 연도 판을 뚫고 나가는 게 읽는 도중에 보인다.
+    keys.push(key("experience", 2, position, look, 50));
 
     const world = new Vector3();
 
@@ -559,45 +562,61 @@ export function buildGallery(ctx: WorldContext): Zone {
 
     const stations = projects.map((project, index) => {
         const center = new Vector3(index * GALLERY_GAP, -0.2, 0);
+        const scale = project.platform === "mobile" ? 0.95 : 0.8;
         const satellites = project.screens.slice(0, 3).map((screen, k) => {
             const device = (project.platform === "mobile" ? ctx.phone : ctx.window)(screen.src);
-            device.group.scale.setScalar(project.platform === "mobile" ? 0.95 : 0.8);
+            device.group.scale.setScalar(scale);
             group.add(device.group);
             return { device, phase: (k / 3) * TAU };
         });
 
         /* 프로젝트의 색은 여기서만 터진다 — 자리마다 그 프로젝트 색의 고리가 떠 있고,
            블룸이 그 빛을 지면에 번지게 한다. */
-        const halo = new Mesh(
-            haloGeometry,
-            ctx.disposer.add(
-                new MeshBasicMaterial({ color: project.theme.espresso, toneMapped: false }),
-            ),
+        const haloMaterial = ctx.disposer.add(
+            new MeshBasicMaterial({
+                color: project.theme.espresso,
+                toneMapped: false,
+                transparent: true,
+            }),
         );
+        const halo = new Mesh(haloGeometry, haloMaterial);
         halo.position.copy(center);
         halo.position.z -= 1.2;
         group.add(halo);
 
-        return { center, satellites, halo };
+        return { center, satellites, halo, haloMaterial, scale };
     });
 
-    const keys: CameraKey[] = [];
+    const FOV = 46;
+    const DISTANCE = 10;
     const position = new Vector3();
     const look = new Vector3();
     const last = projects.length - 1;
-    for (let index = 0; index <= last; index += 1) {
-        for (const f of index < last ? [0, 0.25, 0.5, 0.75] : [0]) {
-            const x = GALLERY.x + (index + dwell(f)) * GALLERY_GAP;
-            position.set(x, GALLERY.y + 0.4, GALLERY.z + 10);
-            look.set(x, GALLERY.y - 0.1, GALLERY.z - 2);
-            keys.push(key("projects", last === 0 ? 0 : (index + f) / last, position, look, 46));
+    /* DOM 카드는 왼쪽에 썸네일, 오른쪽에 본문이라 한가운데는 썸네일 가장자리다. 자리를
+       정면에 두면 고리가 썸네일 뒤에 깔리고, 여백까지 밀면 화면 밖으로 나간다(사용자 지적).
+       본문 기둥 뒤에 오도록 카메라를 조금만 왼쪽으로 비켜 세운다 — 얼마나 비킬지는 그
+       거리에서 보이는 반폭의 비율이라 창 비율마다 다시 잰다. */
+    const keysFor = (aspect: number) => {
+        const halfWidth = Math.tan((FOV / 2) * (Math.PI / 180)) * DISTANCE * aspect;
+        const aside = halfWidth * 0.25;
+        const keys: CameraKey[] = [];
+        for (let index = 0; index <= last; index += 1) {
+            for (const f of index < last ? [0, 0.25, 0.5, 0.75] : [0]) {
+                const x = GALLERY.x + (index + dwell(f)) * GALLERY_GAP - aside;
+                position.set(x, GALLERY.y + 0.4, GALLERY.z + DISTANCE);
+                look.set(x, GALLERY.y - 0.1, GALLERY.z - 2);
+                keys.push(
+                    key("projects", last === 0 ? 0 : (index + f) / last, position, look, FOV),
+                );
+            }
         }
-    }
+        return keys;
+    };
 
     return {
         name: "projects",
         group,
-        keys: () => keys,
+        keys: keysFor,
         warm() {
             for (const station of stations) {
                 for (const satellite of station.satellites) {
@@ -608,12 +627,21 @@ export function buildGallery(ctx: WorldContext): Zone {
         update(local, frame) {
             const t = local * last;
             for (const [index, station] of stations.entries()) {
-                // 카메라가 이 자리로 올 때 화면들이 한 바퀴 돌아 자리를 잡는다.
-                const swing = (t - index) * Math.PI * 1.1 + frame.lag * 0.5;
+                // 카드 하나를 지나는 동안 화면들이 정확히 한 바퀴 돈다 — 스크롤이 곧 회전각이다.
+                const swing = (t - index) * TAU + frame.lag * 0.5;
                 const near = 1 - clamp01(Math.abs(t - index) / 1.5);
+                /* 자리 사이가 화면 폭보다 좁아, 그대로 두면 다음 자리에 서도 지나온 고리가
+                   썸네일 뒤로 비친다(사용자 지적). 지나온 자리와 다음 자리는 카메라가 그
+                   앞에 서기 전에 접는다 — 이 장소만은 "지나온 자리가 남는다"의 예외다. */
+                const presence = 1 - smoothstep(0.3, 0.9, Math.abs(t - index));
+                const shown = presence > 0.001;
+                station.halo.visible = shown;
+                station.haloMaterial.opacity = presence;
                 for (const satellite of station.satellites) {
                     const angle = swing + satellite.phase;
                     const orbit = satellite.device.group;
+                    orbit.visible = shown;
+                    orbit.scale.setScalar(station.scale * presence);
                     orbit.position.set(
                         station.center.x + Math.cos(angle) * 3.1,
                         station.center.y +

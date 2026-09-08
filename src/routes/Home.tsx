@@ -68,9 +68,10 @@ export function Home() {
                 <Roomy zoneRef={skillsZone} zone="skills" length={300}>
                     <Skills />
                 </Roomy>
-                {/* 경력은 항목이 다섯이라 화면 하나에 담기지 않는다 — 붙이지 않고 흐르게 두되,
-                    터널을 통과하는 동안 읽히도록 구간만 길게 잡는다. */}
-                <div ref={experienceZone} data-stage-zone="experience" className="min-h-[320svh]">
+                {/* 경력은 항목이 다섯이라 화면 하나에 담기지 않는다 — 붙이지 않고 흐르게 둔다.
+                    카메라는 구간 상자가 아니라 항목마다의 닻(data-stage-anchor)을 따라 오르므로,
+                    여기 최소 높이는 마지막 항목을 읽은 뒤 갤러리로 날아갈 여유만 준다. */}
+                <div ref={experienceZone} data-stage-zone="experience" className="min-h-[240svh]">
                     <Experience />
                 </div>
                 <Projects />

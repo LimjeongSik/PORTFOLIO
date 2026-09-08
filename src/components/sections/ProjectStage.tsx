@@ -16,8 +16,8 @@ interface ProjectStageProps {
     leadMood: Mood;
 }
 
-/** 카드 하나가 지나가는 데 쓰는 세로 스크롤(vh). */
-const PER_CARD = 104;
+/** 카드 하나가 지나가는 데 쓰는 세로 스크롤(vh). 그동안 뒤의 화면 위성이 한 바퀴 돈다. */
+const PER_CARD = 135;
 
 /** 가장자리 카드가 정면에서 벗어나는 최대 각도(도). */
 const MAX_YAW = 26;
