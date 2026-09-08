@@ -232,9 +232,20 @@ export function buildHall(ctx: WorldContext): Zone {
 
 const MONOLITH = new Vector3(16, 0, -66);
 
+/**
+ * 비석이 향하는 방향(라디안). 복도 축(+z 쪽)이 아니라 오른쪽(+x)에 가깝게 틀어 둔다.
+ *
+ * 카메라는 늘 비석을 보며 돌기 때문에 궤도 각이 늘면 시선은 왼쪽으로 돈다. 그런데 비석은
+ * 복도의 오른쪽에 있어 복도에서 날아드는 동안은 시선이 오른쪽으로 돈다 — 진입점이 앞왼쪽이면
+ * 도착하자마자 방향이 뒤집혀 덜컥거린다(사용자 지적). 비석과 궤도를 함께 돌려 진입점을
+ * 앞오른쪽에 두면, 진입 비행부터 궤도, 드럼으로 나가는 비행까지 전부 왼쪽으로만 돈다.
+ */
+const MONOLITH_TURN = 1.45;
+
 export function buildMonolith(ctx: WorldContext): Zone {
     const group = new Group();
     group.position.copy(MONOLITH);
+    group.rotation.y = MONOLITH_TURN;
 
     const WIDTH = 2.6;
     const HEIGHT = 3.3;
@@ -329,8 +340,8 @@ export function buildMonolith(ctx: WorldContext): Zone {
            때문이다. 세로 창에서는 본문이 가운데라 비켜 잡을 곳이 없으니 정면에 둔다. */
         const aside = aspect > 1 ? -2.4 : 0;
         for (const t of [0, 0.2, 0.4, 0.6, 0.8, 1]) {
-            // 왼쪽 앞에서 들어와 정면을 지나 오른쪽 뒤로 — 뒷면의 명패까지 본다.
-            const angle = -1.15 + t * 3.65;
+            // 정면에서 66° 비껴 들어와 정면을 지나 뒤로 — 뒷면의 명패까지 본다.
+            const angle = MONOLITH_TURN - 1.15 + t * 3.65;
             position.set(
                 MONOLITH.x + Math.sin(angle) * 8.4,
                 MONOLITH.y + 0.5 - t * 0.9 + Math.sin(t * Math.PI) * 0.7,
