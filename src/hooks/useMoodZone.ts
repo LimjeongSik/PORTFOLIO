@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 import { setMood } from "@/lib/atmosphere";
 import { ScrollTrigger } from "@/lib/gsap";
@@ -19,7 +19,10 @@ export function useMoodZone(
     mood: Mood,
     scene: number,
 ) {
-    useEffect(() => {
+    /* 레이아웃 이펙트인 이유: 구간이 갈아 끼워질 때(무대 ↔ 목록) 떠나는 쪽의 트리거가 새 쪽의
+       레이아웃 이펙트보다 먼저 죽어야 한다. 일반 이펙트로 두면 새 쪽이 스크롤을 옮기는 순간
+       옛 레이아웃 기준의 트리거가 아직 살아 있어 엉뚱한 카드의 방을 주장한다. */
+    useLayoutEffect(() => {
         const element = ref.current;
         if (!element) {
             return;

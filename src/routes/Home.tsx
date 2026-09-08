@@ -16,6 +16,7 @@ const Stage = lazy(() => import("@/components/home/Stage"));
 import {
     CRAFT_MOOD,
     clearMood,
+    isMoodMounted,
     PROFILE_MOOD,
     SKILL_MOOD,
     setMood,
@@ -30,10 +31,14 @@ export function Home() {
     const skillsZone = useRef<HTMLDivElement>(null);
     const experienceZone = useRef<HTMLDivElement>(null);
 
-    // 첫 페인트는 트리거를 기다리지 않고 히어로의 방으로 바로 맞춘다.
+    // 첫 페인트는 트리거를 기다리지 않고 히어로의 방으로 바로 맞춘다 — 단, 구간 트리거는
+    // 레이아웃 이펙트라 이보다 먼저 돈다. 복원된 스크롤이 이미 어느 구간 안이면 그쪽이 먼저
+    // 말했으므로 덮지 않는다(덮으면 다음 경계를 넘을 때까지 히어로 색으로 남는다).
     // 홈을 벗어날 때는 주입한 값을 걷어 프로젝트 상세가 자기 테마를 그대로 얹게 한다.
     useEffect(() => {
-        setMood("hero", VOID_MOOD, { immediate: true, scene: 0 });
+        if (!isMoodMounted()) {
+            setMood("hero", VOID_MOOD, { immediate: true, scene: 0 });
+        }
         return () => clearMood();
     }, []);
 
