@@ -12,6 +12,23 @@ const NAV_OFFSET = -80;
  *
  * `scroll-mt-*`(CSS scroll-margin)는 Lenis가 보지 않는다 — 여백은 여기서 준다.
  */
+/**
+ * 지정한 문서 위치로 즉시 옮긴다.
+ *
+ * `lenis.resize()`를 먼저 부르는 이유: 리사이즈 감지가 250ms 디바운스라, 조판이 방금 갈린
+ * 직후에는 Lenis가 든 한계값이 **옛 문서 높이**다. 그 값으로 클램프되면 긴 페이지에서
+ * 짧은 페이지로 갈 때 목표가 통째로 잘린다.
+ */
+export function scrollToOffset(top: number) {
+    const lenis = getLenisInstance();
+    if (lenis) {
+        lenis.resize();
+        lenis.scrollTo(top, { immediate: true, force: true });
+        return;
+    }
+    window.scrollTo({ top, left: 0, behavior: "instant" as ScrollBehavior });
+}
+
 export function scrollToSection(id: string): boolean {
     const target = document.getElementById(id);
     if (!target) return false;

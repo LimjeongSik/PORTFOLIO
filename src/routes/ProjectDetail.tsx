@@ -8,6 +8,7 @@ import { ProjectSheets } from "@/components/project/ProjectSheets";
 import { ProjectShowcase } from "@/components/project/ProjectShowcase";
 import { ProjectSignature } from "@/components/project/ProjectSignature";
 import { LABEL_MUTED, SHOWCASE } from "@/components/project/typography";
+import { useReadingAnchor } from "@/hooks/useReadingAnchor";
 
 import { getAdjacentProjects, getProjectBySlug } from "@/data/projects";
 import { applyTheme, releaseTheme } from "@/lib/atmosphere";
@@ -57,6 +58,10 @@ export function ProjectDetail() {
     const project = getProjectBySlug(slug);
 
     useProjectTheme(project?.slug ?? "", project?.theme ?? EMPTY_THEME);
+    /* 창 폭이 `lg` 경계를 넘으면 조판이 통째로 갈린다(붙어 선 기기 · 해부 구간의 pin 여백).
+       브라우저는 픽셀을 지키려 하므로 그대로 두면 읽던 자리를 잃는다 — 보고 있던 화면·사례를
+       보존한다. */
+    useReadingAnchor();
 
     if (!project) {
         return <Navigate to="/" replace />;

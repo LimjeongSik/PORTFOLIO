@@ -3,29 +3,19 @@ import { useLocation, useNavigationType } from "react-router-dom";
 
 import { ScrollTrigger } from "@/lib/gsap";
 import { onLeaving } from "@/lib/leaving";
-import { getLenisInstance } from "@/lib/lenis";
-import { scrollToSection } from "@/lib/scroll";
+import { scrollToOffset, scrollToSection } from "@/lib/scroll";
 import { recall, remember, seal, unseal } from "@/lib/scrollMemory";
 
 /**
- * 스크롤을 옮긴다.
+ * 스크롤을 옮긴다 — 정본은 `@/lib/scroll`에 있다.
  *
  * Lenis가 활성화된 경우 반드시 Lenis를 통해야 한다. `window.scrollTo()`만 부르면 Lenis
  * 내부 목표 위치가 이전 값으로 남아 다음 프레임에 되돌아가고, 새 페이지가 더 짧으면
- * 최하단으로 클램프된다.
+ * 최하단으로 클램프된다. 폴백이 남아 있어야 하는 이유도 그쪽에 적어 두었다 — React는
+ * 자식 → 부모 순으로 effect를 실행하므로 최초 마운트 때는 `useLenis`(App)보다 이 컴포넌트가
+ * 먼저 돌고, 그때 인스턴스는 아직 `null`이다.
  */
-function move(top: number) {
-    const lenis = getLenisInstance();
-    if (lenis) {
-        // 이전 페이지 높이 기준의 치수가 남아 있으면 목표가 잘못 클램프된다.
-        lenis.resize();
-        lenis.scrollTo(top, { immediate: true, force: true });
-        return;
-    }
-    // React는 자식 → 부모 순으로 effect를 실행하므로 최초 마운트 때는
-    // useLenis(App)보다 이 컴포넌트가 먼저 돈다 — 그때 인스턴스는 아직 null이다.
-    window.scrollTo({ top, left: 0, behavior: "instant" as ScrollBehavior });
-}
+const move = scrollToOffset;
 
 /** 새 라우트가 방금 그려져 높이가 아직 확정되지 않았다 — 두 프레임 뒤에 옮긴다. */
 function restore(top: number) {
