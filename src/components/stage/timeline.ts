@@ -23,11 +23,8 @@ import type { Vector3 } from "three";
  * 성분마다 키 사이에서 절대 키 밖으로 나가지 않는다.
  */
 
-export const ZONES = ["hero", "about", "skills", "experience", "projects"] as const;
-export type ZoneName = (typeof ZONES)[number];
-
 export interface CameraKey {
-    zone: ZoneName;
+    zone: string;
     /**
      * 구간 안의 자리(0~1). 0은 구간이 화면에 붙는 순간, 1은 떠나기 직전.
      * 닻이 있는 구간에서는 0이 첫 닻, 1이 마지막 닻이고, **1~2는 마지막 닻에서 구간 끝까지**다 —
@@ -139,7 +136,9 @@ class Spline {
 }
 
 export class Timeline {
-    private ranges = new Map<ZoneName, Range>();
+    /** 이 무대가 찾을 구간 이름. 홈과 상세가 서로 다른 목록을 들고 같은 축을 쓴다. */
+    private zones: readonly string[];
+    private ranges = new Map<string, Range>();
     private position: Spline | null = null;
     private look: Spline | null = null;
     private fov: Spline | null = null;
@@ -147,11 +146,15 @@ export class Timeline {
     private out3 = new Float32Array(3);
     private out1 = new Float32Array(1);
 
+    constructor(zones: readonly string[]) {
+        this.zones = zones;
+    }
+
     /** 구간 요소를 다시 재고, 키를 픽셀 위치로 풀어 보간기를 세운다. */
     measure(keys: readonly CameraKey[]) {
         this.viewport = window.innerHeight;
         this.ranges.clear();
-        for (const name of ZONES) {
+        for (const name of this.zones) {
             const node = document.querySelector<HTMLElement>(`[data-stage-zone="${name}"]`);
             if (!node) {
                 continue;
@@ -175,12 +178,12 @@ export class Timeline {
         this.build(keys);
     }
 
-    has(zone: ZoneName) {
+    has(zone: string) {
         return this.ranges.has(zone);
     }
 
     /** 구간이 차지한 스크롤 안에서 지금 어디까지 왔는가(0~1). 닻이 있으면 닻 사이의 자리다. */
-    localOf(zone: ZoneName, scroll: number) {
+    localOf(zone: string, scroll: number) {
         const range = this.ranges.get(zone);
         if (!range) {
             return 0;
@@ -205,7 +208,7 @@ export class Timeline {
     }
 
     /** 구간에서 얼마나 떨어져 있는가 — 화면 높이 단위. 안에 있으면 0. */
-    proximity(zone: ZoneName, scroll: number) {
+    proximity(zone: string, scroll: number) {
         const range = this.ranges.get(zone);
         if (!range) {
             return Number.POSITIVE_INFINITY;
@@ -220,7 +223,7 @@ export class Timeline {
     }
 
     /** 구간 안의 자리(0~1)를 실제 스크롤 픽셀로. 닻이 있으면 닻 사이를 고르게 나눈 자리다. */
-    scrollOf(zone: ZoneName, at: number) {
+    scrollOf(zone: string, at: number) {
         const range = this.ranges.get(zone);
         if (!range) {
             return null;
@@ -245,9 +248,9 @@ export class Timeline {
      * 한가운데 시점에 세운다. 구간이 바뀔 때만 화면이 바뀐다.
      */
     settle(scroll: number) {
-        let best: ZoneName | null = null;
+        let best: string | null = null;
         let distance = Number.POSITIVE_INFINITY;
-        for (const name of ZONES) {
+        for (const name of this.zones) {
             const near = this.proximity(name, scroll);
             if (near < distance) {
                 distance = near;

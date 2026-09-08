@@ -247,7 +247,6 @@ export const projects: Project[] = [
         role: "앱 개발 (2인 · 설계 · 구현)",
         period: "2025.04 — 현재",
         platform: "mobile",
-        variant: "sanctuary",
         tech: [
             "React Native",
             "Expo (bare)",
@@ -478,7 +477,6 @@ export const projects: Project[] = [
         // 배포는 모바일 웹이지만 화면은 앱 그대로다(앱 WebView에서도 돈다). 카드·무대가 세로
         // 화면을 가로 판에 잘라 넣지 않도록 mobile로 둔다 — 자르면 상태바와 탭 바가 날아간다.
         platform: "mobile",
-        variant: "keyring",
         tech: [
             "React",
             "TypeScript",

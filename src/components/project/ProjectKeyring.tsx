@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
+import { NOTE } from "./typography";
+
 import type { ProjectKeyring as Keyring } from "@/types/content";
 
 interface ProjectKeyringProps {
@@ -185,126 +187,114 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
     }, [keys, burst]);
 
     return (
-        <section ref={root} className="mt-28 px-6">
-            <div className="mx-auto max-w-4xl">
-                <h2 className="font-mono text-[0.6875rem] tracking-[0.18em] text-espresso uppercase">
-                    Keyring
-                </h2>
-                <h3 className="mt-4 max-w-2xl font-sans text-2xl leading-tight font-bold tracking-[-0.03em] text-ink sm:text-3xl">
-                    {keyring.title}
-                </h3>
-                <p className="mt-4 max-w-2xl text-[0.9375rem] leading-[1.8] text-muted">
-                    {keyring.lede}
-                </p>
-
-                <ul className="mt-10 flex flex-col gap-px overflow-hidden rounded-2xl border border-line bg-line">
-                    {keys.map((key, index) => (
-                        <li
-                            key={key.name}
-                            ref={(node) => {
-                                rows.current[index] = node;
-                            }}
-                            data-state="running"
-                            className="group bg-paper p-5 sm:p-6"
-                        >
-                            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                                <h4 className="font-sans text-base font-bold tracking-[-0.02em] text-ink">
-                                    {key.name}
-                                </h4>
-                                <code className="font-mono text-[0.6875rem] text-muted">
-                                    {key.header}
-                                </code>
-                                <span className="ml-auto flex items-baseline gap-2">
-                                    <span
-                                        ref={(node) => {
-                                            times.current[index] = node;
-                                        }}
-                                        className="font-mono text-sm tabular-nums text-muted transition-colors duration-300 group-data-[state=renewed]:text-espresso group-data-[state=warned]:text-espresso"
-                                    >
-                                        {clock(key.life)}
-                                    </span>
-                                    <span className="font-mono text-[0.625rem] text-muted">
-                                        남음
-                                    </span>
-                                </span>
-                            </div>
-
-                            <p className="mt-1 text-[0.8125rem] text-muted">{key.opens}</p>
-
-                            {/* 트랙 — 채움은 transform으로만 움직인다(레이아웃을 건드리지 않는다) */}
-                            <div className="relative mt-4 h-1.5 overflow-hidden rounded-full bg-sand">
-                                <div
-                                    ref={(node) => {
-                                        fills.current[index] = node;
-                                    }}
-                                    className="h-full origin-left rounded-full bg-ink/45 transition-colors duration-300 group-data-[state=renewed]:bg-espresso group-data-[state=warned]:bg-espresso"
-                                />
-                                {key.renewAt > 0 ? (
-                                    <span
-                                        aria-hidden
-                                        className="absolute top-0 h-full w-px bg-ink/45"
-                                        style={{ left: `${(key.renewAt / key.life) * 100}%` }}
-                                    />
-                                ) : null}
-                            </div>
-
-                            <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                {key.renewVia ? (
-                                    <code className="font-mono text-[0.6875rem] text-espresso">
-                                        {key.renewAt}초 아래 → {key.renewVia}
-                                    </code>
-                                ) : (
-                                    <code className="font-mono text-[0.6875rem] text-muted">
-                                        갱신 경로 없음
-                                    </code>
-                                )}
-                            </div>
-
-                            <p className="mt-2 max-w-2xl text-[0.8125rem] leading-[1.75] text-ink/70">
-                                {key.note}
-                            </p>
-                        </li>
-                    ))}
-                </ul>
-
-                <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-4">
-                    <button
-                        type="button"
-                        onClick={fire}
-                        disabled={reduced}
-                        className="rounded-full border border-line px-4 py-2 font-mono text-[0.6875rem] text-ink transition-colors hover:border-espresso hover:text-espresso disabled:opacity-40"
+        <div ref={root}>
+            <ul className="flex flex-col gap-px overflow-hidden rounded-2xl border border-line bg-line">
+                {keys.map((key, index) => (
+                    <li
+                        key={key.name}
+                        ref={(node) => {
+                            rows.current[index] = node;
+                        }}
+                        data-state="running"
+                        className="group bg-paper p-5 sm:p-6"
                     >
-                        요청 {burst}개를 같은 순간에 보낸다
-                    </button>
+                        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                            <h4 className="font-sans text-base font-bold tracking-[-0.02em] text-ink">
+                                {key.name}
+                            </h4>
+                            <code className="font-mono text-[0.6875rem] text-muted">
+                                {key.header}
+                            </code>
+                            <span className="ml-auto flex items-baseline gap-2">
+                                <span
+                                    ref={(node) => {
+                                        times.current[index] = node;
+                                    }}
+                                    className="font-mono text-sm tabular-nums text-muted transition-colors duration-300 group-data-[state=renewed]:text-espresso group-data-[state=warned]:text-espresso"
+                                >
+                                    {clock(key.life)}
+                                </span>
+                                <span className="font-mono text-[0.625rem] text-muted">남음</span>
+                            </span>
+                        </div>
 
-                    <dl className="flex flex-wrap gap-x-8 gap-y-2">
-                        {paths.map((path) => (
-                            <div key={path} className="flex items-baseline gap-2">
-                                <dt className="font-mono text-[0.6875rem] text-muted">{path}</dt>
-                                <dd className="font-mono text-sm tabular-nums text-ink">
-                                    {calls[path] ?? 0}회
-                                </dd>
-                            </div>
-                        ))}
-                    </dl>
-                </div>
+                        <p className="mt-1.5 text-[0.875rem] leading-[1.7] text-muted">
+                            {key.opens}
+                        </p>
 
-                <p
-                    aria-live="polite"
-                    className="mt-4 font-mono text-[0.6875rem] text-espresso empty:mt-0"
+                        {/* 트랙 — 채움은 transform으로만 움직인다(레이아웃을 건드리지 않는다) */}
+                        <div className="relative mt-4 h-1.5 overflow-hidden rounded-full bg-sand">
+                            <div
+                                ref={(node) => {
+                                    fills.current[index] = node;
+                                }}
+                                className="h-full origin-left rounded-full bg-ink/45 transition-colors duration-300 group-data-[state=renewed]:bg-espresso group-data-[state=warned]:bg-espresso"
+                            />
+                            {key.renewAt > 0 ? (
+                                <span
+                                    aria-hidden
+                                    className="absolute top-0 h-full w-px bg-ink/45"
+                                    style={{ left: `${(key.renewAt / key.life) * 100}%` }}
+                                />
+                            ) : null}
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            {key.renewVia ? (
+                                <code className="font-mono text-[0.6875rem] text-espresso">
+                                    {key.renewAt}초 아래 → {key.renewVia}
+                                </code>
+                            ) : (
+                                <code className="font-mono text-[0.6875rem] text-muted">
+                                    갱신 경로 없음
+                                </code>
+                            )}
+                        </div>
+
+                        <p className="mt-3 max-w-[34rem] text-[0.9375rem] leading-[1.85] text-ink/70">
+                            {key.note}
+                        </p>
+                    </li>
+                ))}
+            </ul>
+
+            <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-4">
+                <button
+                    type="button"
+                    onClick={fire}
+                    disabled={reduced}
+                    className="rounded-full border border-line px-4 py-2 font-mono text-[0.6875rem] text-ink transition-colors hover:border-espresso hover:text-espresso disabled:opacity-40"
                 >
-                    {dropped
-                        ? "리프레시 만료 — 저장소를 비우고 로그인으로 보냈습니다."
-                        : inflight > 0
-                          ? `요청 ${inflight}개가 동시에 임계에 걸렸지만, 갱신은 경로마다 한 번입니다.`
-                          : ""}
-                </p>
+                    요청 {burst}개를 같은 순간에 보낸다
+                </button>
 
-                <p className="mt-6 border-t border-line pt-5 text-[0.8125rem] leading-relaxed text-muted">
-                    {reduced ? "동작 최소화 설정이라 시계를 세워 뒀습니다. " : ""}
-                    {note}
-                </p>
+                <dl className="flex flex-wrap gap-x-8 gap-y-2">
+                    {paths.map((path) => (
+                        <div key={path} className="flex items-baseline gap-2">
+                            <dt className="font-mono text-[0.6875rem] text-muted">{path}</dt>
+                            <dd className="font-mono text-sm tabular-nums text-ink">
+                                {calls[path] ?? 0}회
+                            </dd>
+                        </div>
+                    ))}
+                </dl>
             </div>
-        </section>
+
+            <p
+                aria-live="polite"
+                className="mt-4 font-mono text-[0.6875rem] text-espresso empty:mt-0"
+            >
+                {dropped
+                    ? "리프레시 만료 — 저장소를 비우고 로그인으로 보냈습니다."
+                    : inflight > 0
+                      ? `요청 ${inflight}개가 동시에 임계에 걸렸지만, 갱신은 경로마다 한 번입니다.`
+                      : ""}
+            </p>
+
+            <p className={`mt-10 max-w-[42rem] border-t border-line pt-6 ${NOTE}`}>
+                {reduced ? "동작 최소화 설정이라 시계를 세워 뒀습니다. " : ""}
+                {note}
+            </p>
+        </div>
     );
 }

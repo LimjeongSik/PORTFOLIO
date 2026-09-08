@@ -1,17 +1,13 @@
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
-import { Roomy } from "@/components/home/Roomy";
 import { About } from "@/components/sections/About";
 import { Bridge } from "@/components/sections/Bridge";
 import { Experience } from "@/components/sections/Experience";
 import { Hero } from "@/components/sections/Hero";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
+import { Roomy } from "@/components/stage/Roomy";
 import { useMoodZone } from "@/hooks/useMoodZone";
-
-/* three는 압축 후 100KB를 넘는다. 첫 페인트를 이 청크에 묶지 않으려고 따로 떼어 늦게 받는다 —
-   무대가 없어도 지면색은 이미 칠해져 있어서 늦게 붙는 것이 티나지 않는다. */
-const Stage = lazy(() => import("@/components/home/Stage"));
 
 import {
     CRAFT_MOOD,
@@ -22,6 +18,7 @@ import {
     setMood,
     VOID_MOOD,
 } from "@/lib/atmosphere";
+import { isCrossing } from "@/lib/transition";
 
 /** 다리에 흘려보낼 낱말. 이력의 핵심만 큰 글자로 지나간다. */
 const BRIDGE_WORDS = ["FRONTEND", "REACT", "REACT NATIVE", "TYPESCRIPT", "INTERACTION", "SEOUL"];
@@ -37,9 +34,13 @@ export function Home() {
     // 홈을 벗어날 때는 주입한 값을 걷어 프로젝트 상세가 자기 테마를 그대로 얹게 한다.
     useEffect(() => {
         if (!isMoodMounted()) {
-            setMood("hero", VOID_MOOD, { immediate: true, scene: 0 });
+            // 상세에서 돌아온 것이면 프로젝트 색에서 **물러나며** 온다 — 즉시 갈아 끼우면
+            // 카메라가 갤러리로 날아오는 동안 지면만 한 프레임에 뒤집힌다. 반대로 처음 열린
+            // 화면에서는 즉시여야 한다: 기본값에서 히어로 색으로 0.85초 동안 물드는 것은
+            // 전환이 아니라 덜 그려진 화면이다(`applyTheme`와 같은 규칙).
+            setMood("hero", VOID_MOOD, { scene: 0, immediate: !isCrossing() });
         }
-        return () => clearMood();
+        return () => clearMood(isCrossing());
     }, []);
 
     useMoodZone(aboutZone, "about", PROFILE_MOOD, 1);
@@ -48,11 +49,8 @@ export function Home() {
 
     return (
         <>
-            {/* 홈 전체가 하나의 3D 공간이다. 구간은 그 공간 안의 장소고(복도 → 비석 → 드럼 →
-                계단 → 갤러리), 카메라 하나가 스크롤을 따라 그 사이를 난다. */}
-            <Suspense fallback={null}>
-                <Stage />
-            </Suspense>
+            {/* 무대(복도 → 비석 → 드럼 → 계단 → 갤러리)는 `App`이 라우터 바깥에서 들고 있다.
+                여기서는 그 앞에 앉는 글과, 글이 읽히게 지면을 눌러 주는 베일만 둔다. */}
             {/* 글이 앉는 한가운데를 아주 얕게 눌러 준다. 판은 이미 가까워질수록 지워지므로
                 가릴 일이 없지만, 낱말 판이 스칠 때의 대비까지 이 한 겹이 받아 준다. */}
             <div

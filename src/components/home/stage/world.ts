@@ -1,8 +1,5 @@
 import {
     Group,
-    IcosahedronGeometry,
-    InstancedMesh,
-    Matrix4,
     Mesh,
     MeshBasicMaterial,
     PlaneGeometry,
@@ -11,16 +8,33 @@ import {
     Vector3,
 } from "three";
 
+import {
+    BEVEL,
+    BODY,
+    bodyGeometry,
+    DISPLAY,
+    MONO,
+    screenTexture,
+    textTexture,
+} from "@/components/stage/mockup";
+import {
+    cameraKey,
+    clamp01,
+    facing,
+    hash,
+    smoothstep,
+    TAU,
+    textPlate,
+    UP,
+} from "@/components/stage/pieces";
+
 import { experiences } from "@/data/experience";
 import { profile } from "@/data/profile";
 import { projects } from "@/data/projects";
 import { skillGroups } from "@/data/skills";
 
-import { BEVEL, BODY, bodyGeometry, DISPLAY, MONO, screenTexture, textTexture } from "./mockup";
-
-import type { Color, MeshPhysicalMaterial } from "three";
-import type { Device, Disposer, TextLine } from "./mockup";
-import type { CameraKey, ZoneName } from "./timeline";
+import type { WorldContext, Zone } from "@/components/stage/rig";
+import type { CameraKey } from "@/components/stage/timeline";
 
 /**
  * 홈을 관통하는 하나의 세계.
@@ -36,131 +50,13 @@ import type { CameraKey, ZoneName } from "./timeline";
  *   갤러리(projects) 프로젝트마다 자리가 있고 화면들이 그 둘레를 돈다. 카메라는 옆으로 걷는다
  */
 
-export interface Frame {
-    /** 초 */
-    time: number;
-    /** 스크롤 속도를 -1~1로 눌러 부드럽게 따라붙인 값 */
-    lag: number;
-    /** 가만히 있어도 미세하게 숨쉬어도 되는가(동작 줄이기가 꺼져 있을 때만) */
-    idle: boolean;
-    /** 세로로 긴 창인가 — 화각이 좁아 가까운 물건이 화면을 덮는다 */
-    narrow: boolean;
-    forward: Vector3;
-    camera: Vector3;
-}
-
-export interface Zone {
-    name: ZoneName;
-    group: Group;
-    /** 카메라 키 — 창 비율에 따라 시선을 달리 잡을 수 있어 잴 때마다 다시 만든다. */
-    keys(aspect: number): CameraKey[];
-    /** 이미지처럼 늦게 받아도 되는 것을 받는다. 구간이 가까워질 때 한 번. */
-    warm(): void;
-    update(local: number, frame: Frame): void;
-}
-
-export interface Materials {
-    deviceBody: MeshPhysicalMaterial;
-    glass: MeshPhysicalMaterial;
-    plate: MeshPhysicalMaterial;
-    stone: MeshPhysicalMaterial;
-    metal: MeshPhysicalMaterial;
-    dust: MeshPhysicalMaterial;
-}
-
-export interface WorldContext {
-    disposer: Disposer;
-    materials: Materials;
-    /** 같은 크기의 글자 판이 나눠 쓰는 지오메트리. 무대 인스턴스마다 따로 둔다 — 모듈에 두면
-        언마운트 때 버린 지오메트리가 캐시에 남아, 다시 마운트한 무대가 그것을 집어 쓰고도
-        자기 정리 목록에는 올리지 못한다. */
-    plateGeometries: Map<string, PlateGeometry>;
-    phone: (src: string) => Device;
-    window: (src: string) => Device;
-    ink: string;
-    accent: Color;
-}
+/** 홈이 쓰는 구간 이름 — DOM의 `data-stage-zone`과 같아야 한다. */
+export const HOME_ZONES = ["hero", "about", "skills", "experience", "projects"] as const;
+export type HomeZone = (typeof HOME_ZONES)[number];
 
 /* ── 공용 ────────────────────────────────────────────────────────────────── */
 
-const TAU = Math.PI * 2;
-const UP = new Vector3(0, 1, 0);
-
-function clamp01(value: number) {
-    return value < 0 ? 0 : value > 1 ? 1 : value;
-}
-
-function smoothstep(edge0: number, edge1: number, value: number) {
-    const t = clamp01((value - edge0) / (edge1 - edge0));
-    return t * t * (3 - 2 * t);
-}
-
-/** 판마다 고정된 흩어짐 — 매번 다르면 리사이즈마다 자리가 튄다. */
-function hash(seed: number) {
-    const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
-    return value - Math.floor(value);
-}
-
-function key(zone: ZoneName, at: number, position: Vector3, look: Vector3, fov: number): CameraKey {
-    return {
-        zone,
-        at,
-        position: [position.x, position.y, position.z],
-        look: [look.x, look.y, look.z],
-        fov,
-    };
-}
-
-interface Plate {
-    group: Group;
-    face: MeshBasicMaterial;
-}
-
-export interface PlateGeometry {
-    body: ReturnType<typeof bodyGeometry>;
-    face: PlaneGeometry;
-}
-
-/**
- * 글자가 새겨진 얇은 판. 몸체는 빛을 받고, 글자 면은 스스로 빛난다.
- * 같은 크기의 판은 지오메트리를 나눠 쓴다.
- */
-function textPlate(ctx: WorldContext, width: number, height: number, lines: TextLine[]): Plate {
-    const id = `${width}x${height}`;
-    let shared = ctx.plateGeometries.get(id);
-    if (!shared) {
-        shared = {
-            body: ctx.disposer.add(bodyGeometry(width, height, 0.06, Math.min(0.09, height / 4))),
-            face: ctx.disposer.add(new PlaneGeometry(width, height)),
-        };
-        ctx.plateGeometries.set(id, shared);
-    }
-    const PX = 120;
-    const baked = textTexture({ width: width * PX, height: height * PX, lines });
-    ctx.disposer.add({ dispose: () => baked.release() });
-
-    const face = ctx.disposer.add(
-        new MeshBasicMaterial({
-            map: baked.texture,
-            transparent: true,
-            toneMapped: false,
-            depthWrite: false,
-        }),
-    );
-    const group = new Group();
-    group.add(new Mesh(shared.body, ctx.materials.plate));
-    const faceMesh = new Mesh(shared.face, face);
-    faceMesh.position.z = 0.03 + BEVEL + 0.003;
-    group.add(faceMesh);
-    return { group, face };
-}
-
-/** 카메라가 이 물체를 얼마나 정면으로 보고 있는가(0~1). */
-const toObject = new Vector3();
-function facing(frame: Frame, position: Vector3) {
-    toObject.copy(position).sub(frame.camera).normalize();
-    return clamp01(toObject.dot(frame.forward));
-}
+const key = cameraKey;
 
 /* ── 1. 복도 ─────────────────────────────────────────────────────────────── */
 
@@ -560,6 +456,16 @@ export function buildStair(ctx: WorldContext): Zone {
 const GALLERY = new Vector3(110, 0, -180);
 const GALLERY_GAP = 8;
 
+/**
+ * 갤러리에서 그 프로젝트가 서 있는 자리.
+ *
+ * 프로젝트 상세의 세계가 이 자리에 통째로 겹쳐 놓인다 — 목록에서 눌러 들어가면 카메라가
+ * 서 있던 자리에서 좌대 앞으로 몇 걸음 날아갈 뿐이라, 공간이 끊기지 않는다.
+ */
+export function galleryStation(index: number) {
+    return new Vector3(GALLERY.x + index * GALLERY_GAP, GALLERY.y, GALLERY.z);
+}
+
 /** 갤러리 DOM 레일과 같은 곡선 — 카드는 가운데 머물고 전환만 짧다. */
 function dwell(f: number) {
     return f * f * f * (f * (f * 6 - 15) + 10);
@@ -682,7 +588,8 @@ export function buildGallery(ctx: WorldContext): Zone {
 
 /* ── 먼지 — 장소 사이를 채우는 것 ────────────────────────────────────────── */
 
-const ANCHORS = [
+/** 카메라가 실제로 지나는 경로. 먼지는 이 선을 따라 흩어진다. */
+export const HOME_PATH = [
     new Vector3(0, 0, 4),
     new Vector3(0, 0, -HALL_LENGTH),
     MONOLITH,
@@ -691,57 +598,3 @@ const ANCHORS = [
     GALLERY,
     new Vector3(GALLERY.x + (projects.length - 1) * GALLERY_GAP, 0, GALLERY.z),
 ];
-
-/**
- * 장소와 장소 사이의 비행에서 화면이 비지 않게, 경로를 따라 작은 금속 조각을 흩뿌린다.
- * 카메라가 지나는 통로 안쪽은 비워 두어 얼굴에 부딪히지 않는다. 움직이지 않는다 — 카메라가
- * 움직이면 시차가 곧 움직임이다.
- */
-export function buildDust(ctx: WorldContext, count = 800) {
-    const geometry = ctx.disposer.add(new IcosahedronGeometry(0.07, 0));
-    const mesh = new InstancedMesh(geometry, ctx.materials.dust, count);
-    const lengths = ANCHORS.slice(1).map((anchor, index) => anchor.distanceTo(ANCHORS[index]));
-    const total = lengths.reduce((sum, length) => sum + length, 0);
-    const matrix = new Matrix4();
-    const position = new Vector3();
-    const quaternion = new Quaternion();
-    const scale = new Vector3();
-    const axis = new Vector3();
-    const along = new Vector3();
-    const side = new Vector3();
-    const lift = new Vector3();
-
-    for (let index = 0; index < count; index += 1) {
-        let distance = hash(index * 3 + 1) * total;
-        let segment = 0;
-        while (segment < lengths.length - 1 && distance > lengths[segment]) {
-            distance -= lengths[segment];
-            segment += 1;
-        }
-        along
-            .copy(ANCHORS[segment + 1])
-            .sub(ANCHORS[segment])
-            .normalize();
-        side.crossVectors(along, UP).normalize();
-        lift.crossVectors(side, along).normalize();
-        const angle = hash(index * 3 + 2) * TAU;
-        const radius = 6.5 + hash(index * 3 + 3) * 13;
-        position
-            .copy(ANCHORS[segment])
-            .addScaledVector(along, distance)
-            .addScaledVector(side, Math.cos(angle) * radius)
-            .addScaledVector(lift, Math.sin(angle) * radius * 0.7);
-        axis.set(
-            hash(index + 11) - 0.5,
-            hash(index + 17) - 0.5,
-            hash(index + 23) - 0.5,
-        ).normalize();
-        quaternion.setFromAxisAngle(axis, hash(index + 29) * TAU);
-        scale.setScalar(0.4 + hash(index + 31) * 0.9);
-        matrix.compose(position, quaternion, scale);
-        mesh.setMatrixAt(index, matrix);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.frustumCulled = false;
-    return mesh;
-}

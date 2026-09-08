@@ -23,6 +23,8 @@ export default defineConfig({
                             test: /node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom)[\\/]/,
                         },
                         { name: "gsap-vendor", test: /node_modules[\\/](gsap|@gsap)[\\/]/ },
+                        // 홈과 프로젝트 상세가 같은 무대 장치를 쓰므로 three는 둘이 나눠 받는다.
+                        { name: "three-vendor", test: /node_modules[\\/]three[\\/]/ },
                         {
                             name: "motion-vendor",
                             test: /node_modules[\\/](motion|motion-dom|motion-utils)[\\/]/,

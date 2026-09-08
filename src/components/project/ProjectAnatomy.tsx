@@ -4,6 +4,8 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import { gsap, useGSAP } from "@/lib/gsap";
 
+import { BODY } from "./typography";
+
 import type { ProjectAnatomy as Anatomy } from "@/types/content";
 
 interface ProjectAnatomyProps {
@@ -74,20 +76,6 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
         { scope: root, dependencies: [running, anatomy.notes.length] },
     );
 
-    const heading = (
-        <div className="mx-auto max-w-5xl px-6">
-            <h2 className="font-mono text-[0.6875rem] tracking-[0.18em] text-espresso uppercase">
-                Anatomy
-            </h2>
-            <p className="mt-4 max-w-2xl font-sans text-2xl leading-snug font-bold tracking-[-0.03em] text-ink sm:text-3xl">
-                {anatomy.title}
-            </p>
-            <p className="mt-3 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-                {anatomy.lede}
-            </p>
-        </div>
-    );
-
     const notes = anatomy.notes.map((note, index) => {
         const on = index === active;
         return (
@@ -101,10 +89,10 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
                 <div
                     className={`transition-opacity duration-500 ${on ? "opacity-100" : "opacity-35"}`}
                 >
-                    <h3 className="font-sans text-lg leading-snug font-bold tracking-[-0.02em] text-ink">
+                    <h3 className="font-display text-lg leading-[1.45] font-medium text-ink">
                         {note.title}
                     </h3>
-                    <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink/80">{note.body}</p>
+                    <p className={`mt-3 max-w-[30rem] ${BODY}`}>{note.body}</p>
                 </div>
             </li>
         );
@@ -112,9 +100,8 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
 
     if (!running) {
         return (
-            <section className="mt-24">
-                {heading}
-                <div className="mx-auto mt-10 max-w-5xl px-6">
+            <div>
+                <div>
                     <figure className="mx-auto w-full max-w-64">
                         <div className="overflow-hidden rounded-4xl border border-line bg-surface">
                             <img
@@ -129,44 +116,37 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
                             {anatomy.footnote}
                         </figcaption>
                     </figure>
-                    <ol className="mt-10 flex flex-col gap-8">{notes}</ol>
+                    <ol className="mt-12 flex flex-col gap-10">{notes}</ol>
                 </div>
-            </section>
+            </div>
         );
     }
 
     return (
-        <section className="mt-24">
-            {heading}
-            <div
-                ref={root}
-                className="mx-auto max-w-5xl px-6"
-                style={{ height: `${anatomy.notes.length * STEP_VH}vh` }}
-            >
-                <div ref={stage} className="sticky top-24 flex items-start gap-12 xl:gap-16">
-                    <figure className="w-[clamp(13rem,28vh,16.25rem)] shrink-0">
-                        <div
-                            ref={frame}
-                            className="aspect-9/19.5 w-full overflow-hidden rounded-4xl border border-line bg-surface"
-                        >
-                            {/* 프레임 폭을 정확히 채우고 세로로만 흐른다 — 가로로 밀면 상태바가 잘린다. */}
-                            <img
-                                ref={shot}
-                                src={anatomy.src}
-                                alt={anatomy.title}
-                                loading="lazy"
-                                style={{ aspectRatio: `1 / ${anatomy.ratio}` }}
-                                className="w-full will-change-transform"
-                            />
-                        </div>
-                        <figcaption className="mt-4 font-mono text-[0.6875rem] leading-relaxed tracking-[0.14em] text-muted tabular-nums">
-                            {anatomy.footnote}
-                        </figcaption>
-                    </figure>
+        <div ref={root} style={{ height: `${anatomy.notes.length * STEP_VH}vh` }}>
+            <div ref={stage} className="sticky top-24 flex items-start gap-12 xl:gap-16">
+                <figure className="w-[clamp(13rem,28vh,16.25rem)] shrink-0">
+                    <div
+                        ref={frame}
+                        className="aspect-9/19.5 w-full overflow-hidden rounded-4xl border border-line bg-surface"
+                    >
+                        {/* 프레임 폭을 정확히 채우고 세로로만 흐른다 — 가로로 밀면 상태바가 잘린다. */}
+                        <img
+                            ref={shot}
+                            src={anatomy.src}
+                            alt={anatomy.title}
+                            loading="lazy"
+                            style={{ aspectRatio: `1 / ${anatomy.ratio}` }}
+                            className="w-full will-change-transform"
+                        />
+                    </div>
+                    <figcaption className="mt-4 font-mono text-[0.6875rem] leading-[1.8] tracking-[0.14em] text-muted tabular-nums">
+                        {anatomy.footnote}
+                    </figcaption>
+                </figure>
 
-                    <ol className="flex flex-col gap-8 pt-1">{notes}</ol>
-                </div>
+                <ol className="flex flex-col gap-10 pt-1">{notes}</ol>
             </div>
-        </section>
+        </div>
     );
 }

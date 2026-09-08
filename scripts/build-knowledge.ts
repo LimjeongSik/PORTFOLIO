@@ -29,7 +29,6 @@ const knowledgeProjects: KnowledgeProject[] = projects.map((project) => ({
     period: project.period,
     platform: project.platform,
     tech: project.tech,
-    variant: project.variant,
     links: project.links,
     context: project.context,
     approach: project.approach,

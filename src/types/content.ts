@@ -54,14 +54,6 @@ export interface ProjectCase {
     metrics?: ProjectMetric[];
 }
 
-/**
- * 상세 페이지의 연출 갈래. 프로젝트마다 스크롤 문법이 다르다.
- * - `signal`   신호 필드 표지 + 제자리 크로스페이드 전시 (SafeOps)
- * - `sanctuary` 빛이 드는 표지 + 가로 행렬 · 화면 해부 · 대비 실측 (침례교 전용앱)
- * - `keyring`  열쇠 네 개의 시간축 + 웹↔앱 통신 + 세로로 넘어가는 피드 (아이머그)
- */
-export type ProjectVariant = "signal" | "sanctuary" | "keyring";
-
 export interface ProjectAnatomyNote {
     /** 이 주석이 켜지는 스크롤 진행률(0~1). 오름차순으로 적는다. */
     at: number;
@@ -207,8 +199,8 @@ export interface Project {
     screens: ProjectScreen[];
     sheets: ProjectSheet[];
     links: ProjectLinks;
-    /** 생략하면 `signal` */
-    variant?: ProjectVariant;
+    /* 아래 다섯은 그 프로젝트만의 시그니처 그림이다. 있는 것만 상세 페이지의 `system`
+       구간에 차례로 놓인다(`ProjectSignature`). */
     anatomy?: ProjectAnatomy;
     runtime?: ProjectRuntimeMap;
     pipeline?: ProjectPipeline;

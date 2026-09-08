@@ -203,8 +203,14 @@ export function setMood(id: string, mood: Mood, options?: { immediate?: boolean;
     });
 }
 
-/** 홈을 벗어날 때 호출 — 주입한 값을 걷어 @theme 기본값이 다시 보이게 한다. */
-export function clearMood() {
+/**
+ * 홈을 벗어날 때 호출 — 주입한 값을 걷어 @theme 기본값이 다시 보이게 한다.
+ *
+ * `keep`이면 **칠해 둔 색을 그대로 남긴다.** 라우트가 넘어가는 중에는 캔버스가 계속 보이므로,
+ * 여기서 기본값으로 되돌리면 카메라가 다음 방으로 날아가는 한가운데서 지면만 한 프레임에
+ * 뒤집힌다. 도착한 쪽이 이 색에서 물들여 가면 된다.
+ */
+export function clearMood(keep = false) {
     tween?.kill();
     sceneTween?.kill();
     tween = null;
@@ -217,6 +223,9 @@ export function clearMood() {
     const mine = owner === "home";
     if (mine) {
         owner = null;
+    }
+    if (keep) {
+        return;
     }
     const root = document.documentElement;
     for (const key of KEYS) {
@@ -233,26 +242,62 @@ export function clearMood() {
  * 홈의 무드와 같은 변수를 쓰므로 소유권도 같은 곳에서 관리한다 — 상세가 칠한 값을
  * 뒤늦게 언마운트되는 홈이 지우면, 넘기는 동안 지면이 통째로 기본값으로 돌아간다.
  */
-export function applyTheme(id: string, theme: Mood) {
+export function applyTheme(id: string, theme: Mood, options?: { duration?: number }) {
     tween?.kill();
     sceneTween?.kill();
     owner = id;
 
-    const root = document.documentElement;
     const target = toRgbMood(theme);
-    for (const key of KEYS) {
-        root.style.setProperty(`--color-${key}`, theme[key]);
-        current[key] = [...target[key]] as Rgb;
+    const duration = options?.duration ?? 0;
+
+    if (duration <= 0) {
+        const root = document.documentElement;
+        for (const key of KEYS) {
+            root.style.setProperty(`--color-${key}`, theme[key]);
+            current[key] = [...target[key]] as Rgb;
+        }
+        notify();
+        return;
     }
-    notify();
+
+    /* 넘어가는 중이라면 물들이며 간다 — 캔버스가 계속 보이는 채로 카메라가 날아가는데
+       지면색만 툭 바뀌면 그 한 프레임이 통째로 눈에 띈다. 채널을 평평한 숫자 배열로 펴서
+       한 트윈으로 굴리는 것은 `setMood`와 같다. */
+    const proxy: Record<string, number> = {};
+    const to: Record<string, number> = {};
+    for (const key of KEYS) {
+        for (let channel = 0; channel < 3; channel += 1) {
+            proxy[`${key}${channel}`] = current[key][channel];
+            to[`${key}${channel}`] = target[key][channel];
+        }
+    }
+    tween = gsap.to(proxy, {
+        ...to,
+        duration,
+        ease: "power2.inOut",
+        onUpdate: () => {
+            for (const key of KEYS) {
+                current[key] = [proxy[`${key}0`], proxy[`${key}1`], proxy[`${key}2`]];
+            }
+            write();
+        },
+    });
 }
 
-/** 상세를 벗어날 때 — 그 사이 다른 쪽이 칠했다면 건드리지 않는다. */
-export function releaseTheme(id: string) {
+/**
+ * 상세를 벗어날 때 — 그 사이 다른 쪽이 칠했다면 건드리지 않는다.
+ *
+ * `keep`의 뜻은 `clearMood`와 같다. 넘어가는 중이면 이 프로젝트의 색을 남겨 두고, 도착한
+ * 쪽(홈 또는 다음 프로젝트)이 그 색에서 물들여 간다.
+ */
+export function releaseTheme(id: string, keep = false) {
     if (owner !== id) {
         return;
     }
     owner = null;
+    if (keep) {
+        return;
+    }
     const root = document.documentElement;
     for (const key of KEYS) {
         root.style.removeProperty(`--color-${key}`);

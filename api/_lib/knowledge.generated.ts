@@ -205,7 +205,6 @@ export const knowledge: Knowledge = {
                 "Reanimated",
                 "Firebase Messaging",
             ],
-            variant: "sanctuary",
             links: {},
             context: [
                 "교회 생활에 필요한 기능이 여기저기 흩어져 있었습니다. 앱 하나로 모으는 게 시작이었는데, 화면이 백 개를 넘어가면서 어려운 쪽은 기능을 만드는 게 아니라 상태를 어디서 들고 있느냐가 됐습니다. 로그인 세션과 전역 모달, 서버 캐시가 서로 물려 있어서 한 곳을 잘못 두면 엉뚱한 화면에서 터집니다.",
@@ -269,7 +268,6 @@ export const knowledge: Knowledge = {
                 "styled-components",
                 "Axios",
             ],
-            variant: "keyring",
             links: {
                 demo: "https://m.i-mug.co.kr",
             },

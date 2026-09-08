@@ -3,34 +3,40 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { RouteBoundary } from "@/components/layout/RouteBoundary";
 
-import { projects } from "@/data/projects";
 import { closeAssistant } from "@/lib/assistant/bridge";
-import { VOID_MOOD } from "@/lib/atmosphere";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { onLeaving } from "@/lib/leaving";
 import { seal } from "@/lib/scrollMemory";
-import { setTransitionRunner } from "@/lib/transition";
+import { hasStage, holdStage, releaseStage, remeasureStage } from "@/lib/stage";
+import { setCrossing, setTransitionRunner } from "@/lib/transition";
 import { Home } from "@/routes/Home";
 import { createProjectDetailRoute, loadProjectDetail } from "@/routes/lazy";
 
 /**
- * 잠기는 시간과 떠오르는 시간.
+ * 본문이 잠기는 시간과 떠오르는 시간(초).
  *
- * 잠기는 쪽이 더 짧아야 한다 — 누른 즉시 반응한 것으로 읽히고, 기다림은 이미 화면이
- * 덮인 뒤에 온다. 반대로 두면 클릭이 씹힌 것처럼 느껴진다.
+ * 잠기는 쪽이 더 짧아야 한다 — 누른 즉시 반응한 것으로 읽히고, 기다림은 이미 글이 사라진
+ * 뒤에 온다. 반대로 두면 클릭이 씹힌 것처럼 느껴진다.
  */
-const DIM = 0.34;
+const DIM = 0.3;
 const LIFT = 0.52;
+
+/**
+ * 글이 다시 앉기까지 비워 두는 시간(초).
+ *
+ * 이 사이에 화면에 있는 것은 **3D 공간뿐**이다. 카메라가 다음 자리로 날아가는 동안 글이
+ * 겹쳐 있으면 무엇을 봐야 할지 알 수 없고, 반대로 너무 오래 비우면 페이지가 멎은 것으로
+ * 보인다. 비행의 절반쯤에서 글이 떠오르기 시작해 착지와 함께 다 읽히도록 맞춘다.
+ * 무대가 없는 환경(WebGL 실패 · 동작 줄이기)에서는 비워 둘 이유가 없으니 곧바로 띄운다.
+ */
+const HOLD_FOR_FLIGHT = 0.45;
 
 /**
  * 청크를 기다리는 두 상한(ms).
  *
  * 앞의 것은 **누른 반응**을 늦추지 않으려는 상한이다 — 이만큼 지나면 청크가 아직이어도
- * 일단 잠기기 시작한다. 뒤의 것은 **덮개를 걷어도 되는가**의 상한이다. 베일이 완전히
- * 덮인 뒤의 기다림은 화면에 보이지 않으므로 넉넉히 준다.
- *
- * 하나로 합치면 둘 중 하나를 반드시 희생한다 — 짧으면 빈 화면이 드러나고, 길면 클릭이
- * 씹힌다. 앞의 상한만 두었을 때 실제로 전자가 났다.
+ * 일단 글이 잠기기 시작한다. 뒤의 것은 **글을 다시 띄워도 되는가**의 상한이다. 글이 없는
+ * 동안에도 화면에는 3D 공간이 돌고 있으므로 뒤쪽을 넉넉히 주는 것이 공짜다.
  */
 const HOLD_BEFORE_DIM = 1200;
 const HOLD_BEFORE_LIFT = 4000;
@@ -39,30 +45,15 @@ const HOLD_BEFORE_LIFT = 4000;
  * 떠오르는 방향. 앞으로 갈 때는 아래에서 올라오고, 뒤로 갈 때는 위에서 내려온다.
  *
  * 뒤로가기에는 잠기는 절반이 없어(§뒤로가기) 앞으로 갈 때와 구분되는 표식이 이것뿐이다.
- * 되돌아온 화면이 왔던 방향의 반대로 들어오면, 절반만 보고도 뒤로 왔다는 것이 읽힌다.
  */
 const RISE = 26;
 const FALL = -18;
-
-/** 도착지의 지면색 — 상세는 자기 테마를 :root에 주입하므로 베일도 그 색으로 옮겨 간다. */
-function paperOf(pathname: string) {
-    const slug = pathname.startsWith("/projects/") ? pathname.slice("/projects/".length) : "";
-    return projects.find((project) => project.slug === slug)?.theme.paper ?? VOID_MOOD.paper;
-}
-
-/** 지금 지면에 칠해져 있는 색. 홈에서는 스크롤 구간마다 다르므로 그때그때 읽어야 한다. */
-function paperNow() {
-    const value = getComputedStyle(document.documentElement)
-        .getPropertyValue("--color-paper")
-        .trim();
-    return value || VOID_MOOD.paper;
-}
 
 /**
  * 라우트가 그린 본문. 배경(`fixed`)은 이 바깥에 있다.
  *
  * 변형을 페이지 전체가 아니라 `<main>`에만 거는 이유: `transform`이 걸린 요소는 그 안의
- * `fixed` 자손에게 컨테이닝 블록이 된다. 3D 필드와 베일을 함께 감싸면 스크롤한 만큼
+ * `fixed` 자손에게 컨테이닝 블록이 된다. 3D 무대와 베일을 함께 감싸면 스크롤한 만큼
  * 화면 밖으로 밀려난다.
  */
 function bodyOf(host: HTMLElement | null) {
@@ -91,18 +82,22 @@ function prefersReducedMotion() {
 }
 
 /**
- * 페이지 전환 — 보던 화면이 지면색으로 잠겼다가, 새 화면이 그 색을 밀어내며 떠오른다.
+ * 페이지 전환 — **공간은 끊기지 않고, 시점이 옮겨간다.**
  *
- * 라우트가 바뀌는 순간에는 가릴 것이 많다. 상세 청크를 받는 동안의 빈 화면, 테마가 갈리는
- * 사이에 드러나는 기본 토큰, 맨 위로 되돌리는 스크롤 점프, three 씬의 재생성 — 전부 베일
- * 뒤에서 일어나게 하면 깜빡임이 사라진다.
+ * 예전에는 지면색 베일이 화면 전체를 덮었다. 홈과 상세가 각자의 캔버스를 들고 있어서
+ * 넘어갈 때마다 3D 세계가 한 번 파괴되고 다시 지어졌고, 그 사이를 가리는 것 말고는 할 수
+ * 있는 일이 없었다 — 방문자에게는 우주가 꺼졌다 켜지는 것으로 보였다(사용자 지적).
  *
- * 덮는 것은 검정이 아니라 **지금 지면에 칠해져 있는 색**이고, 덮여 있는 동안 그 색이
- * 도착지의 지면색으로 건너간다. 어두운 방에서 밝은 방으로 넘어가도 흰 플래시가 없는 이유다 —
- * 색 토큰을 스크롤에 맞춰 계속 트윈하는 `@/lib/atmosphere`와 같은 어휘를 쓴다.
+ * 지금은 캔버스가 하나뿐이고 라우터 바깥에 산다(`App`). 그래서 전환이 하는 일은 가리는 것이
+ * 아니라 **자리를 비켜 주는 것**이다:
  *
- * 움직이는 것은 `<main>` 하나뿐이다. 배경(3D 필드·베일)은 변형 밖에 남아 자리를 지키고,
- * 그 위에서 본문만 잠겼다 떠오른다. 화면을 복제하지 않으니 캔버스가 흐려질 일도 없다.
+ *   ① 글(`<main>`)만 잠긴다 — 배경은 그대로 돌고 있다
+ *   ② `holdStage()`가 떠나는 순간의 카메라 자세를 굳히고 라우트를 갈아 끼운다
+ *   ③ 새 DOM이 붙으면 `releaseStage()`가 구간을 다시 재고 그 자리로 **날아간다**
+ *   ④ 비행이 절반쯤 갔을 때 새 글이 떠오른다
+ *
+ * 지면색도 이 사이에 물든다(`applyTheme`·`setMood`의 트윈). 가릴 것이 없으므로 색이 툭
+ * 바뀌면 그 한 프레임이 그대로 보이기 때문이다.
  *
  * "동작 줄이기"에서는 실행기를 등록하지 않아 링크가 평소대로 즉시 이동한다.
  */
@@ -118,7 +113,6 @@ export function PageDissolve() {
     navigateRef.current = navigate;
 
     const pageRef = useRef<HTMLDivElement>(null);
-    const veilRef = useRef<HTMLDivElement>(null);
     const busyRef = useRef(false);
     /** 이번 라우트 변경을 전환이 일으켰는가 — 뒤로가기와 구분하는 표식. */
     const ownRef = useRef(false);
@@ -126,8 +120,6 @@ export function PageDissolve() {
     /** popstate 핸들러가 보는 지금 항목 — 떠나는 자리를 굳히는 데 쓴다. */
     const keyRef = useRef(location.key);
     keyRef.current = location.key;
-    /** 뒤로가기로 떠나온 화면의 지면색. popstate 시점에는 아직 :root에 그 색이 남아 있다. */
-    const leavingPaperRef = useRef<string | null>(null);
 
     /**
      * 상세 라우트는 상수가 아니라 **지금 쓰는 것**을 들고 있는다.
@@ -143,51 +135,43 @@ export function PageDissolve() {
     /**
      * 도착한 화면을 띄운다 — 링크로 왔든 뒤로가기로 왔든 뒷절반은 같다.
      *
-     * 베일의 색을 도착지로 옮기는 트윈과 걷어내는 트윈을 겹쳐 둔다. 색이 다 건너간 뒤에
-     * 걷으면 총 시간이 1초를 넘고, 겹쳐 두면 옅어지는 동안 그 밑의 실제 지면색이 비쳐
-     * 어차피 같은 자리로 수렴한다.
+     * 먼저 카메라를 보낸다. 글은 비행이 절반쯤 갔을 때 떠오르므로, 방문자는 **공간이 옮겨간
+     * 뒤에** 그 자리의 글을 읽게 된다.
      */
-    const settle = useCallback((pathname: string, rise: number) => {
-        const veil = veilRef.current;
-        if (!veil) {
+    const settle = useCallback((rise: number) => {
+        /* 대개는 라우트가 갈린 프레임에 이미 떠났다(아래 레이아웃 이펙트). 본문이 늦게
+           도착한 경우에만 여기서 띄운다 — 이미 떠났으면 아무 일도 하지 않는다. */
+        releaseStage();
+
+        const body = bodyOf(pageRef.current);
+        const done = () => {
+            busyRef.current = false;
+            setCrossing(false);
+            // 본문에 걸었던 변형을 걷어낸 **뒤에** 다시 잰다. 트리거의 기준점은
+            // getBoundingClientRect에서 나오므로, 26px 들려 있는 동안 재면 그만큼 어긋난다.
+            ScrollTrigger.refresh();
+        };
+
+        if (!body) {
+            done();
             return;
         }
 
-        const body = bodyOf(pageRef.current);
-        const timeline = gsap.timeline({
+        gsap.timeline({
+            delay: hasStage() ? HOLD_FOR_FLIGHT : 0.04,
             onComplete: () => {
-                if (body) {
-                    gsap.set(body, { clearProps: "all" });
-                }
-                veil.style.visibility = "hidden";
-                busyRef.current = false;
-                // 본문에 걸었던 변형을 걷어낸 **뒤에** 다시 잰다. 트리거의 기준점은
-                // getBoundingClientRect에서 나오므로, 26px 들려 있는 동안 재면 그만큼 어긋난다.
-                ScrollTrigger.refresh();
+                gsap.set(body, { clearProps: "all" });
+                done();
             },
-        });
-
-        timeline.to(
-            veil,
-            { backgroundColor: paperOf(pathname), duration: 0.34, ease: "power1.inOut" },
-            0,
+        }).fromTo(
+            body,
+            { y: rise, scale: 0.994, opacity: 0, transformOrigin: originOf(body) },
+            { y: 0, scale: 1, opacity: 1, duration: LIFT, ease: "power3.out" },
         );
-
-        if (body) {
-            timeline.fromTo(
-                body,
-                { y: rise, scale: 0.994, opacity: 0, transformOrigin: originOf(body) },
-                { y: 0, scale: 1, opacity: 1, duration: LIFT, ease: "power3.out" },
-                0.04,
-            );
-        }
-
-        timeline.to(veil, { opacity: 0, duration: 0.46, ease: "power2.out" }, 0.06);
     }, []);
 
     const run = useCallback(
         (to: string) => {
-            const veil = veilRef.current;
             if (busyRef.current) {
                 return;
             }
@@ -197,19 +181,21 @@ export function PageDissolve() {
             seal(keyRef.current);
 
             // "동작 줄이기"에서도 이 입구는 지난다 — 자리를 굳히는 일은 애니메이션이 아니다.
-            if (!veil || prefersReducedMotion()) {
+            if (prefersReducedMotion()) {
                 navigateRef.current(to);
                 return;
             }
 
             busyRef.current = true;
+            // 지면색을 툭 갈아 끼우지 않고 물들이게 한다(`applyTheme`·`clearMood`).
+            setCrossing(true);
             // 상세로 건너뛸 때 패널이 열린 채 남지 않게 한다(모바일에서는 화면을 덮는다).
             closeAssistant();
 
-            // 청크를 먼저 받아 둔다. 베일 뒤에서 받기 시작하면 Suspense 폴백(빈 화면)이
-            // 자리를 차지하고, 베일이 걷힌 자리에 그것이 남는다.
+            // 청크를 먼저 받아 둔다. 글이 사라진 뒤에 받기 시작하면 Suspense 폴백이
+            // 자리를 차지하고, 글이 떠오를 자리에 그것이 남는다.
             const { pathname } = new URL(to, window.location.href);
-            // 받다 실패해도 여기서 삼킨다 — 기다림이 영영 걷히지 않는 베일로 번지지 않게.
+            // 받다 실패해도 여기서 삼킨다 — 기다림이 영영 끝나지 않는 전환으로 번지지 않게.
             // 실제 실패는 라우트가 렌더될 때 드러난다.
             const ready = pathname.startsWith("/projects/")
                 ? loadProjectDetail().then(
@@ -220,38 +206,36 @@ export function PageDissolve() {
 
             void Promise.race([ready, timeout(HOLD_BEFORE_DIM)]).then(() => {
                 const body = bodyOf(pageRef.current);
-                gsap.set(veil, { backgroundColor: paperNow(), opacity: 0, visibility: "visible" });
 
-                const timeline = gsap.timeline({
-                    onComplete: () => {
-                        ownRef.current = true;
-                        navigateRef.current(to);
-                        // 첫 상한은 잠그기 시작할 때를 정할 뿐이라, 느린 회선에서는 아직
-                        // 청크가 없을 수 있다. 그대로 걷으면 Suspense 폴백(빈 화면)이
-                        // 드러난다 — 덮인 채로 한 번 더 기다린다.
-                        void Promise.race([ready, timeout(HOLD_BEFORE_LIFT)]).then(() => {
-                            // 새 본문이 자리를 잡고(레이아웃 · 스크롤 리셋 · 테마 주입) 나서 띄운다.
-                            requestAnimationFrame(() => {
-                                requestAnimationFrame(() => settle(pathname, RISE));
-                            });
+                const leave = () => {
+                    // 떠나는 순간의 카메라 자세를 굳힌다. 라우트가 갈리는 동안 카메라는
+                    // 여기 서 있고, 새 DOM을 재고 나서야 다음 자리로 날아간다.
+                    holdStage();
+                    ownRef.current = true;
+                    navigateRef.current(to);
+                    // 첫 상한은 잠그기 시작할 때를 정할 뿐이라, 느린 회선에서는 아직 청크가
+                    // 없을 수 있다. 글이 없는 동안에도 화면에는 공간이 돌고 있으므로,
+                    // 도착할 때까지 한 번 더 기다린다.
+                    void Promise.race([ready, timeout(HOLD_BEFORE_LIFT)]).then(() => {
+                        // 새 본문이 자리를 잡고(레이아웃 · 스크롤 리셋 · 테마 주입) 나서 띄운다.
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => settle(RISE));
                         });
-                    },
-                });
+                    });
+                };
 
-                timeline.to(veil, { opacity: 1, duration: DIM, ease: "power2.inOut" }, 0);
-                if (body) {
-                    timeline.to(
-                        body,
-                        {
-                            scale: 0.985,
-                            opacity: 0,
-                            duration: DIM,
-                            ease: "power2.in",
-                            transformOrigin: originOf(body),
-                        },
-                        0,
-                    );
+                if (!body) {
+                    leave();
+                    return;
                 }
+                gsap.to(body, {
+                    scale: 0.985,
+                    opacity: 0,
+                    duration: DIM,
+                    ease: "power2.in",
+                    transformOrigin: originOf(body),
+                    onComplete: leave,
+                });
             });
         },
         [settle],
@@ -302,29 +286,41 @@ export function PageDissolve() {
 
     // --- 브라우저 뒤로/앞으로 가기 -----------------------------------------
     /**
-     * 떠나온 화면의 지면색을 그 자리에서 받아 둔다.
+     * 떠나는 순간의 카메라 자세를 그 자리에서 굳힌다.
      *
-     * 떠나는 순간에는 `:root`에 아직 떠나온 쪽의 색이 칠해져 있다. 라우터가 그리고 나면
-     * 도착지의 색으로 덮여 다시 읽을 수 없다 — `onLeaving`이 필요한 이유가 그것이다.
+     * `popstate`는 히스토리가 이미 갈린 뒤에 오고 라우터도 같은 이벤트를 듣는다. 우리
+     * 리스너가 **먼저** 등록돼 있어야(`lib/leaving`은 모듈 최상위에서 건다) 라우터가
+     * 리렌더하기 전에 지금 카메라를 붙잡을 수 있다. 여기서 놓치면 뒤로가기는 떠나온 자리를
+     * 잃고, 도착지에서 그냥 튀어 나타난다.
      */
     useEffect(
         () =>
             onLeaving(() => {
-                leavingPaperRef.current = paperNow();
+                if (prefersReducedMotion()) {
+                    return;
+                }
+                /* `popstate`는 주소가 이미 바뀐 뒤에 온다. 해시만 바뀐 것(같은 페이지 안의
+                   섹션 이동)에도 불리는데, 그때 붙잡아 두면 뒤의 레이아웃 이펙트가 일찍
+                   빠져나가 `busy`가 켜진 채로 남는다 — 이후의 이동이 통째로 막힌다. */
+                if (window.location.pathname === prevPathRef.current) {
+                    return;
+                }
+                busyRef.current = true;
+                setCrossing(true);
+                holdStage();
             }),
         [],
     );
 
     /**
-     * 뒤로/앞으로 가기에는 **잠기는 절반이 없다.**
+     * 라우트가 갈린 직후 — 새 본문을 **그리기 전에** 감춘다.
      *
-     * `popstate`는 히스토리가 이미 갈린 뒤에 오고, 라우터도 같은 이벤트를 듣는다 — 우리
-     * 리스너가 먼저 받더라도 라우터의 리렌더를 붙잡아 둘 수 없다. 떠나는 화면을 붙잡으려면
-     * 다시 복제하는 수밖에 없는데, 그것이 방금 걷어낸 방식이다.
+     * 레이아웃 이펙트는 브라우저가 칠하기 전에 돈다. 여기서 감추지 않으면 새 화면이 한
+     * 프레임 통째로 드러났다가 다시 사라진다(예전에는 베일이 그것을 가렸다).
      *
-     * 그래서 뒷절반만 태우되 **떠나온 색에서 시작한다.** 도착지 색으로 덮고 시작하면 색이
-     * 이미 갈린 뒤라 "덮개가 걷혔다"로만 보이고, 떠나온 색에서 도착지 색으로 물들며 걷히면
-     * 그 사이에 이동이 있었다는 것이 읽힌다. 본문도 앞으로 갈 때와 반대 방향에서 들어온다.
+     * 뒤로가기에는 **잠기는 절반이 없다.** `popstate`가 온 시점에는 라우터가 이미 동기
+     * 렌더까지 끝냈으므로 떠나는 화면을 붙잡을 방법이 없다. 대신 카메라는 `onLeaving`에서
+     * 이미 굳혀 두었으므로, 뒷절반(비행 + 글이 떠오름)은 앞으로 갈 때와 똑같다.
      */
     useLayoutEffect(() => {
         const from = prevPathRef.current;
@@ -334,51 +330,45 @@ export function PageDissolve() {
         if (from === location.pathname) {
             return;
         }
-        if (ownRef.current) {
-            ownRef.current = false;
+
+        const own = ownRef.current;
+        ownRef.current = false;
+        if (prefersReducedMotion()) {
             return;
         }
 
-        const veil = veilRef.current;
-        if (!veil || prefersReducedMotion()) {
-            return;
+        const body = bodyOf(pageRef.current);
+        if (body) {
+            gsap.set(body, { opacity: 0 });
+            /* 세계는 방금(`Stage`의 레이아웃 이펙트) 교대했다. 같은 프레임에 다시 재고
+               **곧바로 띄운다.** 청크를 기다린 뒤에 띄우면 그 사이 카메라가 붙들린 채로
+               글도 배경도 멎어 있어, 그 정지가 "화면이 한 번 꺼졌다"로 읽힌다(사용자 지적).
+               본문이 아직 없으면(느린 회선의 Suspense 폴백) 잴 것도 없으므로 뒤로 미룬다. */
+            remeasureStage();
+            releaseStage();
         }
 
-        busyRef.current = true;
-        gsap.set(veil, {
-            backgroundColor: leavingPaperRef.current ?? paperOf(from),
-            opacity: 1,
-            visibility: "visible",
-        });
-        leavingPaperRef.current = null;
-        // 스크롤 복원(ScrollToTop)도 두 프레임 뒤에 온다 — 그 점프가 아직 불투명한 베일
-        // 뒤에서 일어나도록, 걷어내는 트윈은 0.06초 늦게 시작한다(settle).
+        // 링크로 온 것이면 뒷절반은 `run`이 청크를 기다린 뒤에 부른다.
+        if (own) {
+            return;
+        }
         requestAnimationFrame(() => {
-            requestAnimationFrame(() => settle(location.pathname, FALL));
+            requestAnimationFrame(() => settle(FALL));
         });
     }, [location.pathname, settle]);
 
     return (
-        <>
-            {/* 라우트는 문서 흐름에 그대로 둔다 — 감싸는 상자가 레이아웃에 끼어들면
-                안쪽의 fixed 배경이 그 상자를 기준으로 잡혀 버린다. */}
-            <div ref={pageRef} style={{ display: "contents" }}>
-                <RouteBoundary resetKey={location.pathname} onRetry={retryProjectDetail}>
-                    <Suspense fallback={<div className="min-h-screen" />}>
-                        <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/projects/:slug" element={<ProjectDetailRoute />} />
-                        </Routes>
-                    </Suspense>
-                </RouteBoundary>
-            </div>
-
-            <div
-                ref={veilRef}
-                aria-hidden
-                className="pointer-events-none fixed inset-0 z-40"
-                style={{ visibility: "hidden", opacity: 0 }}
-            />
-        </>
+        /* 라우트는 문서 흐름에 그대로 둔다 — 감싸는 상자가 레이아웃에 끼어들면
+           안쪽의 fixed 배경이 그 상자를 기준으로 잡혀 버린다. */
+        <div ref={pageRef} style={{ display: "contents" }}>
+            <RouteBoundary resetKey={location.pathname} onRetry={retryProjectDetail}>
+                <Suspense fallback={<div className="min-h-screen" />}>
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/projects/:slug" element={<ProjectDetailRoute />} />
+                    </Routes>
+                </Suspense>
+            </RouteBoundary>
+        </div>
     );
 }

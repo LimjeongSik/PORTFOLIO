@@ -116,14 +116,16 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
         >
             <p className={LABEL}>{selection.group === "boot" ? "부팅 순서" : "Provider 중첩"}</p>
             <p className="mt-3 font-mono text-base text-ink">{active?.name}</p>
-            <p className="mt-4 text-[0.9375rem] leading-[1.75] text-ink/85">{active?.role}</p>
+            <p className="mt-4 max-w-[34rem] text-[1rem] leading-[1.9] text-ink/85">
+                {active?.role}
+            </p>
             {active?.caution ? (
                 <div className="mt-5 border-t border-line pt-4">
                     <p className="flex items-center gap-2 font-mono text-[0.6875rem] tracking-[0.18em] text-espresso uppercase">
                         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-espresso" />
                         자리를 바꾸면
                     </p>
-                    <p className="mt-2.5 text-[0.9375rem] leading-[1.75] text-ink/85">
+                    <p className="mt-3 max-w-[34rem] text-[1rem] leading-[1.9] text-ink/85">
                         {active.caution}
                     </p>
                 </div>
@@ -131,95 +133,85 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
         </motion.div>
     );
 
-    const note = <p className="text-[0.8125rem] leading-relaxed text-muted">{runtime.note}</p>;
+    const note = (
+        <p className="max-w-[34rem] text-[0.875rem] leading-[1.8] text-muted">{runtime.note}</p>
+    );
 
     return (
-        <section ref={root} className="mt-24 px-6">
-            <div className="mx-auto max-w-5xl">
-                <h2 className="font-mono text-[0.6875rem] tracking-[0.18em] text-espresso uppercase">
-                    Runtime
-                </h2>
-                <p className="mt-4 max-w-2xl font-sans text-2xl leading-snug font-bold tracking-[-0.03em] text-ink sm:text-3xl">
-                    {runtime.title}
-                </p>
-                <p className="mt-3 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-                    {runtime.lede}
-                </p>
-
-                <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14">
-                    <div>
-                        <h3 className={LABEL}>부팅 순서</h3>
-                        <ol className="mt-4 border-l border-line">
-                            {runtime.boot.map((node, index) => {
-                                const on = isOn("boot", index);
-                                return (
-                                    <li key={node.name} className="relative">
-                                        <button
-                                            type="button"
-                                            onClick={select("boot", index)}
-                                            onFocus={select("boot", index)}
-                                            aria-pressed={on}
-                                            className="flex w-full items-center gap-3 py-2 pl-5 text-left"
+        <div ref={root}>
+            <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+                <div>
+                    <h3 className={LABEL}>부팅 순서</h3>
+                    <ol className="mt-4 border-l border-line">
+                        {runtime.boot.map((node, index) => {
+                            const on = isOn("boot", index);
+                            return (
+                                <li key={node.name} className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={select("boot", index)}
+                                        onFocus={select("boot", index)}
+                                        aria-pressed={on}
+                                        className="flex w-full items-center gap-3 py-2 pl-5 text-left"
+                                    >
+                                        <span
+                                            aria-hidden
+                                            className={`absolute top-1/2 left-0 h-px -translate-y-1/2 transition-all duration-300 ${
+                                                on ? "w-4 bg-espresso" : "w-2.5 bg-line"
+                                            }`}
+                                        />
+                                        <span
+                                            className={`font-mono text-[0.625rem] tabular-nums transition-colors duration-300 ${
+                                                on ? "text-espresso" : "text-muted"
+                                            }`}
                                         >
-                                            <span
-                                                aria-hidden
-                                                className={`absolute top-1/2 left-0 h-px -translate-y-1/2 transition-all duration-300 ${
-                                                    on ? "w-4 bg-espresso" : "w-2.5 bg-line"
-                                                }`}
-                                            />
-                                            <span
-                                                className={`font-mono text-[0.625rem] tabular-nums transition-colors duration-300 ${
-                                                    on ? "text-espresso" : "text-muted"
-                                                }`}
-                                            >
-                                                {String(index + 1).padStart(2, "0")}
-                                            </span>
-                                            <span
-                                                className={`font-mono text-[0.8125rem] transition-colors duration-300 ${
-                                                    on ? "text-ink" : "text-muted hover:text-ink"
-                                                }`}
-                                            >
-                                                {node.name}
-                                            </span>
-                                            {node.caution ? (
-                                                <span className="ml-2 flex items-center">
-                                                    <span
-                                                        aria-hidden
-                                                        className="h-1.5 w-1.5 rounded-full bg-espresso"
-                                                    />
-                                                    <span className="sr-only">
-                                                        순서에 제약이 있는 자리
-                                                    </span>
+                                            {String(index + 1).padStart(2, "0")}
+                                        </span>
+                                        <span
+                                            className={`font-mono text-[0.8125rem] transition-colors duration-300 ${
+                                                on ? "text-ink" : "text-muted hover:text-ink"
+                                            }`}
+                                        >
+                                            {node.name}
+                                        </span>
+                                        {node.caution ? (
+                                            <span className="ml-2 flex items-center">
+                                                <span
+                                                    aria-hidden
+                                                    className="h-1.5 w-1.5 rounded-full bg-espresso"
+                                                />
+                                                <span className="sr-only">
+                                                    순서에 제약이 있는 자리
                                                 </span>
-                                            ) : null}
-                                        </button>
-                                    </li>
-                                );
-                            })}
-                        </ol>
+                                            </span>
+                                        ) : null}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ol>
 
-                        {!wide && selection.group === "boot" ? (
-                            <div className="mt-6">{detail}</div>
-                        ) : null}
-
-                        <h3 className={`${LABEL} mt-9 block`}>Provider 중첩</h3>
-                        <div className="runtime-tree mt-4">{nest(0)}</div>
-
-                        {!wide && selection.group === "tree" ? (
-                            <div className="mt-6">{detail}</div>
-                        ) : null}
-
-                        {!wide ? <div className="mt-4">{note}</div> : null}
-                    </div>
-
-                    {wide ? (
-                        <div className="sticky top-24 self-start">
-                            {detail}
-                            <div className="mt-4">{note}</div>
-                        </div>
+                    {!wide && selection.group === "boot" ? (
+                        <div className="mt-6">{detail}</div>
                     ) : null}
+
+                    <h3 className={`${LABEL} mt-9 block`}>Provider 중첩</h3>
+                    <div className="runtime-tree mt-4">{nest(0)}</div>
+
+                    {!wide && selection.group === "tree" ? (
+                        <div className="mt-6">{detail}</div>
+                    ) : null}
+
+                    {!wide ? <div className="mt-4">{note}</div> : null}
                 </div>
+
+                {wide ? (
+                    <div className="sticky top-24 self-start">
+                        {detail}
+                        <div className="mt-4">{note}</div>
+                    </div>
+                ) : null}
             </div>
-        </section>
+        </div>
     );
 }
