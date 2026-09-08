@@ -608,13 +608,18 @@ export function buildGallery(ctx: WorldContext): Zone {
        본문 기둥 뒤에 오도록 카메라를 조금만 왼쪽으로 비켜 세운다 — 얼마나 비킬지는 그
        거리에서 보이는 반폭의 비율이라 창 비율마다 다시 잰다. */
     const keysFor = (aspect: number) => {
-        const halfWidth = Math.tan((FOV / 2) * (Math.PI / 180)) * DISTANCE * aspect;
-        const aside = halfWidth * 0.25;
+        const halfTan = Math.tan((FOV / 2) * (Math.PI / 180));
+        /* 세로 창에서는 DOM이 한 열짜리 목록이라 비켜 설 이유가 없고, 반폭이 좁아 그 거리에
+           서면 고리(반지름 3.4)가 화면보다 크다. 정면에서 고리가 들어올 만큼만 물러선다 —
+           안개(18부터)에 잠기지 않는 선에서 끊는다. */
+        const portrait = aspect < 1;
+        const distance = portrait ? Math.min(18, 4.2 / (halfTan * aspect)) : DISTANCE;
+        const aside = portrait ? 0 : halfTan * DISTANCE * aspect * 0.25;
         const keys: CameraKey[] = [];
         for (let index = 0; index <= last; index += 1) {
             for (const f of index < last ? [0, 0.25, 0.5, 0.75] : [0]) {
                 const x = GALLERY.x + (index + dwell(f)) * GALLERY_GAP - aside;
-                position.set(x, GALLERY.y + 0.4, GALLERY.z + DISTANCE);
+                position.set(x, GALLERY.y + 0.4, GALLERY.z + distance);
                 look.set(x, GALLERY.y - 0.1, GALLERY.z - 2);
                 keys.push(
                     key("projects", last === 0 ? 0 : (index + f) / last, position, look, FOV),
@@ -646,6 +651,8 @@ export function buildGallery(ctx: WorldContext): Zone {
                    앞에 서기 전에 접는다 — 이 장소만은 "지나온 자리가 남는다"의 예외다. */
                 const presence = 1 - smoothstep(0.3, 0.9, Math.abs(t - index));
                 const shown = presence > 0.001;
+                // 세로 창은 물러서도 반폭이 좁다 — 위성 궤도를 죄어 가장자리에서 잘리지 않게 한다.
+                const reach = frame.narrow ? 2.3 : 3.1;
                 station.halo.visible = shown;
                 station.haloMaterial.opacity = presence;
                 for (const satellite of station.satellites) {
@@ -654,7 +661,7 @@ export function buildGallery(ctx: WorldContext): Zone {
                     orbit.visible = shown;
                     orbit.scale.setScalar(station.scale * presence);
                     orbit.position.set(
-                        station.center.x + Math.cos(angle) * 3.1,
+                        station.center.x + Math.cos(angle) * reach,
                         station.center.y +
                             Math.sin(angle) * 0.9 +
                             (frame.idle ? Math.sin(frame.time * 0.8 + angle) * 0.05 : 0),

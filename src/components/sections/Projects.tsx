@@ -47,7 +47,11 @@ export function Projects() {
                     <ProjectStage projects={projects} leadMood={CRAFT_MOOD} />
                 </div>
             ) : (
-                <div className="px-6 pb-24 sm:pb-32">
+                /* 목록으로 떨어져도 3D 무대는 그대로 갤러리로 난다 — 구간 표식이 무대 컴포넌트
+                   안에만 있으면 타임라인에 프로젝트 구간이 없어 카메라가 경력의 계단 꼭대기에
+                   영영 머문다(사용자 지적). 카드마다 닻을 두어, 카드가 화면 가운데 올 때
+                   같은 순서의 자리 앞에 카메라가 선다. */
+                <div data-stage-zone="projects" className="px-6 pb-24 sm:pb-32">
                     <div className="mx-auto max-w-6xl">
                         {/* 그리드 나열 대신 한 줄에 한 프로젝트씩 — 썸네일과 본문의 좌우를 번갈아
                             배치해(지그재그) 스크롤하며 하나씩 읽히게 한다. */}
@@ -85,7 +89,7 @@ function MoodedCard({ project, index, reversed }: MoodedCardProps) {
     useMoodZone(ref, project.slug, mood, 4);
 
     return (
-        <div ref={ref}>
+        <div ref={ref} data-stage-anchor="">
             <ProjectCard project={project} index={index} reversed={reversed} />
         </div>
     );
