@@ -129,11 +129,14 @@ export function ProjectDetail() {
                             </div>
                         ) : null}
 
-                        <nav className="mt-16 flex items-stretch justify-between gap-6 border-t border-line pt-8">
+                        {/* 두 제목이 한 줄에 안 들어가면 줄을 나눈다. 접히지 않는 행에 긴
+                            제목이 둘 오면 그 한 줄이 지면 폭을 밀어낸다 — 지금 셋으로는
+                            들어가지만, 프로젝트가 늘면 제일 먼저 넘칠 자리다. */}
+                        <nav className="mt-16 flex flex-wrap items-stretch justify-between gap-x-6 gap-y-8 border-t border-line pt-8">
                             {prev ? (
                                 <Link
                                     to={`/projects/${prev.slug}`}
-                                    className="group flex flex-col gap-2 text-left"
+                                    className="group flex min-w-0 flex-col gap-2 text-left"
                                 >
                                     <span className={LABEL_MUTED}>← 이전</span>
                                     <span className="font-display text-lg leading-[1.4] font-medium text-ink transition-colors group-hover:text-espresso">
@@ -146,7 +149,7 @@ export function ProjectDetail() {
                             {next ? (
                                 <Link
                                     to={`/projects/${next.slug}`}
-                                    className="group flex flex-col gap-2 text-right"
+                                    className="group flex min-w-0 flex-col gap-2 text-right"
                                 >
                                     <span className={LABEL_MUTED}>다음 →</span>
                                     <span className="font-display text-lg leading-[1.4] font-medium text-ink transition-colors group-hover:text-espresso">

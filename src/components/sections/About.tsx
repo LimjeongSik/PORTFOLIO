@@ -122,13 +122,19 @@ export function About() {
                     </div>
                 </div>
 
-                <dl className="about-details mt-12 grid grid-cols-2 gap-x-8 gap-y-6 border-y border-line py-8 sm:grid-cols-4">
+                {/* 아주 좁은 화면에서는 한 칸이다. 두 칸으로 두면 칸마다 120px밖에 안 남아
+                    이메일이 세 줄로 접힌다 — 폭이 아니라 칸 수를 줄이는 게 맞다. */}
+                <dl className="about-details mt-12 grid grid-cols-1 gap-x-8 gap-y-6 border-y border-line py-8 min-[30rem]:grid-cols-2 sm:grid-cols-4">
                     {details.map((item) => (
-                        <div key={item.label} className="about-detail">
+                        /* 그리드 칸은 기본이 `min-width: auto`(= min-content)라, 끊기지
+                           않는 이메일 한 줄이 제 칸을 넘어 표 전체를 넓힌다 — 좁은 화면에서
+                           지면이 옆으로 밀리던 원인이다. 칸이 줄어들 수 있게 열고, 값은
+                           필요할 때만 끊는다. */
+                        <div key={item.label} className="about-detail min-w-0">
                             <dt className="font-mono text-xs tracking-wider text-muted uppercase">
                                 {item.label}
                             </dt>
-                            <dd className="mt-2 text-base text-ink">
+                            <dd className="mt-2 text-base wrap-anywhere text-ink">
                                 {item.href ? (
                                     <a
                                         href={item.href}

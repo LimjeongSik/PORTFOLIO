@@ -56,12 +56,13 @@ export function ProjectCover({ project }: ProjectCoverProps) {
         <section
             ref={root}
             data-stage-zone="cover"
-            /* 좁은 화면에서는 붙이지 않는다 — 표지에 들어가는 것(제목·요약·역할·스택)은 세로
-               폭이 좁을수록 길어져서, 화면 하나에 가두면 아래가 잘린다. 대신 **여유는 그대로
-               준다**: 구간이 화면 하나보다 짧으면 카메라 키 셋이 1px 안에 뭉쳐, 맨 위에서
-               조금만 굴려도 좌대가 확 커졌다 작아진다(사용자 지적). 내용은 가운데로 모으고
-               남는 높이는 카메라가 다가갈 스크롤이 된다. */
-            className="relative flex min-h-[170svh] flex-col justify-center py-28 lg:block lg:h-[200svh] lg:py-0"
+            /* 좁은 화면에서는 **평범한 머리글**이다 — 붙이지도, 여유를 주지도 않는다.
+               카메라에 스크롤 여유를 주려면 구간이 화면 하나보다 커야 하는데 표지의 내용은
+               60svh 남짓이라, 남는 높이는 어김없이 빈 자리가 된다. 가운데로 모으면 그 빈
+               자리가 위로도 가서 본문이 첫 화면 아래로 밀린다(사용자 지적).
+               그래서 좁은 화면에서는 여유를 걷고 **카메라를 세운다**(`buildPlinth`의 키가
+               하나뿐이다). 보간할 것이 없으니 구간이 짧아도 튀지 않는다. */
+            className="relative py-24 lg:h-[200svh] lg:py-0"
             aria-labelledby="project-title"
         >
             <div className="lg:sticky lg:top-0 lg:flex lg:h-svh lg:items-center">

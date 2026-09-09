@@ -65,12 +65,16 @@ html {
        `hidden`이 아니라 `clip`인 것이 중요하다 — `overflow: hidden`은 스크롤 컨테이너를
        만들어서 그 안의 `position: sticky`가 뷰포트가 아니라 그 상자를 기준으로 붙는다.
        이 지면은 붙어 서는 것으로 굴러간다(Roomy · 표지 · 화면 전시 · 해부 · 런타임).
-       `clip`은 스크롤 컨테이너를 만들지 않으므로 잘라 내기만 하고 sticky는 그대로다. */
+       `clip`은 스크롤 컨테이너를 만들지 않으므로 잘라 내기만 하고 sticky는 그대로다.
+
+       `body`에도 함께 건다 — 루트의 overflow는 뷰포트로 넘어가고 루트 자신은 `visible`로
+       계산되므로, 한쪽만 걸면 브라우저·상황에 따라 새는 경우가 있다. */
     overflow-x: clip;
 }
 
 body {
     margin: 0;
+    overflow-x: clip;
     background-color: var(--color-paper);
     color: var(--color-ink);
     /* 홈에서는 @/lib/atmosphere가 --color-* 자체를 트윈하므로 여기서 또 0.6s를 걸면

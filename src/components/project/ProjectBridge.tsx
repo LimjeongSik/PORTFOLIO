@@ -67,7 +67,7 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
 
     return (
         <div>
-            <div className="grid gap-10 lg:grid-cols-[1fr_20rem] lg:items-start">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
                 {/* 바깥 — 네이티브 껍데기 */}
                 <div className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
                     <div className="flex items-baseline justify-between gap-4">

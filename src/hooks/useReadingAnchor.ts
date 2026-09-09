@@ -27,17 +27,21 @@ const LANDMARKS = "[data-stage-anchor],[data-stage-zone]";
 /** 리사이즈가 멎었다고 보는 시간(ms). 조판이 실제로 갈린 뒤에 재야 한다. */
 const SETTLE_MS = 180;
 
-/**
- * 굴리는 동안 자리를 다시 잡는 간격(ms)과, 멈춘 뒤 한 번 더 잡는 시간(ms).
- *
- * 프레임마다 재면 `getBoundingClientRect`를 스무 번씩 읽어 3D 무대와 레이아웃을 두고 다툰다.
- * 여기서 필요한 정밀도는 "지금 어느 화면·사례를 읽고 있는가"뿐이라 이따금이면 충분하고,
- * 정작 중요한 **마지막 자리**는 멈춘 직후에 한 번 더 잡아 정확히 남긴다.
- */
-const PICK_MS = 120;
+/** 스크롤이 멎었다고 보고 자리를 잡는 시간(ms). */
 const PICK_IDLE_MS = 90;
 
-/** 세로만 이만큼(비율) 넘게 달라져야 자리를 다시 맞춘다 — 모바일 주소창 여닫이를 거른다. */
+/**
+ * 세로만 달라진 것을 받아 줄지는 **입력 장치가 가른다.**
+ *
+ * 상세는 `200svh`·`180svh`와 화면 높이에 묶인 붙임으로 짜여 있어, 창을 세로로 끌면 문서
+ * 위치가 실제로 달라진다 — 그때는 자리를 다시 맞춰야 한다. 하지만 모바일에서 세로가
+ * 바뀌는 것은 대개 **스크롤에 따라 여닫히는 주소창**이고(`svh`는 가장 작은 뷰포트 기준이라
+ * 그때 조판이 움직이지도 않는다), 거기에 반응하면 굴릴 때마다 스크롤을 잡아채고
+ * `ScrollTrigger.refresh()`까지 돌아 화면이 버벅인다(사용자 지적).
+ *
+ * 그래서 세로는 **손가락이 아닌 포인터일 때만** 본다. 폭이 달라진 것은 언제나 받는다 —
+ * 조판이 갈리는 기준은 전부 폭이다.
+ */
 const HEIGHT_TOLERANCE = 0.1;
 
 function clamp01(value: number) {
@@ -76,7 +80,6 @@ export function useReadingAnchor(active = true) {
         let queued = 0;
         let settle = 0;
         let idle = 0;
-        let lastPick = 0;
 
         const measure = (node: HTMLElement): Place => {
             const rect = node.getBoundingClientRect();
@@ -153,24 +156,26 @@ export function useReadingAnchor(active = true) {
 
         const request = () => {
             if (!queued) {
-                lastPick = performance.now();
                 queued = requestAnimationFrame(pick);
             }
         };
 
+        /* **굴리는 동안에는 재지 않는다.** 랜드마크마다 `getBoundingClientRect`를 읽는 일은
+           레이아웃을 강제로 계산시키는데, 이 지면에는 3D 루프와 스크롤 장치들이 이미 매
+           프레임 돌고 있다. 자리가 필요한 순간은 폭이 바뀔 때뿐이고 그건 굴리는 중에 오지
+           않으므로, 멈춘 직후에 한 번만 잡는다. */
         const onScroll = () => {
-            // 멈춘 직후 한 번 — 마지막 자리가 가장 정확해야 한다.
             window.clearTimeout(idle);
             idle = window.setTimeout(request, PICK_IDLE_MS);
-            if (performance.now() - lastPick >= PICK_MS) {
-                request();
-            }
         };
 
         const onResize = () => {
-            const grew = window.innerWidth !== width;
-            const stretched = Math.abs(window.innerHeight - height) / height > HEIGHT_TOLERANCE;
-            if (!grew && !stretched) {
+            const widened = window.innerWidth !== width;
+            /* 기기 모드로 들어가면 포인터 종류가 바뀌므로 그때그때 다시 묻는다. */
+            const coarse = window.matchMedia("(pointer: coarse)").matches;
+            const stretched =
+                !coarse && Math.abs(window.innerHeight - height) / height > HEIGHT_TOLERANCE;
+            if (!widened && !stretched) {
                 return;
             }
             // 첫 이벤트에서 곧바로 얼린다. 여기서부터의 측정값은 이미 어긋난 값이다.

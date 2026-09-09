@@ -79,7 +79,7 @@ export function Skills() {
                         <div key={group.label}>
                             <span className="skill-rule block h-px w-full origin-left bg-line" />
                             <div
-                                className="skill-row grid gap-4 py-6 md:grid-cols-[200px_1fr] md:items-center"
+                                className="skill-row grid gap-4 py-6 md:grid-cols-[200px_minmax(0,1fr)] md:items-center"
                                 data-side={index % 2 === 0 ? "left" : "right"}
                             >
                                 <p className="font-mono text-sm tracking-wider text-espresso uppercase">

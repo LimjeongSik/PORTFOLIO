@@ -212,7 +212,7 @@ export function ProjectStage({ projects, leadMood }: ProjectStageProps) {
                             }}
                             className="w-[62vw] max-w-4xl shrink-0"
                         >
-                            <article className="grid grid-cols-[minmax(0,18rem)_1fr] items-center gap-12">
+                            <article className="grid grid-cols-[minmax(0,18rem)_minmax(0,1fr)] items-center gap-12">
                                 {/* 기기 틀 없이 화면 그대로. 각도가 붙은 판이라 그림자만으로 뜬다.
                                     세로 화면이라 폭만 정해 두면 낮은 화면(예: 1024×600)에서
                                     `h-svh` 무대를 넘겨 잘린다 — 높이도 함께 죄어 둔다. */}

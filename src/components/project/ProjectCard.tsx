@@ -132,7 +132,11 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
     const mediaColumn = reversed
         ? "md:col-start-7 md:col-span-6 lg:col-start-8 lg:col-span-5"
         : "md:col-start-1 md:col-span-6 lg:col-span-5";
-    const bodyColumn = reversed ? "md:col-start-1 md:col-span-6" : "md:col-start-7 md:col-span-6";
+    /* 본문 칸에 `min-w-0`을 준다 — 그리드 칸의 기본 최소 폭은 min-content라, 긴 기술명
+       하나가 안 끊기면 그 칸이 제 몫을 넘어 카드 전체를 넓힌다. */
+    const bodyColumn = reversed
+        ? "md:col-start-1 md:col-span-6 md:min-w-0"
+        : "md:col-start-7 md:col-span-6 md:min-w-0";
 
     const media = reduced ? fadeVariants : split ? mediaVariants : compactMediaVariants;
     const body = split ? bodyVariants : compactBodyVariants;
