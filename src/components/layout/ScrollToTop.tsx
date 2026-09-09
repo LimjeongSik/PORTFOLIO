@@ -51,6 +51,9 @@ export function ScrollToTop() {
     const keyRef = useRef(key);
     keyRef.current = key;
 
+    /** 직전에 있던 페이지 — 해시 이동을 즉시로 할지 부드럽게 할지 여기서 갈린다. */
+    const prevPathRef = useRef(pathname);
+
     useEffect(() => {
         // 새로고침·뒤로가기 시 브라우저가 스크롤을 복원하면 우리 복원과 충돌한다.
         if ("scrollRestoration" in window.history) {
@@ -80,8 +83,13 @@ export function ScrollToTop() {
         return () => window.removeEventListener("scroll", record);
     }, [key]);
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: pathname은 라우트 변경 시 스크롤을 다시 정하는 의도된 의존성
     useEffect(() => {
+        /* 라우트를 건너왔는지는 **어느 갈래로 빠지든** 먼저 확정해 둔다. 아래 어느 하나에서
+           일찍 빠져나가면서 갱신을 놓치면, 그 뒤 같은 페이지 안의 해시 이동까지 "건너온 것"으로
+           오판해 툭 튄다. */
+        const crossed = prevPathRef.current !== pathname;
+        prevPathRef.current = pathname;
+
         if (navigationType === "POP") {
             const saved = recall(key);
             if (saved !== undefined) {
@@ -93,9 +101,13 @@ export function ScrollToTop() {
         if (hash) {
             const id = hash.replace("#", "");
             if (document.getElementById(id)) {
+                /* **라우트를 건너와 도착한 것이면 즉시 옮긴다.** 그때는 카메라도 새 자리로
+                   날아가는 중인데, 스크롤이 부드럽게 흐르면 비행의 목표가 매 프레임 앞서
+                   달아나 궤적이 엉킨다(사용자 지적). 같은 페이지 안의 해시 이동은 가릴 것이
+                   없으니 평소대로 부드럽게 간다. */
                 // 방금 그려진 라우트라, 한 프레임 뒤에야 위치가 확정된다.
                 requestAnimationFrame(() => {
-                    scrollToSection(id);
+                    scrollToSection(id, crossed);
                     unseal();
                 });
                 return;

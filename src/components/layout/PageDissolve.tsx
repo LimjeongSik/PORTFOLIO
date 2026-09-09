@@ -57,7 +57,17 @@ const FALL = -18;
  * 화면 밖으로 밀려난다.
  */
 function bodyOf(host: HTMLElement | null) {
-    return host?.querySelector<HTMLElement>("main") ?? null;
+    /* **보이는 것만** 고른다. 이미 드러난 Suspense 경계가 다시 멈추면(느린 회선에서 상세
+       청크가 늦을 때) React는 옛 화면을 DOM에 남긴 채 `display: none`으로 감추고 폴백을
+       보여 준다 — 그 유령을 잡으면 감추기와 되살리기가 도착지가 아니라 떠나온 화면에 걸리고,
+       정작 도착한 본문은 연출 없이 튀어나온다. `offsetParent`는 감춰진 조상이 하나라도 있으면
+       `null`이라 그 판정에 그대로 쓸 수 있다(`<main>`은 `relative`라 fixed 예외에 걸리지 않는다). */
+    for (const node of host?.querySelectorAll<HTMLElement>("main") ?? []) {
+        if (node.offsetParent !== null) {
+            return node;
+        }
+    }
+    return null;
 }
 
 /**
@@ -132,114 +142,104 @@ export function PageDissolve() {
         setProjectDetailRoute(() => createProjectDetailRoute());
     }, []);
 
+    /** 전환이 끝났다 — 다음 이동을 받고, 새 조판으로 트리거를 다시 잰다. */
+    const finish = useCallback(() => {
+        busyRef.current = false;
+        setCrossing(false);
+        // 본문에 걸었던 변형을 걷어낸 **뒤에** 다시 잰다. 트리거의 기준점은
+        // getBoundingClientRect에서 나오므로, 26px 들려 있는 동안 재면 그만큼 어긋난다.
+        ScrollTrigger.refresh();
+    }, []);
+
     /**
-     * 도착한 화면을 띄운다 — 링크로 왔든 뒤로가기로 왔든 뒷절반은 같다.
+     * 도착한 화면을 띄운다 — 링크로 왔든 뒤로가기로 왔든 뒷절반은 같다. 글은 비행이 절반쯤
+     * 갔을 때 떠오르므로, 방문자는 **공간이 옮겨간 뒤에** 그 자리의 글을 읽게 된다.
      *
-     * 먼저 카메라를 보낸다. 글은 비행이 절반쯤 갔을 때 떠오르므로, 방문자는 **공간이 옮겨간
-     * 뒤에** 그 자리의 글을 읽게 된다.
+     * 감춰 둔 **바로 그 요소**를 되살린다.
+     *
+     * 요소를 인자로 받는 것이 핵심이다. 예전에는 여기서 `<main>`을 다시 찾았는데, 감춘
+     * 요소와 되살리는 요소가 **다를 수 있었다** — `navigate()`는 React 이벤트 밖에서 불려
+     * DefaultLane(매크로태스크)으로 커밋되므로, 상세처럼 트리가 크면 커밋이 예약해 둔
+     * 프레임 뒤로 밀린다. 그러면 되살리기가 옛 본문에 걸리고, 뒤늦은 커밋의 레이아웃
+     * 이펙트가 새 본문을 감춘 채로 굳었다(사용자 지적 — "페이지 이동하면 본문이 사라진다").
      */
-    const settle = useCallback((rise: number) => {
-        /* 대개는 라우트가 갈린 프레임에 이미 떠났다(아래 레이아웃 이펙트). 본문이 늦게
-           도착한 경우에만 여기서 띄운다 — 이미 떠났으면 아무 일도 하지 않는다. */
-        releaseStage();
+    const settle = useCallback(
+        (body: HTMLElement, rise: number) => {
+            gsap.timeline({
+                delay: hasStage() ? HOLD_FOR_FLIGHT : 0.04,
+                onComplete: () => {
+                    gsap.set(body, { clearProps: "all" });
+                    finish();
+                },
+            }).fromTo(
+                body,
+                { y: rise, scale: 0.994, opacity: 0, transformOrigin: originOf(body) },
+                { y: 0, scale: 1, opacity: 1, duration: LIFT, ease: "power3.out" },
+            );
+        },
+        [finish],
+    );
 
-        const body = bodyOf(pageRef.current);
-        const done = () => {
-            busyRef.current = false;
-            setCrossing(false);
-            // 본문에 걸었던 변형을 걷어낸 **뒤에** 다시 잰다. 트리거의 기준점은
-            // getBoundingClientRect에서 나오므로, 26px 들려 있는 동안 재면 그만큼 어긋난다.
-            ScrollTrigger.refresh();
-        };
-
-        if (!body) {
-            done();
+    const run = useCallback((to: string) => {
+        if (busyRef.current) {
             return;
         }
 
-        gsap.timeline({
-            delay: hasStage() ? HOLD_FOR_FLIGHT : 0.04,
-            onComplete: () => {
-                gsap.set(body, { clearProps: "all" });
-                done();
-            },
-        }).fromTo(
-            body,
-            { y: rise, scale: 0.994, opacity: 0, transformOrigin: originOf(body) },
-            { y: 0, scale: 1, opacity: 1, duration: LIFT, ease: "power3.out" },
-        );
-    }, []);
+        // 지금 자리를 굳힌 뒤에 떠난다. 라우트가 갈리면서 문서가 짧아지면 브라우저가
+        // 스크롤을 클램프하고, 그 값이 뒤늦게 기록을 덮는다.
+        seal(keyRef.current);
 
-    const run = useCallback(
-        (to: string) => {
-            if (busyRef.current) {
-                return;
-            }
+        // "동작 줄이기"에서도 이 입구는 지난다 — 자리를 굳히는 일은 애니메이션이 아니다.
+        if (prefersReducedMotion()) {
+            navigateRef.current(to);
+            return;
+        }
 
-            // 지금 자리를 굳힌 뒤에 떠난다. 라우트가 갈리면서 문서가 짧아지면 브라우저가
-            // 스크롤을 클램프하고, 그 값이 뒤늦게 기록을 덮는다.
-            seal(keyRef.current);
+        busyRef.current = true;
+        // 지면색을 툭 갈아 끼우지 않고 물들이게 한다(`applyTheme`·`clearMood`).
+        setCrossing(true);
+        // 상세로 건너뛸 때 패널이 열린 채 남지 않게 한다(모바일에서는 화면을 덮는다).
+        closeAssistant();
 
-            // "동작 줄이기"에서도 이 입구는 지난다 — 자리를 굳히는 일은 애니메이션이 아니다.
-            if (prefersReducedMotion()) {
+        // 청크를 먼저 받아 둔다. 글이 사라진 뒤에 받기 시작하면 Suspense 폴백이
+        // 자리를 차지하고, 글이 떠오를 자리에 그것이 남는다.
+        const { pathname } = new URL(to, window.location.href);
+        // 받다 실패해도 여기서 삼킨다 — 기다림이 영영 끝나지 않는 전환으로 번지지 않게.
+        // 실제 실패는 라우트가 렌더될 때 드러난다.
+        const ready = pathname.startsWith("/projects/")
+            ? loadProjectDetail().then(
+                  () => undefined,
+                  () => undefined,
+              )
+            : Promise.resolve();
+
+        void Promise.race([ready, timeout(HOLD_BEFORE_DIM)]).then(() => {
+            const body = bodyOf(pageRef.current);
+
+            const leave = () => {
+                // 떠나는 순간의 카메라 자세를 굳힌다. 라우트가 갈리는 동안 카메라는
+                // 여기 서 있고, 새 DOM을 재고 나서야 다음 자리로 날아간다.
+                holdStage();
+                ownRef.current = true;
                 navigateRef.current(to);
+                /* 여기서 끝이다 — 도착한 화면을 띄우는 일은 **도착한 쪽**(아래 레이아웃
+                       이펙트)이 맡는다. 여기서 타이머로 예약하면 커밋과 경주하게 된다. */
+            };
+
+            if (!body) {
+                leave();
                 return;
             }
-
-            busyRef.current = true;
-            // 지면색을 툭 갈아 끼우지 않고 물들이게 한다(`applyTheme`·`clearMood`).
-            setCrossing(true);
-            // 상세로 건너뛸 때 패널이 열린 채 남지 않게 한다(모바일에서는 화면을 덮는다).
-            closeAssistant();
-
-            // 청크를 먼저 받아 둔다. 글이 사라진 뒤에 받기 시작하면 Suspense 폴백이
-            // 자리를 차지하고, 글이 떠오를 자리에 그것이 남는다.
-            const { pathname } = new URL(to, window.location.href);
-            // 받다 실패해도 여기서 삼킨다 — 기다림이 영영 끝나지 않는 전환으로 번지지 않게.
-            // 실제 실패는 라우트가 렌더될 때 드러난다.
-            const ready = pathname.startsWith("/projects/")
-                ? loadProjectDetail().then(
-                      () => undefined,
-                      () => undefined,
-                  )
-                : Promise.resolve();
-
-            void Promise.race([ready, timeout(HOLD_BEFORE_DIM)]).then(() => {
-                const body = bodyOf(pageRef.current);
-
-                const leave = () => {
-                    // 떠나는 순간의 카메라 자세를 굳힌다. 라우트가 갈리는 동안 카메라는
-                    // 여기 서 있고, 새 DOM을 재고 나서야 다음 자리로 날아간다.
-                    holdStage();
-                    ownRef.current = true;
-                    navigateRef.current(to);
-                    // 첫 상한은 잠그기 시작할 때를 정할 뿐이라, 느린 회선에서는 아직 청크가
-                    // 없을 수 있다. 글이 없는 동안에도 화면에는 공간이 돌고 있으므로,
-                    // 도착할 때까지 한 번 더 기다린다.
-                    void Promise.race([ready, timeout(HOLD_BEFORE_LIFT)]).then(() => {
-                        // 새 본문이 자리를 잡고(레이아웃 · 스크롤 리셋 · 테마 주입) 나서 띄운다.
-                        requestAnimationFrame(() => {
-                            requestAnimationFrame(() => settle(RISE));
-                        });
-                    });
-                };
-
-                if (!body) {
-                    leave();
-                    return;
-                }
-                gsap.to(body, {
-                    scale: 0.985,
-                    opacity: 0,
-                    duration: DIM,
-                    ease: "power2.in",
-                    transformOrigin: originOf(body),
-                    onComplete: leave,
-                });
+            gsap.to(body, {
+                scale: 0.985,
+                opacity: 0,
+                duration: DIM,
+                ease: "power2.in",
+                transformOrigin: originOf(body),
+                onComplete: leave,
             });
-        },
-        [settle],
-    );
+        });
+    }, []);
 
     // --- 링크를 가로챈다 ---------------------------------------------------
     // Link를 전부 갈아 끼우는 대신 캡처 단계에서 한 번에 받는다. 라우터의 핸들러는
@@ -337,25 +337,48 @@ export function PageDissolve() {
             return;
         }
 
-        const body = bodyOf(pageRef.current);
-        if (body) {
+        /* 감추기와 되살리기를 **한 흐름**으로 든다. 둘을 갈라 두면(예전처럼 되살리기를
+           타이머로 예약하면) 커밋과 경주해서, 감춘 요소와 되살리는 요소가 어긋난 채 굳는다.
+
+           본문이 아직 없을 수 있다 — 느린 회선에서 청크가 늦으면 이 커밋에는 Suspense
+           폴백만 있다. 그때는 프레임마다 다시 보되, **rAF는 칠하기 전에 돌므로** 본문을
+           발견한 그 프레임에 감추면 한 번도 드러나지 않는다. */
+        let waiting = 0;
+        const deadline = performance.now() + HOLD_BEFORE_LIFT;
+
+        const begin = () => {
+            waiting = 0;
+            const body = bodyOf(pageRef.current);
+            if (!body) {
+                if (performance.now() > deadline) {
+                    /* 본문이 끝내 오지 않았다(청크 실패 · 에러 화면). 그래도 카메라는
+                       놓아 준다 — `holdStage()`로 붙들어 둔 채로 두면 무대가 떠나온 자세에
+                       영영 얼어붙고, 뒤늦게 청크가 도착해도 이 이펙트는 다시 돌지 않는다. */
+                    remeasureStage();
+                    releaseStage();
+                    finish();
+                    return;
+                }
+                waiting = requestAnimationFrame(begin);
+                return;
+            }
+
             gsap.set(body, { opacity: 0 });
             /* 세계는 방금(`Stage`의 레이아웃 이펙트) 교대했다. 같은 프레임에 다시 재고
-               **곧바로 띄운다.** 청크를 기다린 뒤에 띄우면 그 사이 카메라가 붙들린 채로
-               글도 배경도 멎어 있어, 그 정지가 "화면이 한 번 꺼졌다"로 읽힌다(사용자 지적).
-               본문이 아직 없으면(느린 회선의 Suspense 폴백) 잴 것도 없으므로 뒤로 미룬다. */
+               **곧바로 띄운다.** 기다렸다 띄우면 그 사이 카메라가 붙들린 채로 글도 배경도
+               멎어 있어, 그 정지가 "화면이 한 번 꺼졌다"로 읽힌다(사용자 지적). */
             remeasureStage();
             releaseStage();
-        }
 
-        // 링크로 온 것이면 뒷절반은 `run`이 청크를 기다린 뒤에 부른다.
-        if (own) {
-            return;
-        }
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => settle(FALL));
-        });
-    }, [location.pathname, settle]);
+            // 스크롤 리셋·테마 주입이 자리를 잡고 나서 띄운다.
+            waiting = requestAnimationFrame(() => {
+                waiting = requestAnimationFrame(() => settle(body, own ? RISE : FALL));
+            });
+        };
+
+        begin();
+        return () => cancelAnimationFrame(waiting);
+    }, [location.pathname, settle, finish]);
 
     return (
         /* 라우트는 문서 흐름에 그대로 둔다 — 감싸는 상자가 레이아웃에 끼어들면
