@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import { ScrollTrigger } from "@/lib/gsap";
 import { scrollToOffset } from "@/lib/scroll";
+import { viewportWatcher } from "@/lib/viewport";
 
 /**
  * 창 크기가 바뀌어도 **보고 있던 것**을 놓치지 않는다.
@@ -29,20 +30,6 @@ const SETTLE_MS = 180;
 
 /** 스크롤이 멎었다고 보고 자리를 잡는 시간(ms). */
 const PICK_IDLE_MS = 90;
-
-/**
- * 세로만 달라진 것을 받아 줄지는 **입력 장치가 가른다.**
- *
- * 상세는 `200svh`·`180svh`와 화면 높이에 묶인 붙임으로 짜여 있어, 창을 세로로 끌면 문서
- * 위치가 실제로 달라진다 — 그때는 자리를 다시 맞춰야 한다. 하지만 모바일에서 세로가
- * 바뀌는 것은 대개 **스크롤에 따라 여닫히는 주소창**이고(`svh`는 가장 작은 뷰포트 기준이라
- * 그때 조판이 움직이지도 않는다), 거기에 반응하면 굴릴 때마다 스크롤을 잡아채고
- * `ScrollTrigger.refresh()`까지 돌아 화면이 버벅인다(사용자 지적).
- *
- * 그래서 세로는 **손가락이 아닌 포인터일 때만** 본다. 폭이 달라진 것은 언제나 받는다 —
- * 조판이 갈리는 기준은 전부 폭이다.
- */
-const HEIGHT_TOLERANCE = 0.1;
 
 function clamp01(value: number) {
     return value < 0 ? 0 : value > 1 ? 1 : value;
@@ -73,8 +60,18 @@ export function useReadingAnchor(active = true) {
         /** 지금 읽고 있는 것과, 그것이 사라졌을 때 대신 쓸 구간. */
         let place: Place | null = null;
         let fallback: Place | null = null;
-        let width = window.innerWidth;
-        let height = window.innerHeight;
+        /**
+         * 세로만 달라진 것을 받아 줄지는 **그것이 조판을 움직였는지가 가른다.**
+         *
+         * 상세는 `200svh`·`180svh`와 화면 높이에 묶인 붙임으로 짜여 있어, 창을 세로로 끌면
+         * 문서 위치가 실제로 달라진다 — 그때는 자리를 다시 맞춰야 한다. 하지만 모바일에서
+         * 세로가 바뀌는 것은 대개 **스크롤에 따라 여닫히는 주소창**이고, 그때 `svh`로 적힌
+         * 조판은 꿈쩍도 않는다. 거기에 반응하면 굴릴 때마다 스크롤을 잡아채고
+         * `ScrollTrigger.refresh()`까지 돌아 화면이 버벅인다(사용자 지적).
+         *
+         * 그래서 조판이 쓰는 자(`100svh`)로 재고, 그 값이 달라졌을 때만 받는다(`lib/viewport`).
+         */
+        const viewportChanged = viewportWatcher();
         /** 조판이 갈리는 동안에는 재지 않는다 — 그 순간의 값은 이미 어긋난 값이다. */
         let frozen = false;
         let queued = 0;
@@ -149,8 +146,6 @@ export function useReadingAnchor(active = true) {
                 // 무대의 구간과 스크롤 장치들이 새 조판을 다시 재게 한다.
                 ScrollTrigger.refresh();
                 frozen = false;
-                width = window.innerWidth;
-                height = window.innerHeight;
             });
         };
 
@@ -170,12 +165,7 @@ export function useReadingAnchor(active = true) {
         };
 
         const onResize = () => {
-            const widened = window.innerWidth !== width;
-            /* 기기 모드로 들어가면 포인터 종류가 바뀌므로 그때그때 다시 묻는다. */
-            const coarse = window.matchMedia("(pointer: coarse)").matches;
-            const stretched =
-                !coarse && Math.abs(window.innerHeight - height) / height > HEIGHT_TOLERANCE;
-            if (!widened && !stretched) {
+            if (!viewportChanged()) {
                 return;
             }
             // 첫 이벤트에서 곧바로 얼린다. 여기서부터의 측정값은 이미 어긋난 값이다.

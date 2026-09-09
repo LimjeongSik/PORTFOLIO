@@ -1,3 +1,5 @@
+import { viewportHeight } from "@/lib/viewport";
+
 import type { Vector3 } from "three";
 
 /**
@@ -163,7 +165,10 @@ export class Timeline {
 
     /** 구간 요소를 다시 재고, 키를 픽셀 위치로 풀어 보간기를 세운다. */
     measure(keys: readonly CameraKey[]) {
-        this.viewport = window.innerHeight;
+        /* `innerHeight`가 아니라 조판이 쓰는 `svh`를 쓴다 — 모바일에서 주소창이 여닫히면
+           `innerHeight`만 오가고 지면은 그대로라, 그 값으로 재면 같은 스크롤이 다른 자리를
+           가리킨다(`lib/viewport`). 구간 안에서 붙어 서는 상자도 `svh`라 뜻으로도 이쪽이 맞다. */
+        this.viewport = viewportHeight();
         this.ranges.clear();
         for (const name of this.zones) {
             const node = document.querySelector<HTMLElement>(`[data-stage-zone="${name}"]`);

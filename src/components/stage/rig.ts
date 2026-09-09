@@ -23,6 +23,7 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { subscribeMood } from "@/lib/atmosphere";
 import { ScrollTrigger } from "@/lib/gsap";
 import { getLenisInstance } from "@/lib/lenis";
+import { viewportWatcher } from "@/lib/viewport";
 
 import { Disposer, deviceFactory, PHONE, WINDOW } from "./mockup";
 import { Timeline } from "./timeline";
@@ -424,6 +425,23 @@ export function mountStage(options: MountOptions): StageHandle | null {
     };
     const keysFor = (aspect: number) => live.flatMap((zone) => zone.keys(aspect));
 
+    /**
+     * 상자가 **세로로만** 늘었다 줄 때 세계의 크기를 붙들어 두는 배율.
+     *
+     * 모바일에서 주소창이 접히면 `fixed inset-0` 상자가 그만큼 세로로 늘어난다. 세로 화각이
+     * 그대로면 같은 세계가 더 많은 픽셀에 펴져 8%쯤 확대되고, 주소창이 돌아오면 다시
+     * 줄어든다 — 손도 안 댔는데 배경이 숨쉬듯 움직인다. 화각을 늘어난 만큼 되돌리면 늘어난
+     * 자리에는 **원래 잘려 있던 세계가 더 보일 뿐**이라 크기도 자리도 그대로다.
+     *
+     * 조판이 실제로 달라지는 순간(`viewportChanged`)마다 기준을 다시 잡으므로, 창을 끌어
+     * 줄이는 평범한 리사이즈에서는 늘 1이다.
+     */
+    let baseHeight = 0;
+    let heightScale = 1;
+    const DEG = Math.PI / 180;
+    const stretchFov = (fov: number) =>
+        heightScale === 1 ? fov : (2 * Math.atan(Math.tan((fov * DEG) / 2) * heightScale)) / DEG;
+
     const resize = () => {
         /* 크기는 **캔버스가 앉은 상자**(`fixed inset-0`)에서 잰다. `window.innerWidth`는
            고전 스크롤바 폭을 포함하므로, 그 값으로 캔버스를 세우면 상자보다 15px쯤 넓어져
@@ -443,6 +461,10 @@ export function mountStage(options: MountOptions): StageHandle | null {
         composer?.setPixelRatio(ratio);
         composer?.setSize(width, height);
         camera.aspect = width / height;
+        if (!baseHeight) {
+            baseHeight = height;
+        }
+        heightScale = height / baseHeight;
         camera.updateProjectionMatrix();
     };
     resize();
@@ -466,9 +488,19 @@ export function mountStage(options: MountOptions): StageHandle | null {
     };
     measureNow();
 
+    /* 캔버스 크기는 상자를 따라 늘 맞춘다. 다만 **다시 재는 일**은 조판이 실제로 달라졌을
+       때만 한다 — 모바일의 `resize`는 대개 주소창이 여닫힌 것이고, 그때 다시 재면 구간의
+       스크롤 폭 기준만 갈려 카메라가 튄다(사용자 지적, `lib/viewport`). */
+    const viewportChanged = viewportWatcher();
     const onResize = () => {
+        if (viewportChanged()) {
+            // 조판이 실제로 달라졌다 — 지금 크기를 새 기준으로 삼고 구간을 다시 잰다.
+            baseHeight = 0;
+            resize();
+            measure();
+            return;
+        }
         resize();
-        measure();
     };
     window.addEventListener("resize", onResize);
     // 이미지가 늦게 오거나 섹션이 늦게 붙어 문서 높이가 바뀌면 구간 위치도 바뀐다.
@@ -593,7 +625,7 @@ export function mountStage(options: MountOptions): StageHandle | null {
         camera.lookAt(look);
         // 빠르게 굴리면 카메라가 진행 방향으로 살짝 기울고 화각이 벌어진다.
         camera.rotateZ(-lag * 0.035);
-        camera.fov = fov + Math.abs(lag) * 5;
+        camera.fov = stretchFov(fov + Math.abs(lag) * 5);
         camera.updateProjectionMatrix();
         camera.getWorldDirection(frame.forward);
         frame.camera.copy(camera.position);

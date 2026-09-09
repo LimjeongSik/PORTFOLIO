@@ -11,6 +11,7 @@ import { useMoodZone } from "@/hooks/useMoodZone";
 import { projects } from "@/data/projects";
 import { CRAFT_MOOD, moodFromAccent } from "@/lib/atmosphere";
 import { getLenisInstance } from "@/lib/lenis";
+import { viewportWatcher } from "@/lib/viewport";
 
 import type { Project } from "@/types/content";
 
@@ -123,6 +124,9 @@ export function Projects() {
             const zone = root.current?.querySelector<HTMLElement>("[data-stage-zone='projects']");
             anchor.current = zone ? locate(zone, stagedRef.current, projects.length) : null;
         };
+        /* 모바일의 `resize`는 대개 주소창이 여닫힌 것이다 — 조판은 `svh`라 그대로이므로
+           굴릴 때마다 랜드마크를 다시 잴 이유가 없다(`lib/viewport`). */
+        const viewportChanged = viewportWatcher();
         let frame = 0;
         const onScroll = () => {
             if (!frame) {
@@ -133,6 +137,9 @@ export function Projects() {
             }
         };
         const onResize = () => {
+            if (!viewportChanged()) {
+                return;
+            }
             const stagedNow = window.matchMedia("(min-width: 1024px)").matches && !reduced;
             if (stagedNow === stagedRef.current) {
                 measure();
