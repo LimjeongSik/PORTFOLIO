@@ -41,10 +41,21 @@ interface Range {
     end: number;
     /** 닻마다 그것이 화면 가운데 오는 스크롤 위치. 닻이 둘 미만이면 없다. */
     anchors: number[] | null;
+    /**
+     * 이 구간에 **의미 있는 스크롤**이 있는가.
+     *
+     * 내용이 화면 하나에 다 들어가는 구간은 스크롤 폭이 사실상 0이라, 진행률이 1px 만에
+     * 0에서 1로 뒤집힌다. 그 값으로 물건을 돌리면 맨 위에서 1px만 굴려도 고리가 46° 홱
+     * 돌아 "정렬되는" 것으로 보인다(사용자 지적). 그런 구간은 진행률을 아예 0으로 세운다.
+     */
+    live: boolean;
 }
 
 /** 닻이 화면의 어느 높이에 왔을 때 "도착"으로 치는가 — 경력의 점이 켜지는 선과 맞춘다. */
 const ANCHOR_LINE = 0.5;
+
+/** 구간의 스크롤 폭이 화면의 이만큼도 안 되면 진행률을 세운다. */
+const LIVE_RATIO = 0.3;
 
 function clamp01(value: number) {
     return value < 0 ? 0 : value > 1 ? 1 : value;
@@ -169,10 +180,14 @@ export class Timeline {
                         this.viewport * ANCHOR_LINE,
                 )
                 .sort((a, b) => a - b);
+            const span = Math.max(1, rect.height - this.viewport);
+            const anchored = anchors.length >= 2;
             this.ranges.set(name, {
                 start,
-                end: start + Math.max(1, rect.height - this.viewport),
-                anchors: anchors.length >= 2 ? anchors : null,
+                end: start + span,
+                anchors: anchored ? anchors : null,
+                // 닻이 있으면 그 사이가 곧 진행이라 길이를 따로 볼 것 없다.
+                live: anchored || span > this.viewport * LIVE_RATIO,
             });
         }
         this.build(keys);
@@ -186,6 +201,9 @@ export class Timeline {
     localOf(zone: string, scroll: number) {
         const range = this.ranges.get(zone);
         if (!range) {
+            return 0;
+        }
+        if (!range.live) {
             return 0;
         }
         const anchors = range.anchors;

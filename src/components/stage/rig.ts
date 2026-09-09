@@ -417,17 +417,32 @@ export function mountStage(options: MountOptions): StageHandle | null {
     /* 갈아 끼워지는 장소를 `Set`으로 들면 버린 세계가 영영 남는다 — 약한 참조로 둔다. */
     const warmed = new WeakSet<Zone>();
 
-    const liveZones = () =>
-        detailBuilt ? [...homeBuilt.zones, ...detailBuilt.zones] : homeBuilt.zones;
-    const keysFor = (aspect: number) => liveZones().flatMap((zone) => zone.keys(aspect));
+    /* 매 프레임 도는 목록이라 새로 만들지 않는다 — 세계가 갈릴 때만 다시 잇는다. */
+    let live: Zone[] = homeBuilt.zones;
+    const relist = () => {
+        live = detailBuilt ? [...homeBuilt.zones, ...detailBuilt.zones] : homeBuilt.zones;
+    };
+    const keysFor = (aspect: number) => live.flatMap((zone) => zone.keys(aspect));
 
     const resize = () => {
+        /* 크기는 **캔버스가 앉은 상자**(`fixed inset-0`)에서 잰다. `window.innerWidth`는
+           고전 스크롤바 폭을 포함하므로, 그 값으로 캔버스를 세우면 상자보다 15px쯤 넓어져
+           오른쪽으로 삐져나온다 — 개발자도구 기기 모드처럼 고전 스크롤바가 서는 환경에서
+           가로 스크롤이 생기던 원인이다(사용자 지적). 상자를 재면 스크롤바가 있든 없든,
+           픽셀비가 얼마든 언제나 정확히 들어맞는다. */
+        const width = host.clientWidth || window.innerWidth;
+        const height = host.clientHeight || window.innerHeight;
         const ratio = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5);
         renderer.setPixelRatio(ratio);
-        renderer.setSize(window.innerWidth, window.innerHeight, false);
+        /* 세 번째 인자를 `false`로 두면 three가 캔버스에 **CSS 크기를 주지 않는다**. 그러면
+           캔버스는 제 속성값(`width = 폭 × 픽셀비`)대로 레이아웃되어, 픽셀비가 1이 아닌
+           화면에서 그 배율만큼 커진 채 좌상단부터 잘린다 — 지면은 그대로인데 배경만 확대돼
+           어긋난다(사용자 지적). 기기 모드는 DPR을 2~3으로 흉내 내므로 상한 1.5가 걸려
+           정확히 1.5배가 됐다. */
+        renderer.setSize(width, height);
         composer?.setPixelRatio(ratio);
-        composer?.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
+        composer?.setSize(width, height);
+        camera.aspect = width / height;
         camera.updateProjectionMatrix();
     };
     resize();
@@ -590,7 +605,7 @@ export function mountStage(options: MountOptions): StageHandle | null {
            물건이 눈앞에서 사라지고, 그 한 프레임이 통째로 "꺼졌다"로 읽힌다. 카메라가
            날아가는 동안 그대로 두면 지나온 것은 등 뒤로 밀리거나 안개에 잠긴다. */
         const crossing = held !== null || flight !== null;
-        for (const zone of liveZones()) {
+        for (const zone of live) {
             const near = timeline.proximity(zone.name, scroll);
             const inRange = near < DRAW_WITHIN;
             zone.group.visible = inRange || (crossing && zone.group.visible);
@@ -685,6 +700,7 @@ export function mountStage(options: MountOptions): StageHandle | null {
                 detailBuilt = build(world);
                 detailBuilt.materials.metal.color.copy(accent).lerp(white, 0.3);
             }
+            relist();
             measure();
         },
     };

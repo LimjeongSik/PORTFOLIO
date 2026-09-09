@@ -146,15 +146,23 @@ function buildPlinth(ctx: WorldContext, project: Project, o: Vector3): Zone {
 
     /* 넓은 창에서는 본문(제목·요약·메타)이 왼쪽 기둥에 앉으므로 좌대를 오른쪽에 둔다.
        세로 창에서는 본문이 가운데라 비켜 잡을 곳이 없으니 정면에 두고 조금 물러선다. */
+    /* 넓은 창에서는 표지가 화면 둘을 쓰므로 그동안 카메라가 좌대로 다가간다. 좁은 창의
+       표지는 평범한 머리글이라 구간이 화면 하나보다 짧고, 그런 구간에 키를 여럿 두면 전부
+       1px 안에 뭉쳐 조금만 굴려도 좌대가 확 커졌다 작아진다(사용자 지적). 좁은 창에서는
+       키를 **하나만** 둬서 아예 세워 놓는다 — 다가오는 연출은 앞 자리에서 날아오는 비행이
+       이미 하고 있다. */
     const keys = (aspect: number) => {
         const wide = aspect > 1;
         const aside = wide ? -2.5 : 0;
         const list: CameraKey[] = [];
-        for (const [t, distance, height] of [
-            [0, wide ? 15 : 19, 2.2],
-            [0.5, wide ? 10.5 : 14, 1.1],
-            [1, wide ? 7.4 : 10.5, 0.2],
-        ] as const) {
+        const path = wide
+            ? ([
+                  [0, 15, 2.2],
+                  [0.5, 10.5, 1.1],
+                  [1, 7.4, 0.2],
+              ] as const)
+            : ([[0.5, 14, 1.1]] as const);
+        for (const [t, distance, height] of path) {
             position.set(COVER.x - t * 1.6, COVER.y + height, COVER.z + distance);
             forward.copy(COVER).sub(position).normalize();
             right.crossVectors(forward, UP).normalize();

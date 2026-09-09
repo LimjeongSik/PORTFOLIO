@@ -114,6 +114,11 @@ export default function Stage() {
     }, [pathname, detailFor]);
 
     return (
-        <div ref={hostRef} aria-hidden className="pointer-events-none fixed inset-0 z-0 bg-paper" />
+        <div
+            ref={hostRef}
+            aria-hidden
+            /* 캔버스가 어떤 이유로든 이 상자보다 커져도 밖으로 새지 않게 잠근다. */
+            className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-paper"
+        />
     );
 }
