@@ -168,7 +168,7 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
                                             {String(index + 1).padStart(2, "0")}
                                         </span>
                                         <span
-                                            className={`font-mono text-[0.8125rem] transition-colors duration-300 ${
+                                            className={`min-w-0 font-mono text-[0.8125rem] break-all transition-colors duration-300 ${
                                                 on ? "text-ink" : "text-muted hover:text-ink"
                                             }`}
                                         >

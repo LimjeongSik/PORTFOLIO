@@ -59,6 +59,14 @@
 
 html {
     scroll-behavior: smooth;
+    /* 가로 스크롤을 막는다. 어딘가 한 요소가 뷰포트를 넘기면 지면 전체가 옆으로 밀려
+       크기가 어긋나 보인다(사용자 지적).
+
+       `hidden`이 아니라 `clip`인 것이 중요하다 — `overflow: hidden`은 스크롤 컨테이너를
+       만들어서 그 안의 `position: sticky`가 뷰포트가 아니라 그 상자를 기준으로 붙는다.
+       이 지면은 붙어 서는 것으로 굴러간다(Roomy · 표지 · 화면 전시 · 해부 · 런타임).
+       `clip`은 스크롤 컨테이너를 만들지 않으므로 잘라 내기만 하고 sticky는 그대로다. */
+    overflow-x: clip;
 }
 
 body {

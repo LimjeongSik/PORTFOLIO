@@ -202,7 +202,9 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                             <h4 className="font-sans text-base font-bold tracking-[-0.02em] text-ink">
                                 {key.name}
                             </h4>
-                            <code className="font-mono text-[0.6875rem] text-muted">
+                            {/* 헤더 이름·갱신 경로는 공백이 없어 좁은 화면에서 줄이 안 바뀐다 —
+                                그대로 두면 이 한 줄이 지면 폭을 밀어낸다. */}
+                            <code className="font-mono text-[0.6875rem] break-all text-muted">
                                 {key.header}
                             </code>
                             <span className="ml-auto flex items-baseline gap-2">
@@ -241,7 +243,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
 
                         <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                             {key.renewVia ? (
-                                <code className="font-mono text-[0.6875rem] text-espresso">
+                                <code className="font-mono text-[0.6875rem] break-all text-espresso">
                                     {key.renewAt}초 아래 → {key.renewVia}
                                 </code>
                             ) : (
