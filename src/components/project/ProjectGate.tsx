@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 
 import { motion, useReducedMotion } from "motion/react";
 
-import { BODY } from "./typography";
+import { BODY, BODY_TIGHT } from "@/lib/typography";
 
 import type { ProjectPipeline, ProjectPipelineVerdict } from "@/types/content";
 
@@ -117,7 +117,7 @@ export function ProjectGate({ pipeline }: ProjectGateProps) {
                                         {VERDICT_LABEL[verdict]}
                                     </motion.span>
                                 </div>
-                                <p className="mt-2.5 max-w-[34rem] text-[0.9375rem] leading-[1.85] text-muted">
+                                <p className={`mt-2.5 max-w-[34rem] ${BODY_TIGHT}`}>
                                     {stage.detail}
                                 </p>
                             </li>
@@ -131,7 +131,7 @@ export function ProjectGate({ pipeline }: ProjectGateProps) {
                 initial={reduced ? { opacity: 0 } : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: reduced ? 0 : 0.25 }}
-                className="mt-10 max-w-[38rem] border-l-2 border-espresso pl-6 text-[1.0625rem] leading-[1.9] text-ink"
+                className={`mt-10 max-w-[38rem] border-l-2 border-espresso pl-6 ${BODY}`}
             >
                 {current.outcome}
             </motion.p>

@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/ui/Reveal";
 
-import { LABEL, LEDE, NOTE, SHOWCASE, TITLE } from "./typography";
+import { LABEL, LEDE, NOTE, SHOWCASE, TITLE } from "@/lib/typography";
 
 import type { ReactNode } from "react";
 

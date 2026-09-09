@@ -7,31 +7,10 @@
 @import "@fontsource/jetbrains-mono/500.css";
 
 /* Pretendard는 npm 가변 폰트(약 2MB) 대신 원본 OTF를 서브셋한 woff2로 self-host 한다.
-   생성: `python3 scripts/subset-fonts.py` (KS X 1001 2350자 + 라틴/기호, 굵기당 약 170KB).
-   콘텐츠를 교체해 2350자 밖 글자를 쓰게 되면 스크립트를 다시 실행할 것. */
-@font-face {
-    font-family: "Pretendard";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("../assets/fonts/pretendard-400.subset.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: "Pretendard";
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
-    src: url("../assets/fonts/pretendard-500.subset.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: "Pretendard";
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url("../assets/fonts/pretendard-700.subset.woff2") format("woff2");
-}
+   `@font-face` 선언은 손으로 적지 않는다 — `unicode-range`가 실제 폰트 파일과 어긋나면
+   그대로 버그이므로, 굵기마다 두 벌(core 75KB · 안전망 subset 170KB)을 굽는
+   `python3 scripts/subset-fonts.py`가 선언까지 함께 써 낸다. 왜 두 벌인지는 그 스크립트 주석. */
+@import "./fonts.generated.css";
 
 @theme {
     /* 홈의 기본 지면은 어두운 잉크다. 스크롤이 구간마다 이 값들을 프로젝트 테마로
@@ -84,7 +63,28 @@ body {
         color 0.25s linear;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+
+    /* 한글은 단어 안에서 줄이 끊긴다 — 브라우저 기본(`normal`)은 한글을 음절 단위로 보므로
+       "프론트엔드를"이 "프론트엔/드를"로 갈라진다. 줄 끝마다 단어를 다시 붙여 읽게 되는 것이
+       이 지면에서 본문이 안 읽히던 가장 큰 이유였다. `keep-all`은 어절을 통째로 넘긴다.
+
+       대신 끊을 곳이 없는 긴 토큰(이메일 · URL · 코드)이 제 상자를 넘길 수 있으므로
+       `break-word`를 함께 건다 — 넘칠 때만 끊는다. 더 세게 끊어야 하는 곳(이메일 · 토큰
+       문자열)은 지금처럼 `wrap-anywhere` · `break-all`을 개별로 얹는다. */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+}
+
+/* 어절 단위로 넘기면 마지막 줄에 한 어절만 남는 일이 잦다 — 읽는 덩이에서만 줄을 고르게 편다.
+   지원하지 않는 브라우저는 그냥 무시하므로 폴백이 따로 필요 없다. */
+p,
+li,
+dd,
+figcaption,
+blockquote {
+    text-wrap: pretty;
 }
 
 /* Lenis 사용 시 네이티브 smooth-scroll 비활성화 */

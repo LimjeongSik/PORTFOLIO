@@ -312,7 +312,60 @@ interface TextTextureOptions {
 }
 
 const rebakes = new Set<() => void>();
-let fontsWatched = false;
+let rebakePending = false;
+
+/**
+ * 아직 굽지 않은 판들.
+ *
+ * 무대가 붙는 순간 글자 판 마흔 몇 장을 한꺼번에 구우면 그 프레임이 통째로 멈춘다 — 판 하나가
+ * 600×190 RGBA면 마흔 장에 20MB고, 캔버스 할당·글자 래스터·GPU 업로드가 전부 거기서 난다.
+ * 화면 기록에서 "제목이 뜬 뒤 멈췄다가 배경이 나온다"로 보이던 몫이 이것이다.
+ *
+ * 그래서 굽는 일을 여기 쌓아 두고 `drainTextBakes`가 프레임마다 조금씩 비운다. 첫 화면의
+ * 복도(hero)에는 글자 판이 하나도 없고 — 판은 전부 비석·드럼·계단에 있다 — 그 장소들은
+ * 그때 안개 너머라, 몇 프레임 늦게 구워지는 것이 보이지 않는다.
+ */
+const pending = new Set<() => void>();
+
+/** 굽기 대기열을 시간 예산만큼만 비운다. 무대의 그리기 루프가 프레임마다 부른다. */
+export function drainTextBakes(budgetMs = 4) {
+    if (pending.size === 0) {
+        return;
+    }
+    const until = performance.now() + budgetMs;
+    for (const bake of pending) {
+        pending.delete(bake);
+        bake();
+        if (performance.now() >= until) {
+            return;
+        }
+    }
+}
+
+/**
+ * 폰트가 다 도착하면 지금까지 구운 판을 전부 다시 굽도록 걸어 둔다.
+ *
+ * **판정은 반드시 `fillText` 뒤에 한다.** `fillText`는 아직 받지 않은 굵기를 그 자리에서
+ * 요청하고 그리기는 폴백으로 끝내므로, 그리기 **전에** "다 왔다"였어도 그 줄이 처음 쓰는
+ * 굵기였다면 방금 받기 시작한 것이다. 굽는 일을 프레임에 흩뿌리면서 판정만 만들 때 해 두었더니
+ * 정확히 이 구멍이 생겼다(Codex 지적) — 그 판은 영영 폴백으로 남는다.
+ *
+ * 이미 다 와 있으면 걸지 않는다. `document.fonts.ready`는 해결된 뒤에도 그대로 이행되므로,
+ * 조건 없이 걸면 방금 구운 판 마흔 장을 곧바로 다시 굽는다.
+ */
+function armRebake() {
+    if (rebakePending) {
+        return;
+    }
+    rebakePending = true;
+    document.fonts.ready.then(() => {
+        rebakePending = false;
+        // 다시 굽는 것도 한 프레임에 몰지 않는다 — 대기열을 거친다.
+        for (const rebake of rebakes) {
+            pending.add(rebake);
+        }
+    });
+}
 
 /**
  * 글자를 투명한 판에 굽는다. 웹폰트가 늦게 오면 시스템 폰트로 먼저 굽히므로, 폰트가 준비되면
@@ -321,18 +374,25 @@ let fontsWatched = false;
 export function textTexture(options: TextTextureOptions) {
     const { width, height, lines } = options;
     const ratio = 2;
+    /* 굽기 전까지 캔버스는 1px이다. `width`를 넣는 순간 뒷면 픽셀이 잡히므로, 그 할당을
+       실제로 그리는 때(=`bake`)로 미룬다. 덕분에 `compileAsync`가 미리 올리는 것도 1px짜리라
+       공짜고, 진짜 업로드는 프레임에 나뉘어 일어난다. */
     const canvas = document.createElement("canvas");
-    canvas.width = width * ratio;
-    canvas.height = height * ratio;
+    // 캔버스 기본 크기는 300×150이다 — 명시하지 않으면 그만큼을 마흔 장 잡고 시작한다.
+    canvas.width = 1;
+    canvas.height = 1;
     const ctx = canvas.getContext("2d");
     const texture = new CanvasTexture(canvas);
     texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = 4;
 
+    let released = false;
     const bake = () => {
-        if (!ctx) {
+        if (!ctx || released) {
             return;
         }
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
         ctx.clearRect(0, 0, width, height);
         ctx.textBaseline = "middle";
@@ -345,23 +405,21 @@ export function textTexture(options: TextTextureOptions) {
             ctx.fillText(line.text, x, height * line.y, width);
         }
         texture.needsUpdate = true;
+        // 방금 그리기가 폰트를 새로 요청했을 수 있다 — 판정은 여기서(`armRebake`).
+        if (document.fonts.status !== "loaded") {
+            armRebake();
+        }
     };
 
-    bake();
+    pending.add(bake);
     rebakes.add(bake);
-    if (!fontsWatched) {
-        fontsWatched = true;
-        document.fonts.ready.then(() => {
-            for (const rebake of rebakes) {
-                rebake();
-            }
-        });
-    }
 
     return {
         texture,
         release() {
+            released = true;
             rebakes.delete(bake);
+            pending.delete(bake);
             texture.dispose();
         },
     };

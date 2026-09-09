@@ -5,6 +5,7 @@ import {
     Fog,
     HemisphereLight,
     MeshPhysicalMaterial,
+    MeshStandardMaterial,
     PerspectiveCamera,
     PMREMGenerator,
     PointLight,
@@ -25,7 +26,7 @@ import { ScrollTrigger } from "@/lib/gsap";
 import { getLenisInstance } from "@/lib/lenis";
 import { viewportWatcher } from "@/lib/viewport";
 
-import { Disposer, deviceFactory, PHONE, WINDOW } from "./mockup";
+import { Disposer, deviceFactory, drainTextBakes, PHONE, WINDOW } from "./mockup";
 import { Timeline } from "./timeline";
 
 import type { Group, Object3D, PlaneGeometry } from "three";
@@ -113,13 +114,21 @@ export interface Zone {
     update(local: number, frame: Frame): void;
 }
 
+/**
+ * 재질은 성질이 필요한 것만 `MeshPhysicalMaterial`이다.
+ *
+ * physical은 standard 위에 clearcoat·sheen·transmission 같은 두 번째 반사층을 얹은 셰이더라
+ * 픽셀마다 값이 더 비싸다. 기기 몸체·유리·판·돌은 그 층을 실제로 쓰지만(clearcoat), **고리와
+ * 먼지는 쓰지 않는다** — 먼지는 인스턴스 800개라 픽셀 비용이 그대로 곱해진다. 쓰지 않는
+ * 성질을 위해 비싼 셰이더를 물릴 이유가 없고, 보이는 모습은 같다.
+ */
 export interface Materials {
     deviceBody: MeshPhysicalMaterial;
     glass: MeshPhysicalMaterial;
     plate: MeshPhysicalMaterial;
     stone: MeshPhysicalMaterial;
-    metal: MeshPhysicalMaterial;
-    dust: MeshPhysicalMaterial;
+    metal: MeshStandardMaterial;
+    dust: MeshStandardMaterial;
 }
 
 export interface PlateGeometry {
@@ -147,13 +156,23 @@ export interface WorldContext {
 export interface World {
     /** 재질의 바닥값을 뽑는 색 */
     mood: Mood;
-    build(ctx: WorldContext): Zone[];
-    /** 장소에 속하지 않고 늘 떠 있는 것(먼지 따위) */
+    /**
+     * 장소를 **짓는 일**의 목록. 앞에서부터 카메라가 지나는 차례다.
+     *
+     * 장소가 아니라 짓는 일을 돌려주는 이유: 다섯을 한 번에 지으면 그 프레임이 통째로 멈추고,
+     * 그게 첫 로드에서는 **아직 배경이 아무것도 없는 화면** 위에서 일어난다. 첫 장소만 짓고
+     * 곧바로 그리기 시작하면 공간(안개와 먼지)이 먼저 서고, 나머지는 프레임마다 하나씩
+     * 채워진다 — 그 자리들은 그때 안개 너머라 채워지는 것이 보이지 않는다.
+     */
+    build(ctx: WorldContext): (() => Zone)[];
+    /** 장소에 속하지 않고 늘 떠 있는 것(먼지 따위). 공간 자체라 언제나 먼저 선다. */
     extras?(ctx: WorldContext): Object3D[];
 }
 
 export interface MountOptions {
     host: HTMLElement;
+    /** 첫 프레임이 실제로 그려진 뒤 한 번. 첫 화면이 이 신호로 글을 띄운다. */
+    onReady?(): void;
     /** 늘 살아 있는 세계(홈)와 그 구간 이름 */
     home: World & { zones: readonly string[] };
     /** 상세가 쓸 수 있는 구간 이름 전체. 지금 안 열려 있어도 타임라인은 미리 알고 있어야 한다. */
@@ -188,7 +207,7 @@ function luminance(color: Color) {
  * 기다리며 빈 화면을 0.45초씩 붙잡는다.
  */
 export function mountStage(options: MountOptions): StageHandle | null {
-    const { host, home, detailZones } = options;
+    const { host, home, detailZones, onReady } = options;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
@@ -196,7 +215,12 @@ export function mountStage(options: MountOptions): StageHandle | null {
     let renderer: WebGLRenderer;
     try {
         renderer = new WebGLRenderer({
-            antialias: !coarse,
+            /* 캔버스의 MSAA는 켜 봐야 쓰이지 않는다 — 후처리를 지날 때(`EffectComposer`)
+               화면에 실제로 그려지는 마지막 패스는 오프스크린 텍스처를 붙이는 전면 사각형
+               하나이고, 사각형 하나에 멀티샘플은 아무 일도 하지 않는다. 그런데도 켜 두면
+               멀티샘플 프레임버퍼를 잡고 매 프레임 리졸브 블릿을 한 번 더 한다. 후처리가
+               없는 터치 기기에서도 이미 꺼져 있었으니, 잃는 것 없이 대역폭만 돌려받는다. */
+            antialias: false,
             alpha: false,
             powerPreference: "high-performance",
         });
@@ -212,6 +236,9 @@ export function mountStage(options: MountOptions): StageHandle | null {
     renderer.outputColorSpace = SRGBColorSpace;
     host.appendChild(renderer.domElement);
     renderer.domElement.style.display = "block";
+    // 첫 프레임까지는 지면색만 보이고, 그 위로 공간이 떠오른다(`draw`의 `drawn`).
+    renderer.domElement.style.opacity = "0";
+    renderer.domElement.style.transition = "opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1)";
 
     /** 무대 자체(렌더러·환경광·후처리)를 붙잡는 정리 목록. 세계와 수명이 다르다. */
     const rigDisposer = new Disposer();
@@ -328,7 +355,7 @@ export function mountStage(options: MountOptions): StageHandle | null {
                 }),
             ),
             metal: disposer.add(
-                new MeshPhysicalMaterial({
+                new MeshStandardMaterial({
                     color: accent.clone().lerp(white, 0.3),
                     metalness: 1,
                     roughness: 0.22,
@@ -337,7 +364,7 @@ export function mountStage(options: MountOptions): StageHandle | null {
             ),
             // 먼지는 빛나면 안 된다 — 별처럼 번지면 시선을 뺏는다. 어둡게, 거칠게.
             dust: disposer.add(
-                new MeshPhysicalMaterial({
+                new MeshStandardMaterial({
                     color: new Color(mood.muted),
                     metalness: 0.9,
                     roughness: 0.45,
@@ -372,26 +399,60 @@ export function mountStage(options: MountOptions): StageHandle | null {
     /** 지어 놓은 세계 하나 — 장소들과, 그것만 따로 버릴 수 있는 정리 목록. */
     interface Built {
         zones: Zone[];
+        /** 아직 안 지은 장소. 그리기 루프가 프레임마다 하나씩 비운다. */
+        pending: (() => Zone)[];
         objects: Object3D[];
         disposer: Disposer;
         materials: Materials;
     }
 
-    function build(world: World): Built {
+    /**
+     * 세계를 짓는다.
+     *
+     * `spread`면 **첫 장소와 공간(먼지)만** 짓고 나머지는 프레임에 흩는다. 첫 로드가 그렇다 —
+     * 배경이 하나도 없는 화면 위에서 다섯 장소를 한 번에 지으면 그 시간이 통째로 빈 화면이다.
+     * 상세로 넘어갈 때는 흩지 않는다: 카메라가 그 방으로 **날아가는 중**이라 경로에 쓰이는
+     * 키가 전부 있어야 하고, 그 사이 글은 이미 잠겨 있어 멈춰도 보이지 않는다.
+     */
+    /** 다음 장소를 지어 세계에 세운다. 지금 짓든 몇 프레임 뒤에 짓든 하는 일은 같다. */
+    function raise(built: Built, maker: () => Zone) {
+        const zone = maker();
+        zone.group.visible = false;
+        scene.add(zone.group);
+        built.objects.push(zone.group);
+        built.zones.push(zone);
+    }
+
+    function build(world: World, spread = false): Built {
         const disposer = new Disposer();
         const ctx = makeContext(disposer, world.mood);
-        const zones = world.build(ctx);
-        const objects: Object3D[] = [];
-        for (const zone of zones) {
-            zone.group.visible = false;
-            scene.add(zone.group);
-            objects.push(zone.group);
+        const makers = world.build(ctx);
+        const built: Built = {
+            zones: [],
+            pending: [],
+            objects: [],
+            disposer,
+            materials: ctx.materials,
+        };
+
+        if (spread) {
+            const [first, ...rest] = makers;
+            if (first) {
+                raise(built, first);
+            }
+            built.pending.push(...rest);
+        } else {
+            for (const maker of makers) {
+                raise(built, maker);
+            }
         }
+
+        // 공간 자체(먼지)는 언제나 먼저 선다 — 첫 프레임에 보이는 것이 이것이다.
         for (const extra of world.extras?.(ctx) ?? []) {
             scene.add(extra);
-            objects.push(extra);
+            built.objects.push(extra);
         }
-        return { zones, objects, disposer, materials: ctx.materials };
+        return built;
     }
 
     function demolish(built: Built) {
@@ -401,7 +462,9 @@ export function mountStage(options: MountOptions): StageHandle | null {
         built.disposer.dispose();
     }
 
-    const homeBuilt = build(home);
+    /* 복원된 스크롤이 이미 아래쪽이면 흩어 짓지 않는다 — 그 자리를 가리키는 키가 아직
+       없으면 카메라가 첫 장소에 붙들려 있다가 장소가 도착할 때마다 튄다. */
+    const homeBuilt = build(home, window.scrollY < window.innerHeight / 2);
     let detailBuilt: Built | null = null;
     /**
      * 물러나는 세계 — **비행이 끝날 때까지** 버리지 않는다.
@@ -450,7 +513,10 @@ export function mountStage(options: MountOptions): StageHandle | null {
            픽셀비가 얼마든 언제나 정확히 들어맞는다. */
         const width = host.clientWidth || window.innerWidth;
         const height = host.clientHeight || window.innerHeight;
-        const ratio = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5);
+        /* 픽셀비 상한. 1.5에서 1.25로 내렸다 — 그리는 픽셀이 31% 줄고, 이 캔버스는 안개와
+           얕은 초점으로 이루어진 **배경**이라 선명도를 잃는 것이 거의 보이지 않는다. 글자는
+           DOM에 있어 이 값과 무관하게 늘 선명하다. 여전히 무겁게 느껴지면 여기가 다이얼이다. */
+        const ratio = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.25);
         renderer.setPixelRatio(ratio);
         /* 세 번째 인자를 `false`로 두면 three가 캔버스에 **CSS 크기를 주지 않는다**. 그러면
            캔버스는 제 속성값(`width = 폭 × 픽셀비`)대로 레이아웃되어, 픽셀비가 1이 아닌
@@ -460,6 +526,17 @@ export function mountStage(options: MountOptions): StageHandle | null {
         renderer.setSize(width, height);
         composer?.setPixelRatio(ratio);
         composer?.setSize(width, height);
+        /* 블룸만은 절반 해상도로 흐린다. `UnrealBloomPass`는 화면 크기의 밝은 부분을
+           다섯 단계로 흐려 겹치는 패스라 전체 픽셀 작업의 대부분을 여기서 쓰는데, 결과가
+           애초에 번짐이라 절반에서 흐린 것과 눈으로 구분되지 않는다. `composer.setSize`가
+           모든 패스에 원래 크기를 주고 간 뒤에 다시 잡아야 한다. */
+        if (bloom) {
+            // 컴포저는 패스에 **장치 픽셀**을 넘긴다(`width * pixelRatio`). 같은 기준에서 절반.
+            bloom.setSize(
+                Math.max(1, Math.round((width * ratio) / 2)),
+                Math.max(1, Math.round((height * ratio) / 2)),
+            );
+        }
         camera.aspect = width / height;
         if (!baseHeight) {
             baseHeight = height;
@@ -574,9 +651,23 @@ export function mountStage(options: MountOptions): StageHandle | null {
     let lag = 0;
     let fovNow = 52;
     let raf = 0;
+    let drawn = false;
 
     const draw = (now: number) => {
         frame.time = now / 1000;
+
+        /* 아직 안 지은 장소가 있으면 이 프레임에 하나만 짓는다. 한 장소가 20~40ms이라
+           프레임을 하나 떨어뜨릴 수는 있지만, 다섯을 한 번에 짓던 것과 달리 그 사이 화면에는
+           이미 공간이 서 있다. 새 장소가 붙었으니 목록과 카메라 경로를 다시 잡는다. */
+        const next = homeBuilt.pending.shift();
+        if (next) {
+            raise(homeBuilt, next);
+            relist();
+            measure();
+        }
+
+        // 아직 안 구운 글자 판이 있으면 이 프레임의 몫만큼 굽는다(`mockup`의 대기열).
+        drainTextBakes();
 
         /* 동작 줄이기에서는 스크롤 사이의 비행을 걷어내고 구간 한가운데 시점에 선다. */
         const scroll = reduced ? timeline.settle(window.scrollY) : window.scrollY;
@@ -658,12 +749,56 @@ export function mountStage(options: MountOptions): StageHandle | null {
         } else {
             renderer.render(scene, camera);
         }
+
+        /* 첫 프레임이 실제로 화면에 놓인 뒤에 알린다 — 손잡이가 생긴 순간이 아니다. 그 사이가
+           바로 셰이더가 준비되기를 기다리는 시간이라, 거기서 알리면 글은 아직 아무것도 없는
+           화면 위로 떠오른다. 공간은 툭 나타나지 않고 짧게 떠오른다 — 페이지 전환에서 글이
+           떠오르는 것과 같은 어법이고, 지면색에서 올라오므로 경계가 보이지 않는다. */
+        if (!drawn) {
+            drawn = true;
+            renderer.domElement.style.opacity = "1";
+            onReady?.();
+        }
+
         raf = requestAnimationFrame(draw);
     };
-    raf = requestAnimationFrame(draw);
+
+    /**
+     * 첫 프레임에서 셰이더를 컴파일하지 않는다.
+     *
+     * three는 재질·조명·안개·톤매핑의 조합마다 프로그램을 하나씩 만드는데, 그 컴파일은
+     * **처음 그 재질이 그려지는 프레임**에 동기로 일어난다. 이 무대는 physical 재질 넷에
+     * 환경맵·안개·톤매핑이 다 걸려 있어 큰 셰이더가 여러 벌이고, 그래서 무대가 붙는 첫
+     * 프레임이 통째로 멈췄다 — 화면 기록에서 "제목이 뜬 뒤 400ms 정지"로 잡힌 그 프레임이다.
+     *
+     * `compileAsync`는 드라이버의 병렬 컴파일 확장(`KHR_parallel_shader_compile`)을 써서
+     * 그 일을 메인 스레드 밖에서 끝내고 알려 준다. 다 된 뒤에 루프를 열면 첫 프레임이
+     * 다른 프레임과 같은 값이 된다.
+     *
+     * 확장이 없거나 드라이버가 답하지 않는 환경이 있으므로 안전장치를 함께 둔다 — 600ms가
+     * 지나면 그냥 시작한다. 무대가 영영 안 뜨는 것보다 한 프레임 멈추는 게 낫다.
+     */
+    let started = false;
+    let disposed = false;
+    const start = () => {
+        /* **버려진 뒤에는 열지 않는다.** `compileAsync`의 프로미스는 `dispose()`로 취소되지
+           않으므로, 컴파일이 정리보다 늦게 끝나면 이미 버린 렌더러와 씬 위에서 루프가 돈다.
+           개발 서버의 StrictMode가 마운트를 두 번 돌 때 실제로 그 순서가 나온다(Codex 지적) —
+           죽은 무대의 루프가 새 무대와 나란히 도는 상태가 된다. */
+        if (started || disposed) {
+            return;
+        }
+        started = true;
+        window.clearTimeout(compileGuard);
+        raf = requestAnimationFrame(draw);
+    };
+    const compileGuard = window.setTimeout(start, 600);
+    renderer.compileAsync(scene, camera).then(start, start);
 
     return {
         dispose() {
+            disposed = true;
+            window.clearTimeout(compileGuard);
             cancelAnimationFrame(raf);
             cancelAnimationFrame(measureQueued);
             unsubscribe();
@@ -731,6 +866,11 @@ export function mountStage(options: MountOptions): StageHandle | null {
             if (world) {
                 detailBuilt = build(world);
                 detailBuilt.materials.metal.color.copy(accent).lerp(white, 0.3);
+                /* 새로 지은 세계의 셰이더와 텍스처도 미리 올려 둔다 — 안 그러면 그 재질이
+                   처음 그려지는 프레임, 즉 **카메라가 상세로 날아가기 시작하는 프레임**이
+                   멈춘다. 결과를 기다리지 않는다: 늦게 끝나면 그때까지는 예전처럼 첫 프레임이
+                   조금 무거울 뿐이고, 루프는 그대로 돈다. */
+                void renderer.compileAsync(scene, camera).catch(() => {});
             }
             relist();
             measure();

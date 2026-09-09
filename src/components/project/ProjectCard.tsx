@@ -248,7 +248,10 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
                         </span>
                     </motion.h3>
 
-                    <motion.p variants={line} className="mt-3 text-base leading-relaxed text-muted">
+                    <motion.p
+                        variants={line}
+                        className="mt-3 max-w-[34rem] text-[1.0625rem] leading-[1.8] text-ink/75"
+                    >
                         {project.summary}
                     </motion.p>
 

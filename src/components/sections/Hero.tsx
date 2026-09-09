@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useReducedMotion } from "motion/react";
 
@@ -9,15 +9,24 @@ import { profile } from "@/data/profile";
 import { VOID_MOOD } from "@/lib/atmosphere";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { getLenisInstance } from "@/lib/lenis";
+import { onStageReady } from "@/lib/stage";
 
 const TITLE_LINES = ["프론트엔드를", "설계하는 개발자"];
 
 export function Hero() {
     const root = useRef<HTMLElement>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
+    const intro = useRef<gsap.core.Timeline | null>(null);
     const reduced = useReducedMotion();
+    const [cued, setCued] = useState(false);
 
     useMoodZone(root, "hero", VOID_MOOD, 0);
+
+    /* 무대가 자리를 잡은 뒤에 인트로를 연다(`lib/stage`). 무대를 세우는 100ms 단위의 동기
+       작업이 인트로 한복판에 떨어지면 글자가 끊겨 올라오는데, 그 일을 먼저 끝내면 인트로는
+       온전히 돈다. 그동안 화면은 비어 있지 않다 — `index.html`의 고리가 같은 공간을 채우고
+       있고, 그것이 걷히는 것과 이 인트로가 열리는 것이 같은 순간이다(`onStageReady`). */
+    useEffect(() => onStageReady(() => setCued(true)), []);
 
     // 관성 스크롤의 속도를 글자에 흘려 넣는다. 빠르게 굴릴수록 타이틀이 진행 방향으로 눕는다.
     useEffect(() => {
@@ -43,8 +52,29 @@ export function Hero() {
             frame = requestAnimationFrame(tick);
         };
 
-        frame = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(frame);
+        /* 히어로가 화면에 있을 때만 돈다. 이 루프는 7rem 볼드 두 줄에 매 프레임 transform을
+           쓰는 일이라 그 자체로 큰 영역을 다시 칠하게 하는데, 예전에는 첫 화면을 지나 경력이나
+           갤러리를 읽는 내내도 계속 돌았다 — 보이지 않는 글자를 위해 지면 전체와 무대가 프레임을
+           나눠 쓰고 있었다. 나갈 때 기울기를 0으로 되돌려 두어 다시 들어와도 튀지 않는다. */
+        const observer = new IntersectionObserver((entries) => {
+            const visible = entries.some((entry) => entry.isIntersecting);
+            if (visible && !frame) {
+                frame = requestAnimationFrame(tick);
+                return;
+            }
+            if (!visible && frame) {
+                cancelAnimationFrame(frame);
+                frame = 0;
+                skew = 0;
+                element.style.transform = "";
+            }
+        });
+        observer.observe(element);
+
+        return () => {
+            observer.disconnect();
+            cancelAnimationFrame(frame);
+        };
     }, [reduced]);
 
     useGSAP(
@@ -55,13 +85,22 @@ export function Hero() {
                 return;
             }
 
-            const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+            /* 첫 화면이 다 열리기까지 2.2초가 걸렸다 — 처음 온 사람이 제목을 다 읽고도
+               한참을 기다린다(사용자 지적). 순서·이징·움직이는 거리는 그대로 두고 길이만
+               절반으로 줄여 1.2초 안에 끝낸다.
 
-            tl.from(".hero-char", { yPercent: 130, duration: 1.05, stagger: 0.026 })
-                .from(".hero-rule", { scaleX: 0, duration: 1, ease: "expo.out" }, "-=0.8")
-                .from(".hero-meta", { opacity: 0, y: 18, stagger: 0.1 }, "-=0.6")
-                .from(".hero-cue", { opacity: 0, duration: 0.8 }, "-=0.3");
+               **멈춰 세운 채로 만든다.** 여는 것은 무대가 자리를 잡은 뒤다(위 이펙트).
+               `from` 트윈은 만들어지는 순간 시작 자세를 적용하므로, 멈춰 있어도 글자는
+               처음부터 숨어 있다 — 나중에 열어도 완성된 화면이 한 번 보였다가 튀지 않는다. */
+            const tl = gsap.timeline({ paused: true, defaults: { ease: "power4.out" } });
+            intro.current = tl;
 
+            tl.from(".hero-char", { yPercent: 130, duration: 0.62, stagger: 0.016 })
+                .from(".hero-rule", { scaleX: 0, duration: 0.6, ease: "expo.out" }, "-=0.45")
+                .from(".hero-meta", { opacity: 0, y: 18, duration: 0.5, stagger: 0.06 }, "-=0.4")
+                .from(".hero-cue", { opacity: 0, duration: 0.5 }, "-=0.25");
+
+            // 스크롤 표시의 점은 인트로와 무관하게 계속 뛴다.
             gsap.to(".hero-cue-dot", {
                 y: 8,
                 repeat: -1,
@@ -72,6 +111,12 @@ export function Hero() {
         },
         { scope: root, dependencies: [reduced] },
     );
+
+    useEffect(() => {
+        if (cued) {
+            intro.current?.play();
+        }
+    }, [cued]);
 
     return (
         // 화면보다 긴 건 뒤의 공간이 원통에서 다음 대형으로 넘어갈 스크롤을 벌기 위해서다.
@@ -110,7 +155,7 @@ export function Hero() {
 
                         <div className="hero-rule mt-8 h-px w-full max-w-md origin-left bg-gradient-to-r from-espresso to-transparent" />
 
-                        <p className="hero-meta mt-8 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
+                        <p className="hero-meta mt-8 max-w-[34rem] text-lg leading-[1.72] text-ink/75 sm:text-xl">
                             {profile.tagline}
                         </p>
 

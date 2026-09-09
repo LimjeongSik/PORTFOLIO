@@ -2,6 +2,8 @@ import { motion } from "motion/react";
 
 import { Reveal } from "@/components/ui/Reveal";
 
+import { LEDE, MEASURE } from "@/lib/typography";
+
 interface SectionHeadingProps {
     index: string;
     eyebrow: string;
@@ -32,9 +34,7 @@ export function SectionHeading({ index, eyebrow, title, description }: SectionHe
             </Reveal>
             {description ? (
                 <Reveal delay={0.12}>
-                    <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">
-                        {description}
-                    </p>
+                    <p className={`mt-4 ${MEASURE} ${LEDE}`}>{description}</p>
                 </Reveal>
             ) : null}
         </div>

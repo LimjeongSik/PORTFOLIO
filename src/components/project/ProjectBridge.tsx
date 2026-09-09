@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-import { NOTE } from "./typography";
+import { BODY_TIGHT, NOTE } from "@/lib/typography";
 
 import type { ProjectBridgeMap } from "@/types/content";
 
@@ -120,9 +120,7 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
                         <span className="font-mono text-[0.6875rem] tracking-[0.18em] text-ink uppercase">
                             WebView
                         </span>
-                        <p className="mt-1.5 text-[0.875rem] leading-[1.7] text-muted">
-                            이 프로젝트의 코드가 도는 곳
-                        </p>
+                        <p className={`mt-1.5 ${NOTE}`}>이 프로젝트의 코드가 도는 곳</p>
 
                         <ul className="mt-5 flex flex-col gap-2.5">
                             {LAMPS.map((lamp) => {
@@ -179,11 +177,8 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
 
                     <ol className="mt-5 flex flex-col gap-2">
                         {call?.effects.map((effect) => (
-                            <li
-                                key={effect}
-                                className="flex gap-2.5 text-[0.875rem] leading-[1.8] text-ink/80"
-                            >
-                                <span aria-hidden className="mt-2 h-px w-3 shrink-0 bg-line" />
+                            <li key={effect} className={`flex gap-2.5 ${BODY_TIGHT}`}>
+                                <span aria-hidden className="mt-3.5 h-px w-3 shrink-0 bg-line" />
                                 {effect}
                             </li>
                         ))}

@@ -26,7 +26,10 @@ export function WordReveal({ children, className }: WordRevealProps) {
             }
             gsap.fromTo(
                 ".word-reveal-item",
-                { opacity: 0.16 },
+                /* 바닥이 0.16이면 아직 지나가지 않은 단어가 지면에서 사실상 사라져,
+                   문단을 훑어보려는 눈이 갈 곳을 잃는다. 밝아지는 폭은 그대로 두고 바닥만
+                   읽을 수 있는 데까지 올린다 — 쓸리는 연출은 같고 글자만 남는다. */
+                { opacity: 0.34 },
                 {
                     opacity: 1,
                     ease: "none",

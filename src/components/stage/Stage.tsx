@@ -22,7 +22,7 @@ import { mountStage } from "@/components/stage/rig";
 
 import { projects } from "@/data/projects";
 import { BASE_MOOD } from "@/lib/atmosphere";
-import { setStageHandle } from "@/lib/stage";
+import { markStageReady, setStageHandle } from "@/lib/stage";
 
 import type { StageHandle, World } from "@/components/stage/rig";
 
@@ -70,16 +70,20 @@ export default function Stage() {
         }
         const handle = mountStage({
             host,
+            // 공간이 실제로 화면에 놓인 순간을 첫 화면에 알린다 — 글은 그 위로 떠오른다.
+            onReady: markStageReady,
             detailZones: DETAIL_ZONES,
             home: {
                 zones: HOME_ZONES,
                 mood: BASE_MOOD,
+                /* 카메라가 지나는 차례로 적는다 — 무대는 앞에서부터 프레임마다 하나씩
+                   짓고, 첫 장소(복도)만 첫 프레임에 선다(`rig`의 `build`). */
                 build: (ctx) => [
-                    buildHall(ctx),
-                    buildMonolith(ctx),
-                    buildDrum(ctx),
-                    buildStair(ctx),
-                    buildGallery(ctx),
+                    () => buildHall(ctx),
+                    () => buildMonolith(ctx),
+                    () => buildDrum(ctx),
+                    () => buildStair(ctx),
+                    () => buildGallery(ctx),
                 ],
                 extras: (ctx) => [buildDust(ctx, HOME_PATH)],
             },

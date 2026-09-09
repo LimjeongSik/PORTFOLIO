@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-import { NOTE } from "./typography";
+import { BODY_TIGHT, NOTE } from "@/lib/typography";
 
 import type { ProjectKeyring as Keyring } from "@/types/content";
 
@@ -220,9 +220,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                             </span>
                         </div>
 
-                        <p className="mt-1.5 text-[0.875rem] leading-[1.7] text-muted">
-                            {key.opens}
-                        </p>
+                        <p className={`mt-1.5 ${NOTE}`}>{key.opens}</p>
 
                         {/* 트랙 — 채움은 transform으로만 움직인다(레이아웃을 건드리지 않는다) */}
                         <div className="relative mt-4 h-1.5 overflow-hidden rounded-full bg-sand">
@@ -253,9 +251,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                             )}
                         </div>
 
-                        <p className="mt-3 max-w-[34rem] text-[0.9375rem] leading-[1.85] text-ink/70">
-                            {key.note}
-                        </p>
+                        <p className={`mt-3 max-w-[34rem] ${BODY_TIGHT}`}>{key.note}</p>
                     </li>
                 ))}
             </ul>

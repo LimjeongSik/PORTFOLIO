@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 
 import { experiences } from "@/data/experience";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { BODY, LEDE, MEASURE } from "@/lib/typography";
 
 export function Experience() {
     const root = useRef<HTMLDivElement>(null);
@@ -110,16 +111,14 @@ export function Experience() {
                                         <p className="text-base text-espresso">{exp.company}</p>
                                         <span className="timeline-tick h-px w-16 origin-left bg-espresso/50" />
                                     </div>
-                                    <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted">
-                                        {exp.summary}
-                                    </p>
-                                    <ul className="mt-5 max-w-2xl space-y-2">
+                                    <p className={`mt-4 ${MEASURE} ${LEDE}`}>{exp.summary}</p>
+                                    <ul className={`mt-5 ${MEASURE} space-y-3`}>
                                         {exp.achievements.map((item) => (
                                             <li
                                                 key={item}
-                                                className="timeline-point flex gap-3 text-base leading-relaxed text-ink/90"
+                                                className={`timeline-point flex gap-3 ${BODY}`}
                                             >
-                                                <span className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-espresso" />
+                                                <span className="mt-3.5 h-1 w-1 shrink-0 rounded-full bg-espresso" />
                                                 {item}
                                             </li>
                                         ))}

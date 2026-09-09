@@ -10,21 +10,45 @@ import { useMoodZone } from "@/hooks/useMoodZone";
 
 import { projects } from "@/data/projects";
 import { CRAFT_MOOD, moodFromAccent } from "@/lib/atmosphere";
+import { ScrollTrigger } from "@/lib/gsap";
 import { getLenisInstance } from "@/lib/lenis";
 import { viewportWatcher } from "@/lib/viewport";
 
 import type { Project } from "@/types/content";
 
 /**
+ * 구간과 카드가 문서에서 차지한 자리.
+ *
+ * **스크롤 때마다 재지 않는다.** `getBoundingClientRect`를 읽는 순간 브라우저는 방금 쓴
+ * 스타일까지 반영해 레이아웃을 강제로 다시 계산하는데, 그걸 매 프레임 하면 굴리는 동안
+ * 계속 얹힌다(카드가 다섯이면 프레임마다 여섯 번 읽었다). 무대(`stage/timeline`)와 같은
+ * 규칙이다 — 잴 일이 생겼을 때만 재 두고, 스크롤 중에는 그 값으로 셈만 한다.
+ */
+interface Geometry {
+    top: number;
+    height: number;
+    /** 카드마다 그 가운데가 문서의 어디인가. 무대 모드에서는 쓰지 않는다. */
+    centers: number[];
+}
+
+function survey(zone: HTMLElement): Geometry {
+    return {
+        top: zone.getBoundingClientRect().top + window.scrollY,
+        height: zone.offsetHeight,
+        centers: cardCenters(zone),
+    };
+}
+
+/**
  * 지금 스크롤이 프로젝트 구간의 어디를 보고 있는지를 레이아웃과 무관한 수로 적는다 —
  * 0은 첫 프로젝트, count-1은 마지막 프로젝트, 그 사이는 두 프로젝트 사이의 비율.
  * 구간 위에 있으면 null.
  */
-function locate(zone: HTMLElement, staged: boolean, count: number): number | null {
+function locate(geometry: Geometry, staged: boolean, count: number): number | null {
     const scrollY = window.scrollY;
     const vh = window.innerHeight;
-    const top = zone.getBoundingClientRect().top + scrollY;
-    const bottom = top + zone.offsetHeight;
+    const top = geometry.top;
+    const bottom = top + geometry.height;
     if (count < 2) {
         return null;
     }
@@ -42,11 +66,11 @@ function locate(zone: HTMLElement, staged: boolean, count: number): number | nul
         if (scrollY < top - vh / 2) {
             return null;
         }
-        const range = zone.offsetHeight - vh;
+        const range = geometry.height - vh;
         const progress = range > 0 ? Math.max(0, Math.min(1, (scrollY - top) / range)) : 0;
         return progress * (count - 1);
     }
-    const centers = cardCenters(zone);
+    const centers = geometry.centers;
     if (centers.length < 2) {
         return null;
     }
@@ -116,14 +140,25 @@ export function Projects() {
        리사이즈 순간(아직 옛 모드, 이미 새 폭)에 재면 옛 폭에서 보던 자리와 어긋난다. */
     const stagedRef = useRef(staged);
     const anchor = useRef<number | null>(null);
+    const geometry = useRef<Geometry | null>(null);
     useEffect(() => {
         stagedRef.current = staged;
     }, [staged]);
     useEffect(() => {
-        const measure = () => {
-            const zone = root.current?.querySelector<HTMLElement>("[data-stage-zone='projects']");
-            anchor.current = zone ? locate(zone, stagedRef.current, projects.length) : null;
+        const zoneOf = () =>
+            root.current?.querySelector<HTMLElement>("[data-stage-zone='projects']") ?? null;
+        const remeasure = () => {
+            const zone = zoneOf();
+            geometry.current = zone ? survey(zone) : null;
         };
+        const measure = () => {
+            const geo = geometry.current;
+            anchor.current = geo ? locate(geo, stagedRef.current, projects.length) : null;
+        };
+        remeasure();
+        /* 조판이 실제로 달라졌을 때만 다시 잰다. ScrollTrigger는 폰트·이미지가 늦게 붙어
+           높이가 바뀌는 것까지 이 이벤트로 알려 주므로, 무대와 같은 신호를 쓴다. */
+        ScrollTrigger.addEventListener("refresh", remeasure);
         /* 모바일의 `resize`는 대개 주소창이 여닫힌 것이다 — 조판은 `svh`라 그대로이므로
            굴릴 때마다 랜드마크를 다시 잴 이유가 없다(`lib/viewport`). */
         const viewportChanged = viewportWatcher();
@@ -142,6 +177,7 @@ export function Projects() {
             }
             const stagedNow = window.matchMedia("(min-width: 1024px)").matches && !reduced;
             if (stagedNow === stagedRef.current) {
+                remeasure();
                 measure();
             } else if (frame) {
                 // 경계를 넘는 순간 대기 중인 스크롤 측정은 옛 모드의 DOM을 새 폭에서 재게 된다 — 버린다.
@@ -153,6 +189,7 @@ export function Projects() {
         window.addEventListener("resize", onResize);
         return () => {
             cancelAnimationFrame(frame);
+            ScrollTrigger.removeEventListener("refresh", remeasure);
             window.removeEventListener("scroll", onScroll);
             window.removeEventListener("resize", onResize);
         };
@@ -161,7 +198,12 @@ export function Projects() {
         const at = anchor.current;
         anchor.current = null;
         const zone = root.current?.querySelector<HTMLElement>("[data-stage-zone='projects']");
-        if (at === null || !zone) {
+        if (!zone) {
+            return;
+        }
+        // 조판이 통째로 갈렸다 — 되돌릴 자리가 없더라도 새 자리는 재 둬야 다음 스크롤이 맞는다.
+        if (at === null) {
+            geometry.current = survey(zone);
             return;
         }
         const move = () => {
@@ -180,7 +222,10 @@ export function Projects() {
         };
         move();
         // 갈아 끼운 직후의 높이는 한 박자 뒤에 굳는 수가 있다 — 다음 프레임에 어긋나 있으면 한 번만 다시 맞춘다.
-        const frame = requestAnimationFrame(move);
+        const frame = requestAnimationFrame(() => {
+            move();
+            geometry.current = survey(zone);
+        });
         return () => cancelAnimationFrame(frame);
     }, [staged]);
 

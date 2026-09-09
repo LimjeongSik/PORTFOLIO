@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/ui/Reveal";
 
-import { BODY, BODY_LEAD, LABEL, MEASURE, READING, STACK } from "./typography";
+import { BODY, BODY_LEAD, LABEL, MEASURE, READING, STACK } from "@/lib/typography";
 
 import type { Project } from "@/types/content";
 

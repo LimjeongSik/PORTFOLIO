@@ -6,8 +6,7 @@ import { useReducedMotion } from "motion/react";
 import { Tag } from "@/components/ui/Tag";
 
 import { gsap, useGSAP } from "@/lib/gsap";
-
-import { BODY_LEAD, LABEL_MUTED, MEASURE } from "./typography";
+import { BODY_LEAD, LABEL_MUTED, MEASURE } from "@/lib/typography";
 
 import type { Project } from "@/types/content";
 

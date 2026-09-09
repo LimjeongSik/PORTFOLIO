@@ -125,15 +125,44 @@ const listeners = new Set<Listener>();
  */
 const scene = { value: 0 };
 
-function write() {
-    const root = document.documentElement;
-    for (const key of KEYS) {
-        const [r, g, b] = current[key];
-        root.style.setProperty(
-            `--color-${key}`,
-            `rgb(${Math.round(r)} ${Math.round(g)} ${Math.round(b)})`,
-        );
+/**
+ * 지금 `:root`에 실제로 적혀 있는 문자열.
+ *
+ * 커스텀 프로퍼티를 루트에 쓰는 일은 **그 값을 쓰는 모든 요소의 스타일을 다시 계산**시킨다.
+ * 여기서 쓰는 일곱 개는 지면·글자·경계선이 전부 물고 있으니, 사실상 문서 전체다. 색을
+ * 0~255로 반올림해 넘기므로 트윈 중에도 값이 실제로 같은 프레임이 흔한데(느린 채널은 몇
+ * 프레임을 같은 정수로 머문다), 그런 프레임까지 쓰면 아무 것도 바뀌지 않는 재계산을
+ * 공짜로 사게 된다. 달라진 채널만 쓴다.
+ */
+const painted: Partial<Record<Key, string>> = {};
+
+/**
+ * 색을 DOM에 쓰는 최소 간격(ms).
+ *
+ * 위에 적은 이유로 이 쓰기 한 번이 문서 전체의 스타일 재계산이다. 60fps로 쓰면 0.85초짜리
+ * 전환 한 번에 그 일을 51번 하는데, 색이 건너가는 것을 눈으로 보는 데 그만큼이 필요하지
+ * 않다 — 30fps로 계단을 밟아도 크로스페이드는 똑같이 매끄럽고 일은 절반이다.
+ * 트윈이 끝나는 프레임은 반드시 쓴다(`force`) — 마지막 값이 빠지면 색이 도착하지 못한다.
+ */
+const PAINT_EVERY = 32;
+let paintedAt = 0;
+
+function write(force = false) {
+    const now = performance.now();
+    if (force || now - paintedAt >= PAINT_EVERY) {
+        paintedAt = now;
+        const root = document.documentElement;
+        for (const key of KEYS) {
+            const [r, g, b] = current[key];
+            const value = `rgb(${Math.round(r)} ${Math.round(g)} ${Math.round(b)})`;
+            if (painted[key] === value) {
+                continue;
+            }
+            painted[key] = value;
+            root.style.setProperty(`--color-${key}`, value);
+        }
     }
+    // 캔버스는 이 값으로 셰이더 유니폼만 갈므로 프레임마다 알려도 공짜다.
     notify();
 }
 
@@ -165,7 +194,7 @@ export function setMood(id: string, mood: Mood, options?: { immediate?: boolean;
         for (const key of KEYS) {
             current[key] = [...target[key]] as Rgb;
         }
-        write();
+        write(true);
         return;
     }
 
@@ -200,6 +229,7 @@ export function setMood(id: string, mood: Mood, options?: { immediate?: boolean;
             }
             write();
         },
+        onComplete: () => write(true),
     });
 }
 
@@ -231,6 +261,7 @@ export function clearMood(keep = false) {
     for (const key of KEYS) {
         if (mine) {
             root.style.removeProperty(`--color-${key}`);
+            delete painted[key];
         }
         current[key] = parseHex(BASE_MOOD[key]);
     }
@@ -254,6 +285,7 @@ export function applyTheme(id: string, theme: Mood, options?: { duration?: numbe
         const root = document.documentElement;
         for (const key of KEYS) {
             root.style.setProperty(`--color-${key}`, theme[key]);
+            painted[key] = theme[key];
             current[key] = [...target[key]] as Rgb;
         }
         notify();
@@ -281,6 +313,7 @@ export function applyTheme(id: string, theme: Mood, options?: { duration?: numbe
             }
             write();
         },
+        onComplete: () => write(true),
     });
 }
 
@@ -301,6 +334,7 @@ export function releaseTheme(id: string, keep = false) {
     const root = document.documentElement;
     for (const key of KEYS) {
         root.style.removeProperty(`--color-${key}`);
+        delete painted[key];
         current[key] = parseHex(BASE_MOOD[key]);
     }
 }

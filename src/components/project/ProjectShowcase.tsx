@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { BODY, LABEL, LABEL_MUTED, SHOWCASE, TITLE } from "./typography";
+import { BODY, LABEL, LABEL_MUTED, SHOWCASE, TITLE } from "@/lib/typography";
 
 import type { Project, ProjectScreen } from "@/types/content";
 
@@ -125,7 +125,7 @@ export function ProjectShowcase({ screens, platform, title }: ProjectShowcasePro
                                         }}
                                         data-stage-anchor
                                         className={`transition-opacity duration-500 ${
-                                            on ? "lg:opacity-100" : "lg:opacity-40"
+                                            on ? "lg:opacity-100" : "lg:opacity-60"
                                         }`}
                                     >
                                         <p className={LABEL_MUTED}>

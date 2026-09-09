@@ -9,8 +9,191 @@
             content="임정식 · 프론트엔드 개발자 포트폴리오"
         />
         <title>임정식 — 프론트엔드 개발자</title>
+
+        <!--
+            무대가 서기 전의 하늘.
+
+            이 지면은 어두운 전시장이고, 무대가 서면 화면에 가장 먼저 놓이는 것은 안개와
+            떠다니는 먼지다. 그 앞에 **덮개**를 두면 흐름이 끊긴다(사용자 지적) — 페이지
+            전환이 자연스러운 이유가 가리지 않는 것이기 때문이다. 그래서 이건 덮개가 아니라
+            **같은 하늘에 이미 있는 것**이다: 별이 떠 있고 그 사이로 별똥별이 지나간다.
+            무대가 서면 별은 그대로 흐려지고 그 자리를 진짜 먼지가 넘겨받는다.
+
+            세 가지가 조건이다.
+
+            1. **HTML에 직접 적는다.** React가 그리기 전(엔트리 JS 평가 전)부터 보여야 한다.
+               컴포넌트로 두면 번들을 기다리는 그 앞부분이 다시 검다.
+            2. **`transform`과 `opacity`만 움직인다.** 그 둘은 합성기에서 도므로, 그 밑에서
+               메인 스레드가 무대를 세우느라 100ms대로 막혀도 별똥별은 끊기지 않는다.
+               정확히 그 시간을 채우려고 있는 것이라 이게 핵심 조건이다.
+            3. **덮지 않는다.** 배경을 칠하지 않고(`z-index: 1`) 캔버스 바로 위에 앉는다.
+               캔버스가 떠오르는 동안 별이 함께 흐려지므로 교대하는 순간이 보이지 않는다.
+
+            걷는 것은 `lib/boot`의 `dismissBoot()`이고, 무대가 첫 프레임을 그리는 순간이다
+            (`lib/stage`의 `onStageReady`).
+        -->
+        <style>
+            #boot {
+                position: fixed;
+                inset: 0;
+                z-index: 1;
+                overflow: hidden;
+                pointer-events: none;
+                transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            /* 떠 있는 별 — 배경 이미지라 한 번만 그려진다. 움직이는 것에 값을 뺏기지 않는다. */
+            #boot::before,
+            #boot::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+            }
+
+            #boot::before {
+                background-image:
+                    radial-gradient(1.4px 1.4px at 45.5% 55.5%, rgba(231, 224, 210, 0.58), transparent 70%),
+                    radial-gradient(1.7px 1.7px at 20.4% 51.1%, rgba(231, 224, 210, 0.48), transparent 70%),
+                    radial-gradient(1.7px 1.7px at 11.8% 31.9%, rgba(231, 224, 210, 0.31), transparent 70%),
+                    radial-gradient(1.8px 1.8px at 68.2% 7.9%, rgba(231, 224, 210, 0.59), transparent 70%),
+                    radial-gradient(1.1px 1.1px at 64.5% 60.6%, rgba(231, 224, 210, 0.33), transparent 70%),
+                    radial-gradient(1.3px 1.3px at 52.7% 9.5%, rgba(231, 224, 210, 0.34), transparent 70%),
+                    radial-gradient(1.7px 1.7px at 5.8% 46.7%, rgba(231, 224, 210, 0.42), transparent 70%),
+                    radial-gradient(1.6px 1.6px at 51.8% 62.9%, rgba(231, 224, 210, 0.44), transparent 70%),
+                    radial-gradient(1.8px 1.8px at 46.0% 29.6%, rgba(231, 224, 210, 0.6), transparent 70%),
+                    radial-gradient(1.3px 1.3px at 82.0% 69.1%, rgba(231, 224, 210, 0.38), transparent 70%),
+                    radial-gradient(1.4px 1.4px at 30.2% 10.5%, rgba(231, 224, 210, 0.53), transparent 70%),
+                    radial-gradient(1.7px 1.7px at 82.6% 39.6%, rgba(231, 224, 210, 0.59), transparent 70%),
+                    radial-gradient(1.4px 1.4px at 3.1% 23.3%, rgba(231, 224, 210, 0.57), transparent 70%),
+                    radial-gradient(1.5px 1.5px at 95.2% 40.6%, rgba(231, 224, 210, 0.3), transparent 70%),
+                    radial-gradient(1.3px 1.3px at 76.2% 28.8%, rgba(231, 224, 210, 0.31), transparent 70%),
+                    radial-gradient(1.3px 1.3px at 93.6% 73.7%, rgba(231, 224, 210, 0.32), transparent 70%),
+                    radial-gradient(1.2px 1.2px at 12.5% 9.5%, rgba(231, 224, 210, 0.54), transparent 70%),
+                    radial-gradient(1.6px 1.6px at 55.6% 45.2%, rgba(231, 224, 210, 0.34), transparent 70%),
+                    radial-gradient(1.4px 1.4px at 15.3% 63.2%, rgba(231, 224, 210, 0.32), transparent 70%),
+                    radial-gradient(1.7px 1.7px at 23.0% 28.8%, rgba(231, 224, 210, 0.59), transparent 70%),
+                    radial-gradient(1.4px 1.4px at 31.6% 85.4%, rgba(231, 224, 210, 0.35), transparent 70%),
+                    radial-gradient(1.8px 1.8px at 83.3% 63.0%, rgba(231, 224, 210, 0.31), transparent 70%),
+                    radial-gradient(1.4px 1.4px at 25.8% 59.3%, rgba(231, 224, 210, 0.4), transparent 70%),
+                    radial-gradient(1.7px 1.7px at 93.2% 48.5%, rgba(231, 224, 210, 0.46), transparent 70%),
+                    radial-gradient(1.7px 1.7px at 20.2% 18.2%, rgba(231, 224, 210, 0.57), transparent 70%),
+                    radial-gradient(1.8px 1.8px at 26.5% 21.5%, rgba(231, 224, 210, 0.52), transparent 70%);
+            }
+
+            /* 밝은 몇 개는 느리게 숨쉰다. opacity라 합성기에서 돈다. */
+            #boot::after {
+                background-image:
+                    radial-gradient(2.7px 2.7px at 25.9% 50.2%, rgba(231, 224, 210, 0.79), transparent 70%),
+                    radial-gradient(2.6px 2.6px at 90.1% 40.6%, rgba(231, 224, 210, 0.99), transparent 70%),
+                    radial-gradient(2.3px 2.3px at 54.5% 61.9%, rgba(231, 224, 210, 0.9), transparent 70%),
+                    radial-gradient(2.7px 2.7px at 96.7% 41.2%, rgba(231, 224, 210, 1.0), transparent 70%),
+                    radial-gradient(2.7px 2.7px at 5.7% 27.8%, rgba(231, 224, 210, 0.87), transparent 70%),
+                    radial-gradient(2.6px 2.6px at 19.7% 60.7%, rgba(231, 224, 210, 0.84), transparent 70%),
+                    radial-gradient(2.6px 2.6px at 90.1% 74.1%, rgba(231, 224, 210, 0.8), transparent 70%),
+                    radial-gradient(2.7px 2.7px at 44.2% 81.0%, rgba(231, 224, 210, 0.87), transparent 70%),
+                    radial-gradient(2.1px 2.1px at 80.7% 79.4%, rgba(231, 224, 210, 0.9), transparent 70%);
+                animation: boot-twinkle 3.6s ease-in-out infinite alternate;
+            }
+
+            @keyframes boot-twinkle {
+                from {
+                    opacity: 0.45;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            /* 별똥별 — 꼬리는 옅어지고 머리에는 빛이 맺힌다. */
+            #boot i {
+                position: absolute;
+                left: -22vmax;
+                width: 20vmax;
+                height: 2px;
+                border-radius: 999px;
+                background: linear-gradient(
+                    90deg,
+                    transparent 0%,
+                    rgba(231, 224, 210, 0.12) 45%,
+                    rgba(231, 224, 210, 0.9) 100%
+                );
+                opacity: 0;
+                animation: boot-fall 0.85s cubic-bezier(0.45, 0, 0.7, 1) infinite;
+            }
+
+            #boot i::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                right: 0;
+                width: 5px;
+                height: 5px;
+                margin-top: -2.5px;
+                border-radius: 50%;
+                background: #fdfbf6;
+                box-shadow:
+                    0 0 7px 2px rgba(231, 224, 210, 0.85),
+                    0 0 18px 6px rgba(231, 224, 210, 0.35);
+            }
+
+            #boot i:nth-child(1) {
+                top: -6%;
+            }
+            #boot i:nth-child(2) {
+                top: 18%;
+                animation-delay: 0.12s;
+            }
+            #boot i:nth-child(3) {
+                top: 4%;
+                animation-delay: 0.26s;
+            }
+            #boot i:nth-child(4) {
+                top: 40%;
+                animation-delay: 0.4s;
+            }
+            #boot i:nth-child(5) {
+                top: 28%;
+                animation-delay: 0.55s;
+            }
+            #boot i:nth-child(6) {
+                top: 58%;
+                animation-delay: 0.7s;
+            }
+
+            @keyframes boot-fall {
+                0% {
+                    transform: rotate(21deg) translate3d(0, 0, 0);
+                    opacity: 0;
+                }
+                8% {
+                    opacity: 1;
+                }
+                72% {
+                    opacity: 1;
+                }
+                100% {
+                    transform: rotate(21deg) translate3d(130vmax, 0, 0);
+                    opacity: 0;
+                }
+            }
+
+            #boot[data-gone] {
+                opacity: 0;
+            }
+
+            /* 동작 줄이기에서는 별만 떠 있는다. */
+            @media (prefers-reduced-motion: reduce) {
+                #boot i {
+                    display: none;
+                }
+                #boot::after {
+                    animation: none;
+                }
+            }
+        </style>
     </head>
     <body>
+        <div id="boot" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <div id="root"></div>
         <script type="module" src="/src/main.tsx"></script>
     </body>

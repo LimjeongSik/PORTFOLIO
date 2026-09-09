@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import { gsap, useGSAP } from "@/lib/gsap";
+import { BODY_TIGHT, NOTE } from "@/lib/typography";
 
 import type { ReactNode } from "react";
 import type { ProjectRuntimeMap, ProjectRuntimeNode } from "@/types/content";
@@ -116,26 +117,20 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
         >
             <p className={LABEL}>{selection.group === "boot" ? "부팅 순서" : "Provider 중첩"}</p>
             <p className="mt-3 font-mono text-base text-ink">{active?.name}</p>
-            <p className="mt-4 max-w-[34rem] text-[1rem] leading-[1.9] text-ink/85">
-                {active?.role}
-            </p>
+            <p className={`mt-4 max-w-[34rem] ${BODY_TIGHT}`}>{active?.role}</p>
             {active?.caution ? (
                 <div className="mt-5 border-t border-line pt-4">
                     <p className="flex items-center gap-2 font-mono text-[0.6875rem] tracking-[0.18em] text-espresso uppercase">
                         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-espresso" />
                         자리를 바꾸면
                     </p>
-                    <p className="mt-3 max-w-[34rem] text-[1rem] leading-[1.9] text-ink/85">
-                        {active.caution}
-                    </p>
+                    <p className={`mt-3 max-w-[34rem] ${BODY_TIGHT}`}>{active.caution}</p>
                 </div>
             ) : null}
         </motion.div>
     );
 
-    const note = (
-        <p className="max-w-[34rem] text-[0.875rem] leading-[1.8] text-muted">{runtime.note}</p>
-    );
+    const note = <p className={`max-w-[34rem] ${NOTE}`}>{runtime.note}</p>;
 
     return (
         <div ref={root}>

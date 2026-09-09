@@ -52,13 +52,20 @@ export function Home() {
             {/* 무대(복도 → 비석 → 드럼 → 계단 → 갤러리)는 `App`이 라우터 바깥에서 들고 있다.
                 여기서는 그 앞에 앉는 글과, 글이 읽히게 지면을 눌러 주는 베일만 둔다. */}
             {/* 글이 앉는 한가운데를 아주 얕게 눌러 준다. 판은 이미 가까워질수록 지워지므로
-                가릴 일이 없지만, 낱말 판이 스칠 때의 대비까지 이 한 겹이 받아 준다. */}
+                가릴 일이 없지만, 낱말 판이 스칠 때의 대비까지 이 한 겹이 받아 준다.
+
+                색을 `var(--color-paper)`로 물리지 **않는다.** 구간을 넘을 때 그 변수가 트윈되면
+                화면 전체를 덮은 이 그라디언트를 프레임마다 다시 래스터화해야 한다 — 구간
+                경계마다 프레임이 떨어지던 몫이 여기였다. 홈의 지면색은 어느 구간에서든
+                near-black(#040308~#0e0c15)이라, 고정색으로 굳혀도 합성 결과가 2% 안쪽에서
+                다르다. 상세는 테마가 밝을 수도 있어 그쪽 베일은 변수를 그대로 쓴다(라우트가
+                바뀔 때 한 번만 트윈되므로 매 프레임 비용이 아니다). */}
             <div
                 aria-hidden
                 className="pointer-events-none fixed inset-0 z-0"
                 style={{
                     background:
-                        "radial-gradient(52% 44% at 50% 50%, color-mix(in srgb, var(--color-paper) 72%, transparent) 0%, color-mix(in srgb, var(--color-paper) 38%, transparent) 58%, transparent 100%)",
+                        "radial-gradient(52% 44% at 50% 50%, rgb(8 7 12 / 0.72) 0%, rgb(8 7 12 / 0.38) 58%, transparent 100%)",
                 }}
             />
             <main className="relative z-10">

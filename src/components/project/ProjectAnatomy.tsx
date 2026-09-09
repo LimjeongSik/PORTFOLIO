@@ -3,8 +3,7 @@ import { useRef, useState } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import { gsap, useGSAP } from "@/lib/gsap";
-
-import { BODY } from "./typography";
+import { BODY } from "@/lib/typography";
 
 import type { ProjectAnatomy as Anatomy } from "@/types/content";
 

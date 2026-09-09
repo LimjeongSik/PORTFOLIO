@@ -9,6 +9,7 @@ import { WordReveal } from "@/components/ui/WordReveal";
 
 import { profile } from "@/data/profile";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { BODY, MEASURE, STACK } from "@/lib/typography";
 
 const details: { label: string; value: string; href?: string }[] = [
     { label: "연락처", value: profile.phone },
@@ -150,13 +151,12 @@ export function About() {
                     ))}
                 </dl>
 
-                {/* 본문은 스크롤이 읽어 준다 — 단어가 하나씩 밝아진다. */}
-                <div className="mt-12 max-w-3xl space-y-5">
+                {/* 본문은 스크롤이 읽어 준다 — 단어가 하나씩 밝아진다.
+                    폭은 상세와 같은 `MEASURE`로 묶는다 — 예전의 48rem은 한 줄이 43자를 넘어
+                    다음 줄 첫 글자를 찾는 데 눈이 걸렸다. */}
+                <div className={`mt-12 ${MEASURE} ${STACK}`}>
                     {profile.intro.map((paragraph) => (
-                        <WordReveal
-                            key={paragraph}
-                            className="text-base leading-relaxed text-ink sm:text-lg"
-                        >
+                        <WordReveal key={paragraph} className={BODY}>
                             {paragraph}
                         </WordReveal>
                     ))}

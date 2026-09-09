@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/ui/Reveal";
 
-import { LABEL, NOTE, SHOWCASE, TITLE } from "./typography";
+import { LABEL, NOTE, SHOWCASE, TITLE } from "@/lib/typography";
 
 import type { ProjectSheet } from "@/types/content";
 

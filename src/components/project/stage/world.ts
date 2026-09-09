@@ -448,7 +448,13 @@ function buildArches(ctx: WorldContext, project: Project, o: Vector3): Zone {
 
 const ASCENT_RADIUS = 6.2;
 const ASCENT_RISE = 11;
-const ASCENT_TURNS = 1.25;
+/**
+ * 오름이 감기는 바퀴 수. 뜻은 홈의 계단(`STAIR_TURNS`)과 같다 — 사례 하나 넘기는 동안
+ * 카메라가 `TAU * TURNS / (n - 1)`만큼 돈다. 1.25바퀴에서는 사례가 넷뿐인 프로젝트에서
+ * 한 사례에 150°까지 돌아, 짧은 사례에서 고리가 홱 지나갔다(사용자 지적).
+ * 0.8이면 사례 넷에서 96°, 다섯에서 72°다.
+ */
+const ASCENT_TURNS = 0.8;
 
 /**
  * 사례 번호가 나선으로 감겨 오른다. 본문의 사례 하나가 닻 하나이므로, 읽는 사례와
@@ -584,14 +590,18 @@ function buildOutro(o: Vector3): Zone {
  * 들어오면 카메라가 **서 있던 그 자리에서** 좌대 앞으로 몇 걸음 날아간다 — 공간이 끊기지
  * 않는 이유가 이 한 줄이다.
  */
-export function buildDetailWorld(ctx: WorldContext, project: Project, origin: Vector3): Zone[] {
+export function buildDetailWorld(
+    ctx: WorldContext,
+    project: Project,
+    origin: Vector3,
+): (() => Zone)[] {
     return [
-        buildPlinth(ctx, project, origin),
-        buildWall(ctx, project, origin),
-        buildHall(ctx, project, origin),
-        buildArches(ctx, project, origin),
-        buildAscent(ctx, project, origin),
-        buildOutro(origin),
+        () => buildPlinth(ctx, project, origin),
+        () => buildWall(ctx, project, origin),
+        () => buildHall(ctx, project, origin),
+        () => buildArches(ctx, project, origin),
+        () => buildAscent(ctx, project, origin),
+        () => buildOutro(origin),
     ];
 }
 

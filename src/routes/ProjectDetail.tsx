@@ -7,12 +7,12 @@ import { ProjectCover } from "@/components/project/ProjectCover";
 import { ProjectSheets } from "@/components/project/ProjectSheets";
 import { ProjectShowcase } from "@/components/project/ProjectShowcase";
 import { ProjectSignature } from "@/components/project/ProjectSignature";
-import { LABEL_MUTED, SHOWCASE } from "@/components/project/typography";
 import { useReadingAnchor } from "@/hooks/useReadingAnchor";
 
 import { getAdjacentProjects, getProjectBySlug } from "@/data/projects";
 import { applyTheme, releaseTheme } from "@/lib/atmosphere";
 import { isCrossing } from "@/lib/transition";
+import { LABEL_MUTED, SHOWCASE } from "@/lib/typography";
 
 import type { Project, ProjectTheme } from "@/types/content";
 

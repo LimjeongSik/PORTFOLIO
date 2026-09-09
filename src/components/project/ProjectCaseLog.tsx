@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/ui/Reveal";
 
-import { BODY, LABEL, LABEL_MUTED, READING, TITLE } from "./typography";
+import { BODY, LABEL, LABEL_MUTED, READING, TITLE } from "@/lib/typography";
 
 import type { ProjectCase } from "@/types/content";
 

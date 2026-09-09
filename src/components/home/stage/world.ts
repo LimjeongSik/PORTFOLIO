@@ -365,7 +365,18 @@ export function buildDrum(ctx: WorldContext): Zone {
 const STAIR = new Vector3(76, 0, -140);
 const STAIR_HEADING = Math.atan2(STAIR.x - DRUM.x, STAIR.z - DRUM.z);
 const STAIR_RISE = 14;
-const STAIR_TURNS = 2;
+/**
+ * 나선이 감기는 바퀴 수 — **이 값 하나가 곧 읽는 속도다.**
+ *
+ * 카메라는 항목마다의 닻을 따라 오르므로, 판 사이의 각도(`TAU * TURNS / (n - 1)`)를 한 항목
+ * 넘기는 스크롤 동안 통째로 돈다. 두 바퀴였을 때는 경력 다섯 항목에서 항목당 180°였고, 그
+ * 간격이 반 화면 남짓이라 읽는 내내 배경이 휙휙 돌아 오히려 글을 방해했다(사용자 지적).
+ * 한 바퀴로 줄이면 같은 스크롤에서 항목당 90°가 되어, 한 연도 판이 화면에 머무는 시간이
+ * 두 배가 된다. 지면의 여백은 건드리지 않는다 — 늘려야 하는 건 스크롤이 아니라 체류 시간이다.
+ *
+ * 판·작은 링·카메라 키가 전부 이 값으로 놓이므로, 여기만 고치면 나선 전체가 같이 펴진다.
+ */
+const STAIR_TURNS = 1;
 
 export function buildStair(ctx: WorldContext): Zone {
     const group = new Group();

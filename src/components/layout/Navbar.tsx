@@ -79,8 +79,13 @@ export function Navbar() {
     return (
         <header
             data-navbar
+            /* `backdrop-blur`를 쓰지 않는다. 이 바는 화면 폭 전체를 덮은 채 **매 프레임 다시
+               그려지는 WebGL 캔버스** 위에 떠 있어서, 흐리려면 합성기가 프레임마다 뒤를 다시
+               읽어 블러를 건다 — 히어로를 지나 `scrolled`가 켜지는 순간부터 계속이다.
+               "첫 화면을 지나면 버벅인다"는 지적의 큰 몫이 여기였다. 지면색을 한 단계 더
+               불투명하게(80% → 92%) 올려 같은 일을 공짜로 한다. */
             className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color] duration-300 ${
-                scrolled ? "bg-paper/80 backdrop-blur-md" : "bg-transparent"
+                scrolled ? "bg-paper/92" : "bg-transparent"
             }`}
         >
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
