@@ -31,7 +31,15 @@ export interface ProjectLinks {
 
 export interface ProjectScreen {
     src: string;
+    /** 같은 화면의 다른 한 벌(테마 등). 모든 화면이 갖추면 전시에 토글이 선다. */
+    srcAlt?: string;
     name: string;
+    note: string;
+}
+
+/** 화면이 두 벌일 때 — 토글에 붙는 이름(`[src, srcAlt]` 순서)과 그 아래 한 줄. */
+export interface ProjectScreenModes {
+    labels: [string, string];
     note: string;
 }
 
@@ -197,6 +205,7 @@ export interface Project {
     approach: string[];
     cases: ProjectCase[];
     screens: ProjectScreen[];
+    screenModes?: ProjectScreenModes;
     sheets: ProjectSheet[];
     links: ProjectLinks;
     /* 아래 다섯은 그 프로젝트만의 시그니처 그림이다. 있는 것만 상세 페이지의 `system`

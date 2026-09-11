@@ -93,6 +93,7 @@ export function ProjectDetail() {
                     screens={project.screens}
                     platform={project.platform}
                     title={showcaseTitle(project)}
+                    modes={project.screenModes}
                 />
                 <ProjectSignature project={project} />
                 <ProjectCaseLog cases={project.cases} />
