@@ -3,7 +3,9 @@ import { ProjectBridge } from "@/components/project/ProjectBridge";
 import { ProjectGate } from "@/components/project/ProjectGate";
 import { ProjectKeyring } from "@/components/project/ProjectKeyring";
 import { ProjectRuntime } from "@/components/project/ProjectRuntime";
+import { ProjectSieve } from "@/components/project/ProjectSieve";
 import { ProjectSystem } from "@/components/project/ProjectSystem";
+import { ProjectWindow } from "@/components/project/ProjectWindow";
 
 import type { Project } from "@/types/content";
 
@@ -14,9 +16,10 @@ interface ProjectSignatureProps {
 /**
  * 그 프로젝트만의 그림.
  *
- * 지면의 문법(표지 · 읽는 구간 · 화면 전시 · 사례 대장)은 세 프로젝트가 똑같이 쓰지만,
+ * 지면의 문법(표지 · 읽는 구간 · 화면 전시 · 사례 대장)은 모든 프로젝트가 똑같이 쓰지만,
  * **여기 하나만은 프로젝트마다 다르다** — SafeOps는 좌표 한 건이 지나는 관문, 침례교는
- * 화면 해부와 런타임 지도, 아이머그는 열쇠 넷의 시계와 웹↔앱 통로다. 이 그림이 그 프로젝트를
+ * 화면 해부와 런타임 지도, 아이머그는 열쇠 넷의 시계와 웹↔앱 통로, Plus SMS는 번호를 거르는
+ * 체와 보이는 줄만 그리는 창이다. 이 그림이 그 프로젝트를
  * 다른 프로젝트와 가르는 것이므로 하나로 합치지 않는다.
  *
  * 무대의 `system` 자리는 **첫 그림**이 연다. 둘 이상 있어도 카메라 경로는 하나여야 한다.
@@ -91,6 +94,36 @@ export function ProjectSignature({ project }: ProjectSignatureProps) {
                 zone={blocks.length === 0}
             >
                 <ProjectBridge bridge={project.bridge} />
+            </ProjectSystem>,
+        );
+    }
+
+    if (project.sieve) {
+        blocks.push(
+            <ProjectSystem
+                key="sieve"
+                label="Sieve"
+                title={project.sieve.title}
+                lede={project.sieve.lede}
+                note={project.sieve.note}
+                zone={blocks.length === 0}
+            >
+                <ProjectSieve sieve={project.sieve} />
+            </ProjectSystem>,
+        );
+    }
+
+    if (project.windowing) {
+        blocks.push(
+            <ProjectSystem
+                key="windowing"
+                label="Windowing"
+                title={project.windowing.title}
+                lede={project.windowing.lede}
+                note={project.windowing.note}
+                zone={blocks.length === 0}
+            >
+                <ProjectWindow windowing={project.windowing} />
             </ProjectSystem>,
         );
     }

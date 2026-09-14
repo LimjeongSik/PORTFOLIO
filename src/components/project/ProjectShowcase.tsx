@@ -116,6 +116,14 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
     /* 붙어 서는 기기의 크기는 뷰포트 **높이**에 묶는다. 폭으로 잡으면 낮은 노트북에서
        세로 화면이 창을 넘어 위아래가 잘린다. */
     const standing = mobile ? "h-[min(66svh,34rem)]" : "w-full";
+    /* 웹 화면은 가로 판이라 세로 폰의 기둥 폭(20rem)에 넣으면 글자가 읽히지 않는다 — 기기
+       쪽에 폭을 더 주고 설명을 좁힌다. 좁은 창의 인라인 화면도 같은 이유로 폭 상한을 푼다. */
+    const columns = mobile
+        ? "lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24"
+        : "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16";
+    const inline = mobile ? "max-w-56" : "max-w-xl";
+    /* 잘라 둔 웹 화면은 머리(내비게이션·제목)부터 읽혀야 한다 — 가운데 기준으로 자르면 위가 날아간다. */
+    const fit = mobile ? "object-cover" : "object-cover object-top";
 
     return (
         <section data-stage-zone="screens" className="relative py-24 sm:py-32">
@@ -133,7 +141,7 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
                     </div>
                 ) : null}
 
-                <div className="mt-14 lg:grid lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24">
+                <div className={`mt-14 lg:grid ${columns}`}>
                     {/* 붙어 서는 기기 — 자리는 그대로 두고 안의 화면만 바뀐다. */}
                     <div className="hidden lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:items-center lg:justify-center lg:gap-7 lg:self-start">
                         <div className={`relative ${standing} ${frame}`}>
@@ -145,7 +153,7 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
                                         alt=""
                                         loading={index === 0 && variant === 0 ? "eager" : "lazy"}
                                         decoding="async"
-                                        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out ${
+                                        className={`absolute inset-0 h-full w-full ${fit} transition-opacity duration-500 ease-out ${
                                             index === active && variant === shown
                                                 ? "opacity-100"
                                                 : "opacity-0"
@@ -169,7 +177,7 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
                                         화면은 가운데, 글은 왼쪽이다. 한글 본문까지 가운데로
                                         맞추면 줄 시작이 들쭉날쭉해 읽기 어렵다. */}
                                     <div
-                                        className={`relative w-full max-w-56 self-center lg:hidden ${frame}`}
+                                        className={`relative w-full ${inline} self-center lg:hidden ${frame}`}
                                     >
                                         {variantsOf(screen).map((src, variant) => (
                                             <img
@@ -178,7 +186,7 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
                                                 alt=""
                                                 loading="lazy"
                                                 decoding="async"
-                                                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out ${
+                                                className={`absolute inset-0 h-full w-full ${fit} transition-opacity duration-500 ease-out ${
                                                     variant === shown ? "opacity-100" : "opacity-0"
                                                 }`}
                                             />

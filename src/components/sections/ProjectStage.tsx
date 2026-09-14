@@ -212,7 +212,14 @@ export function ProjectStage({ projects, leadMood }: ProjectStageProps) {
                             }}
                             className="w-[62vw] max-w-4xl shrink-0"
                         >
-                            <article className="grid grid-cols-[minmax(0,18rem)_minmax(0,1fr)] items-center gap-12">
+                            {/* 웹 화면은 가로 판이다 — 세로 폰에 맞춘 18rem 칸에 넣으면 우표만 해진다. */}
+                            <article
+                                className={`grid items-center gap-12 ${
+                                    project.platform === "mobile"
+                                        ? "grid-cols-[minmax(0,18rem)_minmax(0,1fr)]"
+                                        : "grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
+                                }`}
+                            >
                                 {/* 기기 틀 없이 화면 그대로. 각도가 붙은 판이라 그림자만으로 뜬다.
                                     세로 화면이라 폭만 정해 두면 낮은 화면(예: 1024×600)에서
                                     `h-svh` 무대를 넘겨 잘린다 — 높이도 함께 죄어 둔다. */}
@@ -222,7 +229,11 @@ export function ProjectStage({ projects, leadMood }: ProjectStageProps) {
                                     loading="lazy"
                                     decoding="async"
                                     draggable={false}
-                                    className="mx-auto max-h-[62svh] max-w-full rounded-2xl shadow-[0_40px_90px_-40px_rgba(0,0,0,0.85)]"
+                                    className={`mx-auto max-h-[62svh] max-w-full rounded-2xl shadow-[0_40px_90px_-40px_rgba(0,0,0,0.85)] ${
+                                        project.platform === "mobile"
+                                            ? ""
+                                            : "aspect-16/10 w-full object-cover object-top"
+                                    }`}
                                 />
 
                                 <div>

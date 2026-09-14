@@ -10,6 +10,8 @@ import type {
     ProjectCase,
     ProjectPipeline,
     ProjectRuntimeMap,
+    ProjectSieve,
+    ProjectWindowing,
     SkillGroup,
     SocialLink,
 } from "../../src/types/content.js";
@@ -28,6 +30,8 @@ export type KnowledgeProject = Omit<
     | "anatomy"
     | "runtime"
     | "pipeline"
+    | "sieve"
+    | "windowing"
 > & {
     screens: { name: string; note: string }[];
 };
@@ -39,6 +43,8 @@ export type KnowledgeProjectDetail = {
     anatomy?: Omit<ProjectAnatomy, "src" | "ratio">;
     runtime?: ProjectRuntimeMap;
     pipeline?: ProjectPipeline;
+    sieve?: ProjectSieve;
+    windowing?: ProjectWindowing;
 };
 
 export type Knowledge = {

@@ -179,6 +179,37 @@ export interface ProjectBridgeMap {
     note: string;
 }
 
+/** 붙여넣어 볼 입력 한 벌. */
+export interface ProjectSieveSample {
+    label: string;
+    hint: string;
+    /** 입력창에 그대로 들어가는 원문. 줄바꿈도 공백으로 친다. */
+    input: string;
+}
+
+/** 붙여넣은 번호가 등록 · 중복 · 오류로 갈리는 체. 판정 규칙은 컴포넌트가 원 코드를 옮겨 들고 있다. */
+export interface ProjectSieve {
+    title: string;
+    lede: string;
+    /** 등록할 때 앞자리 0 대신 붙는 국가번호 */
+    country: string;
+    samples: ProjectSieveSample[];
+    note: string;
+}
+
+/** 목록이 아무리 길어도 보이는 줄만 그리는 창. */
+export interface ProjectWindowing {
+    title: string;
+    lede: string;
+    /** 골라 볼 등록 건수 */
+    counts: number[];
+    /** 한 줄에 묶는 번호 수 */
+    perRow: number;
+    /** 원 프로젝트에서 잰 값 */
+    measured: ProjectMetric[];
+    note: string;
+}
+
 export interface ProjectTheme {
     paper: string;
     surface: string;
@@ -208,13 +239,15 @@ export interface Project {
     screenModes?: ProjectScreenModes;
     sheets: ProjectSheet[];
     links: ProjectLinks;
-    /* 아래 다섯은 그 프로젝트만의 시그니처 그림이다. 있는 것만 상세 페이지의 `system`
+    /* 아래는 그 프로젝트만의 시그니처 그림이다. 있는 것만 상세 페이지의 `system`
        구간에 차례로 놓인다(`ProjectSignature`). */
     anatomy?: ProjectAnatomy;
     runtime?: ProjectRuntimeMap;
     pipeline?: ProjectPipeline;
     keyring?: ProjectKeyring;
     bridge?: ProjectBridgeMap;
+    sieve?: ProjectSieve;
+    windowing?: ProjectWindowing;
 }
 
 export interface SocialLink {

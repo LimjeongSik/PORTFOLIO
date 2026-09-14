@@ -47,6 +47,8 @@ for (const project of projects) {
     }
     if (project.runtime) detail.runtime = project.runtime;
     if (project.pipeline) detail.pipeline = project.pipeline;
+    if (project.sieve) detail.sieve = project.sieve;
+    if (project.windowing) detail.windowing = project.windowing;
     details[project.slug] = detail;
 }
 
