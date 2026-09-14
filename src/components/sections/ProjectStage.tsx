@@ -1,11 +1,13 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 
+import { BrowserShot } from "@/components/ui/BrowserShot";
 import { Tag } from "@/components/ui/Tag";
 
 import { moodFromAccent, setMood } from "@/lib/atmosphere";
 import { ScrollTrigger } from "@/lib/gsap";
 import { getLenisInstance } from "@/lib/lenis";
+import { hostOf } from "@/lib/url";
 
 import type { Mood } from "@/lib/atmosphere";
 import type { Project } from "@/types/content";
@@ -217,24 +219,32 @@ export function ProjectStage({ projects, leadMood }: ProjectStageProps) {
                                 className={`grid items-center gap-12 ${
                                     project.platform === "mobile"
                                         ? "grid-cols-[minmax(0,18rem)_minmax(0,1fr)]"
-                                        : "grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
+                                        : "grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
                                 }`}
                             >
                                 {/* 기기 틀 없이 화면 그대로. 각도가 붙은 판이라 그림자만으로 뜬다.
                                     세로 화면이라 폭만 정해 두면 낮은 화면(예: 1024×600)에서
                                     `h-svh` 무대를 넘겨 잘린다 — 높이도 함께 죄어 둔다. */}
-                                <img
-                                    src={project.thumbnail}
-                                    alt={`${project.title} 화면`}
-                                    loading="lazy"
-                                    decoding="async"
-                                    draggable={false}
-                                    className={`mx-auto max-h-[62svh] max-w-full rounded-2xl shadow-[0_40px_90px_-40px_rgba(0,0,0,0.85)] ${
-                                        project.platform === "mobile"
-                                            ? ""
-                                            : "aspect-16/10 w-full object-cover object-top"
-                                    }`}
-                                />
+                                {project.platform === "mobile" ? (
+                                    <img
+                                        src={project.thumbnail}
+                                        alt={`${project.title} 화면`}
+                                        loading="lazy"
+                                        decoding="async"
+                                        draggable={false}
+                                        className="mx-auto max-h-[62svh] max-w-full rounded-2xl shadow-[0_40px_90px_-40px_rgba(0,0,0,0.85)]"
+                                    />
+                                ) : (
+                                    /* 웹은 맨 캡처 대신 브라우저 창에 담는다 — 폰 카드가 한 화면을
+                                       통째로 보여 주는 것과 같은 무게로 선다. */
+                                    <BrowserShot
+                                        src={project.thumbnail}
+                                        alt={`${project.title} 화면`}
+                                        url={hostOf(project.links.demo)}
+                                        draggable={false}
+                                        className="shadow-[0_40px_90px_-40px_rgba(0,0,0,0.85)]"
+                                    />
+                                )}
 
                                 <div>
                                     <div className="flex items-baseline gap-4 font-mono text-[0.6875rem] tracking-[0.18em] text-muted uppercase">

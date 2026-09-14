@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 
+import { BrowserShot } from "@/components/ui/BrowserShot";
 import { PhoneShot } from "@/components/ui/PhoneShot";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+
+import { hostOf } from "@/lib/url";
 
 import type { Variants } from "motion/react";
 import type { PointerEvent } from "react";
@@ -88,6 +91,8 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
      * 잘려 나가 무슨 화면인지 알아볼 수 없다.
      */
     const tiled = project.platform === "mobile" && Boolean(project.icon);
+    /** 웹 프로젝트도 같은 판 위에 브라우저 창 하나를 얹는다 — 맨 캡처는 잘린 이미지로 읽힌다. */
+    const windowed = project.platform === "web";
     const ref = useRef<HTMLDivElement>(null);
 
     // 0~1로 정규화한 포인터 위치 (중앙 = 0.5). 썸네일 영역 기준으로만 측정한다.
@@ -172,7 +177,23 @@ export function ProjectCard({ project, index, reversed = false }: ProjectCardPro
                                 요소에 두면 Motion이 쓰는 인라인 transform이 Tailwind scale을
                                 덮어써 확대가 사라지고, 이동 여백이 없어 배경이 드러난다. */}
                             <div className="h-full w-full scale-104 transition-transform duration-700 ease-out group-hover:scale-108">
-                                {tiled ? (
+                                {windowed ? (
+                                    <div
+                                        className="h-full w-full"
+                                        style={{
+                                            backgroundImage: `radial-gradient(120% 95% at 78% 4%, ${project.theme.surface} 0%, ${project.theme.paper} 68%)`,
+                                        }}
+                                    >
+                                        <BrowserShot
+                                            src={project.thumbnail}
+                                            alt={project.title}
+                                            url={hostOf(project.links.demo)}
+                                            // 창은 판 한가운데 — 폭 80%, 2:1 화면 + 크롬이면 위아래 여백이 거의 같다.
+                                            style={reduced ? undefined : { x: iconX, y: iconY }}
+                                            className="absolute top-[12%] left-[10%] w-[80%] shadow-xl"
+                                        />
+                                    </div>
+                                ) : tiled ? (
                                     <div
                                         className="h-full w-full"
                                         style={{

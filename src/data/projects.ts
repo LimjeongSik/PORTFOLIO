@@ -63,6 +63,7 @@ import smsHistory from "@/assets/sms-screen-09.webp";
 import smsLedger from "@/assets/sms-screen-10.webp";
 import smsSheetBrand from "@/assets/sms-sheet-brand.webp";
 import smsSheetParts from "@/assets/sms-sheet-parts.webp";
+import smsThumb from "@/assets/sms-thumb.webp";
 
 import type { Project } from "@/types/content";
 
@@ -820,7 +821,8 @@ export const projects: Project[] = [
             "xlsx",
             "Jenkins",
         ],
-        thumbnail: smsLanding,
+        // 랜딩의 히어로까지만 2:1로 자른 것 — 카드와 갤러리가 브라우저 창에 담는다.
+        thumbnail: smsThumb,
         theme: {
             paper: "#0f1115",
             surface: "#181b22",
