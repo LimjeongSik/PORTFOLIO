@@ -13,6 +13,7 @@ import { getAdjacentProjects, getProjectBySlug } from "@/data/projects";
 import { applyTheme, releaseTheme } from "@/lib/atmosphere";
 import { isCrossing } from "@/lib/transition";
 import { LABEL_MUTED, SHOWCASE } from "@/lib/typography";
+import { hostOf } from "@/lib/url";
 
 import type { Project, ProjectTheme } from "@/types/content";
 
@@ -94,6 +95,7 @@ export function ProjectDetail() {
                     platform={project.platform}
                     title={showcaseTitle(project)}
                     modes={project.screenModes}
+                    host={hostOf(project.links.demo)}
                 />
                 <ProjectSignature project={project} />
                 <ProjectCaseLog cases={project.cases} />

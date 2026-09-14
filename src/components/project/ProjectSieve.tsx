@@ -117,7 +117,10 @@ export function ProjectSieve({ sieve }: ProjectSieveProps) {
     const hint = active >= 0 ? samples[active]?.hint : "직접 고친 입력입니다.";
 
     return (
-        <div>
+        /* 이 구간 뒤로는 무대의 아치가 지나간다. 선이 글자 밑을 가로지르면 회색 글자부터
+           가라앉아(사용자 지적) 조작 장치 전체를 지면색으로 거의 불투명하게 받친다. `backdrop-blur`는
+           쓰지 않는다 — 매 프레임 다시 그려지는 캔버스 위라 합성기가 프레임마다 뒤를 다시 읽는다. */
+        <div className="rounded-3xl border border-ink/15 bg-paper/92 p-5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] sm:p-8 lg:p-10">
             <div className="flex flex-wrap gap-2">
                 {samples.map((sample, index) => {
                     const on = index === active;
@@ -130,7 +133,7 @@ export function ProjectSieve({ sieve }: ProjectSieveProps) {
                             className={`rounded-full border px-4 py-2 text-[0.8125rem] transition-colors duration-300 ${
                                 on
                                     ? "border-espresso bg-espresso text-paper"
-                                    : "border-line text-muted hover:border-espresso hover:text-ink"
+                                    : "border-ink/30 text-ink/85 hover:border-espresso hover:text-ink"
                             }`}
                         >
                             {sample.label}
@@ -152,7 +155,7 @@ export function ProjectSieve({ sieve }: ProjectSieveProps) {
                         /* 입력창 안의 휠은 입력창이 받는다 — 관성 스크롤이 가로채면 긴 입력을
                            내려 볼 수 없다. */
                         data-lenis-prevent
-                        className="mt-3 block w-full resize-y rounded-xl border border-ink/25 bg-paper/90 px-4 py-3 font-mono text-sm leading-[1.9] text-ink outline-none focus:border-espresso"
+                        className="mt-3 block w-full resize-y rounded-xl border border-ink/25 bg-surface/70 px-4 py-3 font-mono text-sm leading-[1.9] text-ink outline-none focus:border-espresso"
                     />
                 </label>
 
@@ -191,7 +194,7 @@ export function ProjectSieve({ sieve }: ProjectSieveProps) {
                                                 key={at}
                                                 className={
                                                     chunk.pieces.length > 1
-                                                        ? "mr-1.5 rounded border border-line px-1.5"
+                                                        ? "mr-1.5 rounded border border-ink/25 px-1.5"
                                                         : ""
                                                 }
                                             >
@@ -210,7 +213,7 @@ export function ProjectSieve({ sieve }: ProjectSieveProps) {
                                     >
                                         {VERDICT_LABEL[chunk.verdict]}
                                     </span>
-                                    <p className="col-span-2 font-mono text-xs leading-[1.7] text-muted">
+                                    <p className="col-span-2 font-mono text-xs leading-[1.7] text-ink/65">
                                         {chunk.pieces.length > 1
                                             ? `조각 ${chunk.pieces.length}개를 이어 붙임 · `
                                             : ""}

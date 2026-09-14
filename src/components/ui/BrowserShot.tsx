@@ -38,16 +38,7 @@ export function BrowserShot({
             style={style}
             className={`@container overflow-hidden rounded-xl bg-[#0b0f19] ring-1 ring-white/15 ${className}`}
         >
-            <div aria-hidden className="flex h-[5.4cqw] items-center gap-[0.9cqw] px-[2cqw]">
-                <span className="size-[1.25cqw] rounded-full bg-[#ff5f57]" />
-                <span className="size-[1.25cqw] rounded-full bg-[#febc2e]" />
-                <span className="size-[1.25cqw] rounded-full bg-[#28c840]" />
-                <span className="mx-auto flex h-[3.2cqw] w-[46%] items-center justify-center truncate rounded-full bg-white/8 font-mono text-[1.6cqw] text-white/55">
-                    {url}
-                </span>
-                {/* 주소창이 가운데 오도록 점 셋만큼 오른쪽을 비운다 */}
-                <span className="w-[5.5cqw]" />
-            </div>
+            <BrowserChrome url={url} />
             <img
                 src={src}
                 alt={alt}
@@ -57,5 +48,25 @@ export function BrowserShot({
                 className="block w-full"
             />
         </motion.div>
+    );
+}
+
+/**
+ * 창의 머리 한 줄 — 신호등 세 점과 주소창. **`@container` 안에 두어야 한다**: 크기가 전부
+ * 가장 가까운 컨테이너의 폭(`cqw`)에 묶여 있다. 화면을 여러 장 겹쳐 두는 전시(`ProjectShowcase`)가
+ * 이미지 한 장짜리 `BrowserShot` 대신 이것만 가져다 쓴다.
+ */
+export function BrowserChrome({ url }: { url?: string }) {
+    return (
+        <div aria-hidden className="flex h-[5.4cqw] items-center gap-[0.9cqw] px-[2cqw]">
+            <span className="size-[1.25cqw] rounded-full bg-[#ff5f57]" />
+            <span className="size-[1.25cqw] rounded-full bg-[#febc2e]" />
+            <span className="size-[1.25cqw] rounded-full bg-[#28c840]" />
+            <span className="mx-auto flex h-[3.2cqw] w-[46%] items-center justify-center truncate rounded-full bg-white/8 font-mono text-[1.6cqw] text-white/55">
+                {url}
+            </span>
+            {/* 주소창이 가운데 오도록 점 셋만큼 오른쪽을 비운다 */}
+            <span className="w-[5.5cqw]" />
+        </div>
     );
 }

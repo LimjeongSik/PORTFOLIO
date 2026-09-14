@@ -58,7 +58,10 @@ export function ProjectWindow({ windowing }: ProjectWindowProps) {
     };
 
     return (
-        <div>
+        /* 이 구간 뒤로는 무대의 아치가 지나간다. 선이 글자 밑을 가로지르면 회색 글자부터
+           가라앉아(사용자 지적) 조작 장치 전체를 지면색으로 거의 불투명하게 받친다. `backdrop-blur`는
+           쓰지 않는다 — 매 프레임 다시 그려지는 캔버스 위라 합성기가 프레임마다 뒤를 다시 읽는다. */
+        <div className="rounded-3xl border border-ink/15 bg-paper/92 p-5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] sm:p-8 lg:p-10">
             <div className="flex flex-wrap items-center gap-2">
                 <span className={`mr-2 ${LABEL_MUTED}`}>등록 건수</span>
                 {counts.map((value) => {
@@ -72,7 +75,7 @@ export function ProjectWindow({ windowing }: ProjectWindowProps) {
                             className={`rounded-full border px-4 py-2 font-mono text-[0.8125rem] tabular-nums transition-colors duration-300 ${
                                 on
                                     ? "border-espresso bg-espresso text-paper"
-                                    : "border-line text-muted hover:border-espresso hover:text-ink"
+                                    : "border-ink/30 text-ink/85 hover:border-espresso hover:text-ink"
                             }`}
                         >
                             {value.toLocaleString()}
@@ -90,7 +93,7 @@ export function ProjectWindow({ windowing }: ProjectWindowProps) {
                     // biome-ignore lint/a11y/noNoninteractiveTabindex: 스크롤 영역은 키보드로도 굴릴 수 있어야 한다
                     tabIndex={0}
                     aria-label={`등록된 번호 ${count.toLocaleString()}건`}
-                    className="relative overflow-y-auto overscroll-contain rounded-xl border border-ink/25 bg-paper/90 outline-none focus-visible:border-espresso"
+                    className="relative overflow-y-auto overscroll-contain rounded-xl border border-ink/25 bg-surface/70 outline-none focus-visible:border-espresso"
                     style={{ height: ROW * VISIBLE + 16 }}
                 >
                     <div className="relative" style={{ height: rows * ROW + 16 }}>
@@ -111,7 +114,7 @@ export function ProjectWindow({ windowing }: ProjectWindowProps) {
                                         return index < count ? (
                                             <span
                                                 key={index}
-                                                className="my-1.5 flex items-center truncate rounded-full bg-surface px-3 font-mono text-[0.75rem] text-ink/85 tabular-nums"
+                                                className="my-1.5 flex items-center truncate rounded-full bg-ink/10 px-3 font-mono text-[0.75rem] text-ink/85 tabular-nums"
                                             >
                                                 {phone(index)}
                                             </span>
@@ -129,7 +132,7 @@ export function ProjectWindow({ windowing }: ProjectWindowProps) {
                             <dt className={LABEL_MUTED}>지금 DOM에 있는 줄</dt>
                             <dd className="mt-2 font-mono text-2xl text-espresso tabular-nums">
                                 {mountedRows}
-                                <span className="text-base text-muted">
+                                <span className="text-base text-ink/60">
                                     {" "}
                                     / {rows.toLocaleString()}
                                 </span>
@@ -139,7 +142,7 @@ export function ProjectWindow({ windowing }: ProjectWindowProps) {
                             <dt className={LABEL_MUTED}>그려진 번호</dt>
                             <dd className="mt-2 font-mono text-2xl text-ink tabular-nums">
                                 {mountedPhones}
-                                <span className="text-base text-muted">
+                                <span className="text-base text-ink/60">
                                     {" "}
                                     / {count.toLocaleString()}
                                 </span>

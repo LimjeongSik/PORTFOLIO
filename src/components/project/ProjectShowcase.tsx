@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
+import { BrowserChrome } from "@/components/ui/BrowserShot";
+
 import { BODY, LABEL, LABEL_MUTED, NOTE, SHOWCASE, TITLE } from "@/lib/typography";
 
+import type { ReactNode } from "react";
 import type { Project, ProjectScreen } from "@/types/content";
 
 interface ProjectShowcaseProps {
@@ -9,6 +12,8 @@ interface ProjectShowcaseProps {
     platform: Project["platform"];
     title: string;
     modes?: Project["screenModes"];
+    /** 웹 화면의 주소창에 적을 호스트. 화면마다의 `path`가 뒤에 붙는다. */
+    host?: string;
 }
 
 /**
@@ -29,7 +34,7 @@ interface ProjectShowcaseProps {
  * 불투명도로만 바꾼다** — `src`를 갈아 끼우면 아직 받지 않은 쪽에서 한 프레임이 비어,
  * 뒤집는 순간 기기가 깜빡인다.
  */
-export function ProjectShowcase({ screens, platform, title, modes }: ProjectShowcaseProps) {
+export function ProjectShowcase({ screens, platform, title, modes, host }: ProjectShowcaseProps) {
     const [active, setActive] = useState(0);
     const [mode, setMode] = useState(0);
     const marks = useRef<(HTMLDivElement | null)[]>([]);
@@ -120,10 +125,27 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
        쪽에 폭을 더 주고 설명을 좁힌다. 좁은 창의 인라인 화면도 같은 이유로 폭 상한을 푼다. */
     const columns = mobile
         ? "lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-16 xl:gap-24"
-        : "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16";
+        : "lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16";
     const inline = mobile ? "max-w-56" : "max-w-xl";
     /* 잘라 둔 웹 화면은 머리(내비게이션·제목)부터 읽혀야 한다 — 가운데 기준으로 자르면 위가 날아간다. */
     const fit = mobile ? "object-cover" : "object-cover object-top";
+
+    /* 웹 화면은 맨 판이 아니라 브라우저 창에 담는다 — 흰 캡처가 둥근 사각형에 담기면 페이지가
+       아니라 이미지 한 장으로 읽혔다(사용자 지적). 주소창은 그 화면의 경로를 따라 바뀐다.
+       이미지는 창의 16:10 몸통 안에서만 겹치므로, 크롬 한 줄이 이미지를 밀어 내지 않는다. */
+    const addressOf = (screen: ProjectScreen | undefined) =>
+        host ? `${host}${screen?.path && screen.path !== "/" ? screen.path : ""}` : screen?.path;
+    const shell = (children: ReactNode, url: string | undefined, placement: string) =>
+        mobile ? (
+            <div className={`relative ${placement} ${frame}`}>{children}</div>
+        ) : (
+            <div
+                className={`@container overflow-hidden rounded-xl bg-[#0b0f19] ring-1 ring-white/15 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.85)] ${placement}`}
+            >
+                <BrowserChrome url={url} />
+                <div className="relative aspect-16/10 bg-surface">{children}</div>
+            </div>
+        );
 
     return (
         <section data-stage-zone="screens" className="relative py-24 sm:py-32">
@@ -144,8 +166,8 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
                 <div className={`mt-14 lg:grid ${columns}`}>
                     {/* 붙어 서는 기기 — 자리는 그대로 두고 안의 화면만 바뀐다. */}
                     <div className="hidden lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:items-center lg:justify-center lg:gap-7 lg:self-start">
-                        <div className={`relative ${standing} ${frame}`}>
-                            {screens.flatMap((screen, index) =>
+                        {shell(
+                            screens.flatMap((screen, index) =>
                                 variantsOf(screen).map((src, variant) => (
                                     <img
                                         key={src}
@@ -160,26 +182,29 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
                                         }`}
                                     />
                                 )),
-                            )}
-                        </div>
+                            ),
+                            addressOf(screens[active]),
+                            standing,
+                        )}
                         {toggle}
                     </div>
 
+                    {/* 설명 한 칸이 한 화면(100svh)이다. 58svh였을 때는 트랙패드를 한 번 쓸면 관성까지 두 장이
+                        지나갔다(사용자 지적). 휠을 가로채 한 장씩 넘기는 방식은 부자연스럽다는
+                        지적에 걷었다 — 스크롤은 평소대로 두고 한 장이 머무는 거리만 늘린다. */}
                     <ol className="lg:pt-[18svh] lg:pb-[18svh]">
                         {screens.map((screen, index) => {
                             const on = index === active;
                             return (
                                 <li
                                     key={screen.name}
-                                    className="flex flex-col justify-center gap-6 py-14 lg:min-h-[58svh] lg:py-0"
+                                    className="flex flex-col justify-center gap-6 py-14 lg:min-h-[100svh] lg:py-0"
                                 >
                                     {/* 좁은 창에서는 설명 위에 그 화면이 그대로 선다 —
                                         화면은 가운데, 글은 왼쪽이다. 한글 본문까지 가운데로
                                         맞추면 줄 시작이 들쭉날쭉해 읽기 어렵다. */}
-                                    <div
-                                        className={`relative w-full ${inline} self-center lg:hidden ${frame}`}
-                                    >
-                                        {variantsOf(screen).map((src, variant) => (
+                                    {shell(
+                                        variantsOf(screen).map((src, variant) => (
                                             <img
                                                 key={src}
                                                 src={src}
@@ -190,8 +215,10 @@ export function ProjectShowcase({ screens, platform, title, modes }: ProjectShow
                                                     variant === shown ? "opacity-100" : "opacity-0"
                                                 }`}
                                             />
-                                        ))}
-                                    </div>
+                                        )),
+                                        addressOf(screen),
+                                        `w-full ${inline} self-center lg:hidden`,
+                                    )}
 
                                     <div
                                         ref={(node) => {

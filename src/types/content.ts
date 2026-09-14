@@ -35,6 +35,8 @@ export interface ProjectScreen {
     srcAlt?: string;
     name: string;
     note: string;
+    /** 웹 화면의 주소(경로). 전시의 주소창에 호스트 뒤로 붙는다. */
+    path?: string;
 }
 
 /** 화면이 두 벌일 때 — 토글에 붙는 이름(`[src, srcAlt]` 순서)과 그 아래 한 줄. */

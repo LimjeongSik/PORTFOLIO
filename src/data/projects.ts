@@ -971,51 +971,61 @@ export const projects: Project[] = [
         screens: [
             {
                 src: smsLanding,
+                path: "/",
                 name: "랜딩",
                 note: "로그인 전 첫 화면. 로고와 상호는 코드가 아니라 빌드가 고른다",
             },
             {
                 src: smsSignin,
+                path: "/signin",
                 name: "로그인",
                 note: "이메일 인증 전 계정이면 오류 문구와 함께 버튼이 재전송으로 바뀐다",
             },
             {
                 src: smsCompose,
+                path: "/send",
                 name: "문자전송",
                 note: "70자 제한 카운터와, 치는 대로 따라오는 휴대폰 미리보기",
             },
             {
                 src: smsTargets,
+                path: "/send",
                 name: "번호 정리",
                 note: "추가하면 국가번호가 붙고, 중복 4건과 오류 1건은 따로 복사하거나 내려받는다",
             },
             {
                 src: smsExcel,
+                path: "/send",
                 name: "엑셀 등록",
                 note: "샘플 파일을 채워 올리면 직접 입력과 같은 검증을 거쳐 300건이 오른다",
             },
             {
                 src: smsShortage,
+                path: "/send",
                 name: "포인트 부족",
                 note: "결제 포인트가 보유 포인트를 넘으면 안내가 뜨고 전송 버튼이 잠긴다",
             },
             {
                 src: smsCarrierTest,
+                path: "/send-test",
                 name: "3사 테스트",
                 note: "SKT · KT · LG+에 먼저 보내 전송 여부와 스팸 통과를 따로 본다",
             },
             {
                 src: smsPayment,
+                path: "/point-payment",
                 name: "충전",
                 note: "빠른 금액을 누적하고, 부가세 적용 회원에게만 10%를 더한 입금액을 보여 준다",
             },
             {
                 src: smsHistory,
+                path: "/history/transmit",
                 name: "전송내역",
                 note: "성공 · 실패 · 대기 건수와 상태. 엑셀은 전송이 끝난 건만 내려받는다",
             },
             {
                 src: smsLedger,
+                path: "/history/point-ledger",
                 name: "충전신청 내역",
                 note: "한국어로 맞춘 기간 달력과 1 · 3 · 6개월 빠른 선택",
             },
