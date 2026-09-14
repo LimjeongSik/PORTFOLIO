@@ -184,6 +184,13 @@ CSS로 그리므로 액자가 두 겹이 된다. **`compare/`(라이트·다크�
 시트로 쓴다**(`cwebp -q 82 -resize 1400 0`) — 토글은 한 번에 한 벌만 보여 주므로 **두 벌을
 동시에 견주는 자리는 따로 필요하다.**
 
+앱 아이콘의 정본은 **safeops 저장소의 `src/assets/app_icon.png`**(1024px)다 — `src/assets/safeops-icon.png`에
+복사한 뒤 `cwebp -q 88 -resize 192 0`으로 `safeops-icon.webp`를 뽑는다. **아이콘·스플래시 시트
+(`safeops-sheet-icon` · `safeops-sheet-splash`)는 정본 파일이 없다.** 앱 에셋(아이콘 PNG · Pretendard OTF)과
+시뮬레이터 스크린샷을 1400px 폭 HTML에 얹고, Playwright 캐시의 Chrome for Testing을
+`--headless=new --force-device-scale-factor=2 --screenshot`으로 찍은 다음 `cwebp -q 82 -resize 1400 0`으로
+줄였다. 아이콘이나 스플래시가 바뀌면 이 두 장도 같이 다시 찍어야 옛 로고가 남지 않는다.
+
 침례교(전용앱)의 정본은 **baptism_app 저장소의 `portfolio/images/`** 다(그 저장소의 `portfolio/_src`가
 SVG로 생성한 것). PIL이 없는 환경이라 `optimize-images.py` 대신 `cwebp`로 뽑았다:
 
