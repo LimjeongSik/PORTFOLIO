@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 
 import { motion, useReducedMotion } from "motion/react";
 
-import { BODY, BODY_TIGHT } from "@/lib/typography";
+import { BODY, BODY_TIGHT, PANEL, PANEL_PAD } from "@/lib/typography";
 
 import type { ProjectPipeline, ProjectPipelineVerdict } from "@/types/content";
 
@@ -36,7 +36,7 @@ export function ProjectGate({ pipeline }: ProjectGateProps) {
     const fill = lastPass < 0 ? 0 : ((lastPass + 1) / pipeline.stages.length) * 100;
 
     return (
-        <div ref={root}>
+        <div ref={root} className={`${PANEL} ${PANEL_PAD}`}>
             <div className="flex flex-wrap gap-2">
                 {pipeline.cases.map((item, index) => {
                     const on = index === selected;
@@ -49,7 +49,7 @@ export function ProjectGate({ pipeline }: ProjectGateProps) {
                             className={`rounded-full border px-4 py-2 text-[0.8125rem] transition-colors duration-300 ${
                                 on
                                     ? "border-espresso bg-espresso text-paper"
-                                    : "border-line text-muted hover:border-espresso hover:text-ink"
+                                    : "border-ink/30 text-ink/85 hover:border-espresso hover:text-ink"
                             }`}
                         >
                             {item.label}
@@ -62,7 +62,7 @@ export function ProjectGate({ pipeline }: ProjectGateProps) {
 
             <div className="relative mt-8 pl-8">
                 {/* 레일 — 배경은 끝까지, 채움은 좌표가 닿은 데까지 */}
-                <span aria-hidden className="absolute top-7 bottom-7 left-2 w-px bg-line" />
+                <span aria-hidden className="absolute top-7 bottom-7 left-2 w-px bg-ink/20" />
                 <motion.span
                     aria-hidden
                     className="absolute top-7 left-2 w-px bg-espresso"
@@ -83,7 +83,7 @@ export function ProjectGate({ pipeline }: ProjectGateProps) {
                             <li
                                 key={stage.name}
                                 className={`relative border-t border-line py-5 first:border-t-0 ${
-                                    skipped ? "opacity-35" : ""
+                                    skipped ? "opacity-50" : ""
                                 }`}
                             >
                                 <span
@@ -92,7 +92,7 @@ export function ProjectGate({ pipeline }: ProjectGateProps) {
                                         dropped
                                             ? "border-espresso bg-paper"
                                             : skipped
-                                              ? "border-line bg-paper"
+                                              ? "border-ink/30 bg-paper"
                                               : "border-espresso bg-espresso"
                                     }`}
                                 />
@@ -110,7 +110,7 @@ export function ProjectGate({ pipeline }: ProjectGateProps) {
                                             dropped
                                                 ? "text-espresso"
                                                 : skipped
-                                                  ? "text-muted"
+                                                  ? "text-ink/70"
                                                   : "text-ink"
                                         }`}
                                     >

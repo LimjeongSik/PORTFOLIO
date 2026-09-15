@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import { gsap, useGSAP } from "@/lib/gsap";
-import { BODY } from "@/lib/typography";
+import { BODY, PANEL, PANEL_PAD } from "@/lib/typography";
 
 import type { ProjectAnatomy as Anatomy } from "@/types/content";
 
@@ -82,11 +82,11 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
                 <span
                     aria-hidden
                     className={`mt-3 h-px shrink-0 transition-all duration-500 ease-out ${
-                        on ? "w-12 bg-espresso" : "w-5 bg-line"
+                        on ? "w-12 bg-espresso" : "w-5 bg-ink/25"
                     }`}
                 />
                 <div
-                    className={`transition-opacity duration-500 ${on ? "opacity-100" : "opacity-35"}`}
+                    className={`transition-opacity duration-500 ${on ? "opacity-100" : "opacity-45"}`}
                 >
                     <h3 className="font-display text-lg leading-[1.45] font-medium text-ink">
                         {note.title}
@@ -99,7 +99,7 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
 
     if (!running) {
         return (
-            <div>
+            <div className={`${PANEL} ${PANEL_PAD}`}>
                 <div>
                     <figure className="mx-auto w-full max-w-64">
                         <div className="overflow-hidden rounded-4xl border border-line bg-surface">
@@ -111,7 +111,7 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
                                 className="w-full"
                             />
                         </div>
-                        <figcaption className="mt-3 text-center font-mono text-[0.6875rem] tracking-[0.14em] text-muted tabular-nums">
+                        <figcaption className="mt-3 text-center font-mono text-[0.6875rem] tracking-[0.14em] text-ink/65 tabular-nums">
                             {anatomy.footnote}
                         </figcaption>
                     </figure>
@@ -123,7 +123,10 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
 
     return (
         <div ref={root} style={{ height: `${anatomy.notes.length * STEP_VH}vh` }}>
-            <div ref={stage} className="sticky top-24 flex items-start gap-12 xl:gap-16">
+            <div
+                ref={stage}
+                className={`sticky top-24 flex items-start gap-12 p-8 xl:gap-16 xl:p-10 ${PANEL}`}
+            >
                 <figure className="w-[clamp(13rem,28vh,16.25rem)] shrink-0">
                     <div
                         ref={frame}
@@ -139,7 +142,7 @@ export function ProjectAnatomy({ anatomy }: ProjectAnatomyProps) {
                             className="w-full will-change-transform"
                         />
                     </div>
-                    <figcaption className="mt-4 font-mono text-[0.6875rem] leading-[1.8] tracking-[0.14em] text-muted tabular-nums">
+                    <figcaption className="mt-4 font-mono text-[0.6875rem] leading-[1.8] tracking-[0.14em] text-ink/65 tabular-nums">
                         {anatomy.footnote}
                     </figcaption>
                 </figure>

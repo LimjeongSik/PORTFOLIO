@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/ui/Reveal";
 
-import { LABEL, LEDE, SHOWCASE, TITLE } from "@/lib/typography";
+import { LABEL, LEDE, NOTE_SYSTEM, SHOWCASE, TITLE } from "@/lib/typography";
 
 import type { ReactNode } from "react";
 
@@ -44,9 +44,7 @@ export function ProjectSystem({ label, title, lede, note, children, zone }: Proj
                 <div className="mt-14">{children}</div>
 
                 {note ? (
-                    /* 각주는 여러 줄이라 `muted`로 두지 않는다 — 한 줄 메타 전용 색이고, 아치의 선이
-                       지나가면 가장 먼저 사라진다(사용자 지적). 크기·줄간만 `NOTE`를 따른다. */
-                    <p className="mt-12 max-w-[42rem] border-t border-line pt-6 text-[0.9375rem] leading-[1.85] text-ink/70">
+                    <p className={`mt-12 max-w-[42rem] border-t border-line pt-6 ${NOTE_SYSTEM}`}>
                         {note}
                     </p>
                 ) : null}

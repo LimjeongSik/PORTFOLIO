@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-import { BODY_TIGHT, NOTE } from "@/lib/typography";
+import { BODY_TIGHT, NOTE_SYSTEM, PANEL, PANEL_PAD } from "@/lib/typography";
 
 import type { ProjectKeyring as Keyring } from "@/types/content";
 
@@ -187,7 +187,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
     }, [keys, burst]);
 
     return (
-        <div ref={root}>
+        <div ref={root} className={`${PANEL} ${PANEL_PAD}`}>
             <ul className="flex flex-col gap-px overflow-hidden rounded-2xl border border-line bg-line">
                 {keys.map((key, index) => (
                     <li
@@ -204,7 +204,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                             </h4>
                             {/* 헤더 이름·갱신 경로는 공백이 없어 좁은 화면에서 줄이 안 바뀐다 —
                                 그대로 두면 이 한 줄이 지면 폭을 밀어낸다. */}
-                            <code className="font-mono text-[0.6875rem] break-all text-muted">
+                            <code className="font-mono text-[0.6875rem] break-all text-ink/65">
                                 {key.header}
                             </code>
                             <span className="ml-auto flex items-baseline gap-2">
@@ -212,15 +212,15 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                                     ref={(node) => {
                                         times.current[index] = node;
                                     }}
-                                    className="font-mono text-sm tabular-nums text-muted transition-colors duration-300 group-data-[state=renewed]:text-espresso group-data-[state=warned]:text-espresso"
+                                    className="font-mono text-sm tabular-nums text-ink/80 transition-colors duration-300 group-data-[state=renewed]:text-espresso group-data-[state=warned]:text-espresso"
                                 >
                                     {clock(key.life)}
                                 </span>
-                                <span className="font-mono text-[0.625rem] text-muted">남음</span>
+                                <span className="font-mono text-[0.625rem] text-ink/60">남음</span>
                             </span>
                         </div>
 
-                        <p className={`mt-1.5 ${NOTE}`}>{key.opens}</p>
+                        <p className={`mt-1.5 ${NOTE_SYSTEM}`}>{key.opens}</p>
 
                         {/* 트랙 — 채움은 transform으로만 움직인다(레이아웃을 건드리지 않는다) */}
                         <div className="relative mt-4 h-1.5 overflow-hidden rounded-full bg-sand">
@@ -245,7 +245,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                                     {key.renewAt}초 아래 → {key.renewVia}
                                 </code>
                             ) : (
-                                <code className="font-mono text-[0.6875rem] text-muted">
+                                <code className="font-mono text-[0.6875rem] text-ink/65">
                                     갱신 경로 없음
                                 </code>
                             )}
@@ -261,7 +261,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                     type="button"
                     onClick={fire}
                     disabled={reduced}
-                    className="rounded-full border border-line px-4 py-2 font-mono text-[0.6875rem] text-ink transition-colors hover:border-espresso hover:text-espresso disabled:opacity-40"
+                    className="rounded-full border border-ink/30 px-4 py-2 font-mono text-[0.6875rem] text-ink transition-colors hover:border-espresso hover:text-espresso disabled:opacity-40"
                 >
                     요청 {burst}개를 같은 순간에 보낸다
                 </button>
@@ -269,7 +269,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                 <dl className="flex flex-wrap gap-x-8 gap-y-2">
                     {paths.map((path) => (
                         <div key={path} className="flex items-baseline gap-2">
-                            <dt className="font-mono text-[0.6875rem] text-muted">{path}</dt>
+                            <dt className="font-mono text-[0.6875rem] text-ink/65">{path}</dt>
                             <dd className="font-mono text-sm tabular-nums text-ink">
                                 {calls[path] ?? 0}회
                             </dd>
@@ -289,7 +289,7 @@ export function ProjectKeyring({ keyring }: ProjectKeyringProps) {
                       : ""}
             </p>
 
-            <p className={`mt-10 max-w-[42rem] border-t border-line pt-6 ${NOTE}`}>
+            <p className={`mt-10 max-w-[42rem] border-t border-line pt-6 ${NOTE_SYSTEM}`}>
                 {reduced ? "동작 최소화 설정이라 시계를 세워 뒀습니다. " : ""}
                 {note}
             </p>

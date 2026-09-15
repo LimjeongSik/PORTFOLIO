@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 import { gsap, useGSAP } from "@/lib/gsap";
-import { BODY_TIGHT, NOTE } from "@/lib/typography";
+import { BODY_TIGHT, NOTE_SYSTEM, PANEL, PANEL_PAD } from "@/lib/typography";
 
 import type { ReactNode } from "react";
 import type { ProjectRuntimeMap, ProjectRuntimeNode } from "@/types/content";
@@ -70,7 +70,7 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
     const nest = (depth: number): ReactNode => {
         if (depth >= runtime.tree.length) {
             return (
-                <p className="rounded-lg border border-line border-dashed px-2.5 py-2 text-center font-mono text-[0.6875rem] text-muted">
+                <p className="rounded-lg border border-line border-dashed px-2.5 py-2 text-center font-mono text-[0.6875rem] text-ink/65">
                     {runtime.payload}
                 </p>
             );
@@ -82,7 +82,7 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
         return (
             <div
                 className={`runtime-layer rounded-xl border p-1.5 transition-colors duration-300 ${
-                    on ? "border-espresso bg-sand/50" : "border-line"
+                    on ? "border-espresso bg-sand/50" : "border-ink/20"
                 }`}
             >
                 <button
@@ -91,7 +91,7 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
                     onFocus={select("tree", depth)}
                     aria-pressed={on}
                     className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left font-mono text-[0.6875rem] transition-colors duration-300 ${
-                        on ? "text-ink" : "text-muted hover:text-ink"
+                        on ? "text-ink" : "text-ink/75 hover:text-ink"
                     }`}
                 >
                     <span className="truncate">{node.name}</span>
@@ -130,14 +130,14 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
         </motion.div>
     );
 
-    const note = <p className={`max-w-[34rem] ${NOTE}`}>{runtime.note}</p>;
+    const note = <p className={`max-w-[34rem] ${NOTE_SYSTEM}`}>{runtime.note}</p>;
 
     return (
-        <div ref={root}>
+        <div ref={root} className={`${PANEL} ${PANEL_PAD}`}>
             <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
                 <div>
                     <h3 className={LABEL}>부팅 순서</h3>
-                    <ol className="mt-4 border-l border-line">
+                    <ol className="mt-4 border-l border-ink/20">
                         {runtime.boot.map((node, index) => {
                             const on = isOn("boot", index);
                             return (
@@ -152,19 +152,19 @@ export function ProjectRuntime({ runtime }: ProjectRuntimeProps) {
                                         <span
                                             aria-hidden
                                             className={`absolute top-1/2 left-0 h-px -translate-y-1/2 transition-all duration-300 ${
-                                                on ? "w-4 bg-espresso" : "w-2.5 bg-line"
+                                                on ? "w-4 bg-espresso" : "w-2.5 bg-ink/25"
                                             }`}
                                         />
                                         <span
                                             className={`font-mono text-[0.625rem] tabular-nums transition-colors duration-300 ${
-                                                on ? "text-espresso" : "text-muted"
+                                                on ? "text-espresso" : "text-ink/60"
                                             }`}
                                         >
                                             {String(index + 1).padStart(2, "0")}
                                         </span>
                                         <span
                                             className={`min-w-0 font-mono text-[0.8125rem] break-all transition-colors duration-300 ${
-                                                on ? "text-ink" : "text-muted hover:text-ink"
+                                                on ? "text-ink" : "text-ink/75 hover:text-ink"
                                             }`}
                                         >
                                             {node.name}

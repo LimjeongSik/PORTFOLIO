@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-import { BODY_TIGHT, LABEL_MUTED } from "@/lib/typography";
+import { BODY_TIGHT, LABEL_MUTED, PANEL, PANEL_PAD } from "@/lib/typography";
 
 import type { UIEvent } from "react";
 import type { ProjectWindowing } from "@/types/content";
@@ -58,10 +58,7 @@ export function ProjectWindow({ windowing }: ProjectWindowProps) {
     };
 
     return (
-        /* 이 구간 뒤로는 무대의 아치가 지나간다. 선이 글자 밑을 가로지르면 회색 글자부터
-           가라앉아(사용자 지적) 조작 장치 전체를 지면색으로 거의 불투명하게 받친다. `backdrop-blur`는
-           쓰지 않는다 — 매 프레임 다시 그려지는 캔버스 위라 합성기가 프레임마다 뒤를 다시 읽는다. */
-        <div className="rounded-3xl border border-ink/15 bg-paper/92 p-5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] sm:p-8 lg:p-10">
+        <div className={`${PANEL} ${PANEL_PAD}`}>
             <div className="flex flex-wrap items-center gap-2">
                 <span className={`mr-2 ${LABEL_MUTED}`}>등록 건수</span>
                 {counts.map((value) => {

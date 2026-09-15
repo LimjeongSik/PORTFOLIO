@@ -37,6 +37,21 @@ export const BODY_LEAD = "text-[1.125rem] leading-[1.88] text-ink sm:text-[1.187
 export const BODY_TIGHT = "text-[1rem] leading-[1.85] text-ink/80";
 /** 각주·수치 메모 */
 export const NOTE = "text-[0.9375rem] leading-[1.85] text-muted";
+/**
+ * 시그니처 구간의 여러 줄 각주. 이 구간 뒤로는 무대의 아치가 지나가 선이 `muted` 글자 밑을
+ * 가로지르면 글자부터 사라진다(사용자 지적) — 크기·줄간은 `NOTE`, 색만 한 단 올린다.
+ */
+export const NOTE_SYSTEM = "text-[0.9375rem] leading-[1.85] text-ink/70";
+
+/**
+ * 시그니처 구간의 조작 장치를 받치는 판. 뒤로 지나가는 아치에 글자가 묻히지 않게 지면색으로
+ * 거의 불투명하게 깐다. 여백은 장치마다 달라 여기 넣지 않는다. `backdrop-blur`는 쓰지 않는다 —
+ * 매 프레임 다시 그려지는 캔버스 위라 합성기가 프레임마다 뒤를 다시 읽는다.
+ */
+export const PANEL =
+    "rounded-3xl border border-ink/15 bg-paper/92 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)]";
+/** 판의 기본 여백 */
+export const PANEL_PAD = "p-5 sm:p-8 lg:p-10";
 
 /** 읽는 덩이의 최대 폭 */
 export const MEASURE = "max-w-[38rem]";

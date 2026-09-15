@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-import { BODY_TIGHT, NOTE } from "@/lib/typography";
+import { BODY_TIGHT, NOTE_SYSTEM, PANEL, PANEL_PAD } from "@/lib/typography";
 
 import type { ProjectBridgeMap } from "@/types/content";
 
@@ -66,7 +66,7 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
     const split = Boolean(call?.ios && call?.android);
 
     return (
-        <div>
+        <div className={`${PANEL} ${PANEL_PAD}`}>
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
                 {/* 바깥 — 네이티브 껍데기 */}
                 <div className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
@@ -74,14 +74,14 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
                         <span className="font-mono text-[0.6875rem] tracking-[0.18em] text-ink uppercase">
                             App
                         </span>
-                        <span className="font-mono text-[0.625rem] text-muted">iOS · Android</span>
+                        <span className="font-mono text-[0.625rem] text-ink/65">iOS · Android</span>
                     </div>
 
                     {/* 껍데기와 안쪽 사이 — 신호가 건너는 자리 */}
                     <div className="relative my-4 h-24 sm:h-28">
                         <span
                             aria-hidden
-                            className="absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2 bg-line"
+                            className="absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2 bg-ink/20"
                         />
                         <AnimatePresence mode="wait">
                             <motion.div
@@ -120,7 +120,7 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
                         <span className="font-mono text-[0.6875rem] tracking-[0.18em] text-ink uppercase">
                             WebView
                         </span>
-                        <p className={`mt-1.5 ${NOTE}`}>이 프로젝트의 코드가 도는 곳</p>
+                        <p className={`mt-1.5 ${NOTE_SYSTEM}`}>이 프로젝트의 코드가 도는 곳</p>
 
                         <ul className="mt-5 flex flex-col gap-2.5">
                             {LAMPS.map((lamp) => {
@@ -135,7 +135,7 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
                                         />
                                         <span
                                             className={`font-mono text-[0.75rem] transition-colors duration-300 ${
-                                                on ? "text-ink" : "text-muted"
+                                                on ? "text-ink" : "text-ink/60"
                                             }`}
                                         >
                                             {on ? lamp.on : lamp.off}
@@ -160,7 +160,7 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
                                         index === picked ? "bg-surface" : "hover:bg-surface/60"
                                     }`}
                                 >
-                                    <span className="font-mono text-[0.625rem] tracking-[0.18em] text-muted uppercase">
+                                    <span className="font-mono text-[0.625rem] tracking-[0.18em] text-ink/60 uppercase">
                                         {item.from === "app" ? "app" : "web"}
                                     </span>
                                     <span
@@ -178,7 +178,7 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
                     <ol className="mt-5 flex flex-col gap-2">
                         {call?.effects.map((effect) => (
                             <li key={effect} className={`flex gap-2.5 ${BODY_TIGHT}`}>
-                                <span aria-hidden className="mt-3.5 h-px w-3 shrink-0 bg-line" />
+                                <span aria-hidden className="mt-3.5 h-px w-3 shrink-0 bg-ink/25" />
                                 {effect}
                             </li>
                         ))}
@@ -186,7 +186,7 @@ export function ProjectBridge({ bridge }: ProjectBridgeProps) {
                 </div>
             </div>
 
-            <p className={`mt-10 max-w-[42rem] border-t border-line pt-6 ${NOTE}`}>{note}</p>
+            <p className={`mt-10 max-w-[42rem] border-t border-line pt-6 ${NOTE_SYSTEM}`}>{note}</p>
         </div>
     );
 }
