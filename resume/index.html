@@ -840,6 +840,15 @@
             @page {
                 size: A4;
                 margin: 15mm 16mm 15mm;
+                /* 여백 박스를 하나라도 정의하면 Chrome(131+)이 기본 머리글·바닥글
+                   (날짜·제목·URL·쪽번호)을 찍지 않는다. 억제가 위·아래 가장자리별로
+                   걸리므로 양쪽 다 비워 둔 박스를 둔다. */
+                @top-center {
+                    content: "";
+                }
+                @bottom-center {
+                    content: "";
+                }
             }
             @media print {
                 :root,
@@ -922,9 +931,13 @@
                 }
                 /* 크롬은 격자를 쪽 사이에서 잘 나누지 못해 핵심 역량이 통째로 다음 쪽으로 밀린다.
                    출력에서만 두 칸을 인라인 블록으로 늘어놓아 줄 단위로 끊기게 한다. */
+                /* 카드 두 장이 한 줄 상자라 목록 전체가 두 줄뿐이다. 기본 orphans · widows(2)가
+                   남아 있으면 그 두 줄을 가를 수 없어 네 장이 통째로 다음 쪽으로 넘어간다. */
                 .strengths {
                     display: block;
                     font-size: 0;
+                    orphans: 1;
+                    widows: 1;
                 }
                 .strength {
                     display: inline-block;
