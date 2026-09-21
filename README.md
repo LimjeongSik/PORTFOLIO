@@ -1,12 +1,26 @@
-# Portfolio
+<div align="center">
 
-프론트엔드 개발자 임정식의 포트폴리오 겸 이력서 웹사이트.
+# 임정식 &nbsp;·&nbsp; Portfolio
 
-<https://portfolio-pi-nine-wt7bk929id.vercel.app>
+**어두운 전시장 하나를 스크롤로 지나가는 포트폴리오 겸 이력서**
 
-어두운 전시장 하나를 스크롤로 지나가는 사이트다. 섹션이 차례로 나타났다 사라지는 대신,
-**카메라 하나가 한 공간 안의 다섯 장소를 날아서** 지나간다. 지나온 장소는 페이드로 지우지 않고
-그 자리에 그대로 남는다.
+섹션이 나타났다 사라지는 대신, 카메라 하나가 한 공간 안의 다섯 장소를 날아서 지나간다.
+
+[**→ 사이트 열기**](https://portfolio-pi-nine-wt7bk929id.vercel.app)
+
+<img src="https://img.shields.io/badge/React-19-e7e0d2?style=flat-square&logo=react&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="React 19">
+<img src="https://img.shields.io/badge/TypeScript-6.0-e7e0d2?style=flat-square&logo=typescript&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="TypeScript 6">
+<img src="https://img.shields.io/badge/Vite-8-e7e0d2?style=flat-square&logo=vite&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="Vite 8">
+<img src="https://img.shields.io/badge/Tailwind-v4-e7e0d2?style=flat-square&logo=tailwindcss&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="Tailwind CSS v4">
+<img src="https://img.shields.io/badge/three.js-0.185-e7e0d2?style=flat-square&logo=threedotjs&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="three.js">
+<img src="https://img.shields.io/badge/GSAP-3.15-e7e0d2?style=flat-square&logo=greensock&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="GSAP">
+<img src="https://img.shields.io/badge/Bun-runtime-e7e0d2?style=flat-square&logo=bun&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="Bun">
+<img src="https://img.shields.io/badge/Biome-2.5-e7e0d2?style=flat-square&logo=biome&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="Biome">
+<img src="https://img.shields.io/badge/Vercel-deployed-e7e0d2?style=flat-square&logo=vercel&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="Vercel">
+
+</div>
+
+![첫 화면 — 폰 목업이 떠 있는 복도를 카메라가 관통한다](docs/screenshots/hero.webp)
 
 ## 스크롤이 유일한 시간축이다
 
@@ -27,9 +41,62 @@
                               뒷문으로 나온다  올라간다       걷는다
 ```
 
-프로젝트 상세(`/projects/:slug`)도 같은 무대 위에 있다. 무대는 라우터 바깥에 살아서 페이지가
-갈려도 파괴되지 않고, 그래서 목록에서 프로젝트를 누르는 것은 화면을 갈아 끼우는 일이 아니라
-**보고 있던 고리를 통과해 그 안으로 들어가는 일**이 된다.
+지나온 장소는 페이드로 지우지 않고 그 자리에 그대로 남는다. 다섯 장소를 지나는 동안 지면색도
+함께 갈린다.
+
+<table>
+<tr>
+<td width="50%">
+<img src="docs/screenshots/skills.webp" alt="기술 스택 구간 — 기술명 판이 안쪽 벽을 두른 원통 속을 지나간다">
+<br><b>드럼</b> — 기술명 판이 원통 안쪽 벽을 두르고, 카메라가 그 안을 통과한다
+</td>
+<td width="50%">
+<img src="docs/screenshots/experience.webp" alt="경력 구간 — 연도 판이 나선으로 감겨 오른다">
+<br><b>계단</b> — 연도 판이 나선으로 감겨 오르고, 항목 하나가 화면 가운데 오면 같은 순서의 판을 정면으로 본다
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="docs/screenshots/projects.webp" alt="프로젝트 갤러리 — 카드가 옆으로 흐르고 화면 위성이 그 둘레를 돈다">
+<br><b>갤러리</b> — 세로 스크롤이 가로 이동을 몰고, 지면색은 가운데 카드를 따른다
+</td>
+<td width="50%">
+<img src="docs/screenshots/detail.webp" alt="프로젝트 상세 — 프로젝트 색의 고리가 도는 표지">
+<br><b>상세</b> — 같은 무대의 한참 안쪽. 목록에서 누르는 건 보던 고리를 통과해 들어가는 일이다
+</td>
+</tr>
+</table>
+
+프로젝트 상세(`/projects/:slug`)도 **같은 무대 위에 있다.** 무대는 라우터 바깥에 살아서 페이지가
+갈려도 파괴되지 않고, 그래서 페이지 이동은 화면을 갈아 끼우는 일이 아니라 카메라가 그리로 날아가는
+일이 된다.
+
+## AI 안내자
+
+<img src="docs/screenshots/assistant.webp" alt="AI 안내자 패널이 열린 첫 화면" align="right" width="46%">
+
+우측 하단 버튼을 누르면 채팅이 열린다. 방문자가 물으면 답하면서 **화면까지 같이 옮긴다** —
+"경력이 어떻게 되나요"에 글로 답하고 경력 구간으로 스크롤하는 식이다.
+
+모델이 부르는 도구는 일곱 개가 브라우저에서 돌고(스크롤, 프로젝트 열기, 카드 그리기), 상세
+사례를 꺼내는 도구 하나가 서버에서 돈다. 전체 콘텐츠를 매 요청에 싣는 건 낭비라 프로필·경력·
+활동·기술·프로젝트 요약만 시스템 프롬프트에 싣고, 깊은 질문이 왔을 때만 서버 도구로 상세를
+꺼낸다.
+
+키는 **서버에서만 읽는다.** `VITE_` 접두사를 붙이면 클라이언트 번들에 그대로 박히므로 절대
+붙이지 않는다.
+
+```bash
+# .env.local
+GOOGLE_GENERATIVE_AI_API_KEY=
+GEMINI_MODEL=          # 생략하면 Lite 계열 기본값
+```
+
+무료 티어 한도가 계열마다 다르다. Flash는 모델당 하루 20건이라 공개 사이트에서는 금방 마르고,
+Lite는 훨씬 넉넉하다. 한도가 차면 `GEMINI_MODEL`만 갈아 끼우면 된다. 쓸 수 있는 모델 목록은
+[`docs/PROGRESS.md`](docs/PROGRESS.md)에 표로 있다.
+
+<br clear="right">
 
 ## 시작하기
 
@@ -87,29 +154,6 @@ python3 scripts/optimize-images.py   # 원본 이미지 → 표시 크기 webp (
 python3 scripts/subset-fonts.py      # Pretendard OTF → 서브셋 woff2 (fonttools[woff], brotli 필요)
 ```
 
-## AI 안내자
-
-우측 하단의 버튼을 누르면 채팅이 열린다. 방문자가 물으면 답하면서 **화면까지 같이 옮긴다** —
-"경력이 어떻게 되나요"에 글로 답하고 경력 구간으로 스크롤하는 식이다.
-
-모델이 부르는 도구는 일곱 개가 브라우저에서 돌고(스크롤, 프로젝트 열기, 카드 그리기), 상세
-사례를 꺼내는 도구 하나가 서버에서 돈다. 전체 콘텐츠를 매 요청에 실으면 낭비라 프로필·경력·
-활동·기술·프로젝트 요약만 시스템 프롬프트에 싣고, 깊은 질문이 왔을 때만 서버 도구로 상세를
-꺼낸다.
-
-키는 **서버에서만 읽는다.** `VITE_` 접두사를 붙이면 클라이언트 번들에 그대로 박히므로 절대
-붙이지 않는다.
-
-```bash
-# .env.local
-GOOGLE_GENERATIVE_AI_API_KEY=
-GEMINI_MODEL=                    # 생략하면 Lite 계열 기본값
-```
-
-무료 티어 한도가 계열마다 다르다. Flash는 모델당 하루 20건이라 공개 사이트에서는 금방 마르고,
-Lite는 훨씬 넉넉하다. 한도가 차면 `GEMINI_MODEL`만 갈아 끼우면 된다. 쓸 수 있는 모델 목록은
-`docs/PROGRESS.md`에 표로 있다.
-
 ## 구조
 
 ```
@@ -136,12 +180,12 @@ docs/PROGRESS.md  현재 상태 · 결정사항 · 함정 노트
 
 | | |
 |---|---|
-| React 19 + Vite 8 | 라우팅은 react-router-dom 7 |
-| Tailwind CSS v4 | `tailwind.config.js`가 없다. 색과 폰트 토큰은 `src/styles/index.css`의 `@theme` 블록에서 정한다 |
-| three.js | 무대는 사이트에 하나뿐이고 라우터 바깥에 산다. 라우트가 갈려도 파괴되지 않는다 |
-| GSAP + motion | 스크롤에 매달린 연출은 GSAP, 뷰포트 리빌은 motion. 새 모션은 `prefers-reduced-motion`을 반드시 존중한다 |
-| Lenis | 관성 스크롤이 window 스크롤을 소유한다. 프로그래매틱 이동에 `window.scrollTo()`를 쓰면 안 되고 `@/lib/lenis`를 거쳐야 한다 |
-| AI SDK + Gemini | 서버는 `src/data`를 직접 import할 수 없어서 `bun run knowledge`가 다리를 놓는다 |
+| **React 19 + Vite 8** | 라우팅은 react-router-dom 7 |
+| **Tailwind CSS v4** | `tailwind.config.js`가 없다. 색과 폰트 토큰은 `src/styles/index.css`의 `@theme` 블록에서 정한다 |
+| **three.js** | 무대는 사이트에 하나뿐이고 라우터 바깥에 산다. 라우트가 갈려도 파괴되지 않는다 |
+| **GSAP + motion** | 스크롤에 매달린 연출은 GSAP, 뷰포트 리빌은 motion. 새 모션은 `prefers-reduced-motion`을 반드시 존중한다 |
+| **Lenis** | 관성 스크롤이 window 스크롤을 소유한다. 프로그래매틱 이동에 `window.scrollTo()`를 쓰면 안 되고 `@/lib/lenis`를 거쳐야 한다 |
+| **AI SDK + Gemini** | 서버는 `src/data`를 직접 import할 수 없어서 `bun run knowledge`가 다리를 놓는다 |
 
 경로 별칭은 `@/*` → `src/*`다.
 
