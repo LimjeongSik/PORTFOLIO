@@ -20,11 +20,31 @@ export const knowledge: Knowledge = {
     },
     experiences: [
         {
+            company: "센티언트 시스템즈 (Sentient Systems)",
+            position: "플랫폼 엔지니어",
+            period: "2026.07 — 현재",
+            summary:
+                "플랫폼 엔지니어링 팀의 팀원으로 근무하고 있습니다. 행사 현장의 경비 요원과 관제실을 잇는 근무 앱 SafeOps를 설계부터 구현까지 맡아 양 스토어에 출시했고, 지금은 1.0.2를 운영하고 있습니다.",
+            achievements: [
+                "요원이 화면을 보지 않아도 10초마다 좌표가 관제실에 닿는 백그라운드 위치 전송 설계",
+                "Kotlin Expo 모듈로 무음 · 방해 금지를 뚫는 긴급 알림 채널을 직접 구현하고 양 플랫폼 실기기에서 검증",
+                "라이트 · 다크 두 벌 테마를 OTA로 배포하고, 대비 기준과 회귀를 테스트 1,006개로 고정",
+            ],
+            stack: [
+                "React Native",
+                "Expo",
+                "TypeScript",
+                "TanStack Query",
+                "Expo Modules (Kotlin)",
+                "FCM · Notifee",
+            ],
+        },
+        {
             company: "준진소프트 주식회사 및 외주 프로젝트",
             position: "프론트엔드 개발 팀 리드",
-            period: "2025.04 — 현재",
+            period: "2025.04 — 2026.07",
             summary:
-                "준진소프트의 개발 팀에서 앱을 개발하며 프론트엔드 아키텍처를 설계하고 팀의 기술적 방향성을 주도하고 있습니다.",
+                "준진소프트의 개발 팀에서 앱을 개발하며 프론트엔드 아키텍처를 설계하고 팀의 기술적 방향성을 주도했습니다.",
             achievements: [
                 "웹 개발 및 앱 개발을 위한 공용 인스턴스 설계 및 구현",
                 "개발팀과의 코드리뷰 및 멘토링을 통해 팀의 기술적 역량 향상에 기여",
@@ -32,11 +52,11 @@ export const knowledge: Knowledge = {
             stack: ["React", "React Native", "TypeScript", "Vite", "Axios", "TanStack Query"],
         },
         {
-            company: "바움루트미주식회사",
+            company: "바움루트미 주식회사",
             position: "프론트엔드 개발 팀 리드",
             period: "2024.04 — 2025.04",
             summary:
-                "바움루트미의 개발 팀 리드로서 프론트엔드 아키텍처를 설계하고 팀의 기술적 방향성을 주도 했습니다.",
+                "바움루트미의 개발 팀 리드로서 프론트엔드 아키텍처를 설계하고 팀의 기술적 방향성을 주도했습니다.",
             achievements: [
                 "웹 개발 및 앱 개발을 위한 공용 인스턴스 설계 및 구현",
                 "공용 컴포넌트를 설계 및 도입하여 신규 화면 개발 리드타임을 30% 단축",
@@ -59,7 +79,7 @@ export const knowledge: Knowledge = {
             summary:
                 "다수의 외주 프로젝트에서 프론트엔드 개발자로 참여하며 웹 애플리케이션을 개발했습니다.",
             achievements: [
-                "클라이언트 요구사항에 맞춰 UI/UX를 구현하고 최적화하여 프로젝트 성공적으로 완료",
+                "클라이언트 요구사항에 맞춰 UI/UX를 구현하고 최적화하여 프로젝트를 성공적으로 완료",
                 "다양한 기술 스택을 활용하여 프로젝트 요구사항에 맞는 솔루션 제공",
             ],
             stack: ["React", "Next.js", "React Native", "TypeScript", "Axios", "styled-components"],
@@ -78,7 +98,7 @@ export const knowledge: Knowledge = {
             stack: ["JavaScript", "jQuery", "CSS", "HTML"],
         },
         {
-            company: "모과플레이주식회사 및 외주 프로젝트",
+            company: "모과플레이 주식회사 및 외주 프로젝트",
             position: "웹 퍼블리셔",
             period: "2020.10 — 2022.02",
             summary:
@@ -144,7 +164,7 @@ export const knowledge: Knowledge = {
             slug: "safeops",
             title: "SafeOps",
             summary:
-                "행사 현장의 경비 요원과 관제실을 잇는 근무 앱. 요원이 화면을 보고 있지 않아도 좌표는 스스로 올라가고, 지시는 OS 알림으로 내려옵니다 — 벨소리를 꺼 뒀어도 뚫고서요. 화면은 라이트·다크 두 벌이고 기본은 라이트입니다. React Native로 설계부터 구현까지 맡았고, 1.0.0이 양 스토어에 나갔습니다.",
+                "행사 현장의 경비 요원과 관제실을 잇는 근무 앱. 요원이 화면을 보고 있지 않아도 좌표는 스스로 올라가고, 지시는 OS 알림으로 내려옵니다 — 벨소리를 꺼 뒀어도 뚫고서요. 화면은 라이트·다크 두 벌이고 기본은 라이트입니다. 센티언트 시스템즈 플랫폼 엔지니어링 팀에서 React Native로 설계부터 구현까지 맡았고, 양 스토어에 나가 지금은 1.0.2입니다.",
             year: "2026",
             role: "앱 개발 (설계 · 구현)",
             period: "2026.07 — 현재",
