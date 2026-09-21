@@ -3,6 +3,7 @@
  * (이미지 경로 · 테마 색 · 스크롤 진행률)을 걷어낸 서술 텍스트만 남긴다.
  */
 import type {
+    Activity,
     Experience,
     Profile,
     Project,
@@ -50,6 +51,7 @@ export type KnowledgeProjectDetail = {
 export type Knowledge = {
     profile: KnowledgeProfile;
     experiences: Experience[];
+    activities: Activity[];
     skills: SkillGroup[];
     socials: SocialLink[];
     projects: KnowledgeProject[];

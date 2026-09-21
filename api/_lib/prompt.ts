@@ -2,7 +2,7 @@ import { knowledge } from "./knowledge.generated.js";
 
 import type { KnowledgeProjectDetail } from "./types.js";
 
-const { profile, experiences, skills, socials, projects, details } = knowledge;
+const { profile, experiences, activities, skills, socials, projects, details } = knowledge;
 
 /** 상세는 툴로 꺼내므로, 목록에는 "무엇에 대해 더 물을 수 있는지"만 적는다. */
 function projectSummary(): string {
@@ -30,6 +30,20 @@ function projectSummary(): string {
             return lines.join("\n");
         })
         .join("\n\n");
+}
+
+/** 활동은 없을 수도 있다 — 비어 있으면 머리글째로 빼서 "없다"고 말할 거리를 안 만든다. */
+function activitySection(): string {
+    if (activities.length === 0) {
+        return "";
+    }
+    const lines = activities
+        .map((a) => {
+            const head = `- ${a.title} (${a.period}) — ${a.host}. ${a.note}`;
+            return a.takeaways ? `${head}\n  가져온 것: ${a.takeaways.join(" · ")}` : head;
+        })
+        .join("\n");
+    return `\n### 활동\n${lines}\n`;
 }
 
 export function buildSystemPrompt(): string {
@@ -95,6 +109,7 @@ ${experiences
     )
     .join("\n")}
 
+${activitySection()}
 ### 기술
 ${skills.map((g) => `- ${g.label}: ${g.items.join(", ")}`).join("\n")}
 

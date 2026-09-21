@@ -1,6 +1,6 @@
 # 포트폴리오 진행 문서
 
-> 최종 업데이트: 2026-09-21 (26차)
+> 최종 업데이트: 2026-09-21 (27차)
 
 프론트엔드 개발자 **포트폴리오 겸 이력서** 웹사이트. 원페이지 스크롤 + 프로젝트 상세 페이지 구조.
 콘셉트는 **"어두운 전시장(Dark Gallery)"** — 어두운 지면 위에서 스크롤이 구간마다 지면의 색을
@@ -63,6 +63,15 @@
   안개 전) 위성 궤도를 죄어(2.3) 가장자리에서 잘리지 않게 한다.
 - **홈의 액센트는 무채에 가까운 본(bone) `#e7e0d2`다.** 색을 가진 건 프로젝트뿐이다.
   상세는 자기 `theme`을 `:root`에 주입해 홈의 값을 덮는다(밝은 테마도 그대로).
+- **활동(`activities.ts`)은 섹션이 아니라 경력의 꼬리표다.** 컨퍼런스·세미나처럼 경력에도
+  프로젝트에도 넣을 수 없는 것들이 사는 자리로, 경력 타임라인 아래에 `Activity` 이름표를 달고
+  작은 목록으로 붙는다(`Experience.tsx` 꼬리). 항목이 비면 블록째로 사라진다.
+  한 항목은 들은 것 한 줄(`note`)과 가져온 것 목록(`takeaways`)으로 적는다 — **참석 사실만
+  적힌 줄은 아무것도 증명하지 않는다.** 다만 여기는 **듣고 온 것**을 적는 자리다. 실제로 해 본
+  것은 경력의 `achievements`로 올려야 한다. **여섯 번째
+  구간을 만들지 말 것** — 무대는 장소가 다섯으로 고정돼 있고(`stage/world`), 항목 하나짜리
+  섹션은 오히려 채울 게 없어 보인다. 내비게이션에도 넣지 않는다.
+  같은 내용이 `resume/content.js`의 `extras`에도 있다 — 한쪽만 고치면 두 이력이 갈린다.
 - 프로필·경력·스킬은 **실제 콘텐츠 반영 완료**(`profile.ts`·`experience.ts`·`skills.ts`).
   경력은 여섯 곳이고 현 직장은 **센티언트 시스템즈(2026.07~, 플랫폼 엔지니어 팀원)** — SafeOps가 이곳 소속이다
   (현재 1.0.2). 경력 판·계단은 `experiences.length`로 그리므로 항목을 늘려도 코드는 그대로다.
@@ -91,7 +100,7 @@
   적어 두었더니 한 페이지 안에서 다닥다닥 붙은 곳과 헐렁한 곳이 섞였고(사용자 지적),
   상세에만 규약이 있던 동안은 홈이 라틴 줄간(1.625)이라 두 지면이 다른 책처럼 읽혔다.
 - **AI 안내자(채팅 위젯) 동작함.** 우측 하단 플로팅 버튼 → 질문 → 답하면서 화면까지 옮긴다.
-  로컬은 `bun run dev` 하나로 API까지 뜨고, **배포(Vercel)는 아직 연결 전**이다(§7).
+  로컬은 `bun run dev` 하나로 API까지 뜨고, **Vercel 배포도 연결돼 있다**(§24 — 주소·키·모델 표).
 
 ## 2. 구조
 
@@ -160,8 +169,9 @@ src/
     assistant/                 # AssistantLauncher(첫 화면에 남는 버튼 하나)
                                # AssistantWidget(패널·런타임, 누를 때 받아 온다)
                                # Thread(primitives 조판) · ToolCards(툴이 그리는 카드들)
-  data/                        # profile · experience · skills · projects · socials · nav (편집 지점)
-  types/content.ts             # Profile · Experience · Project · SkillGroup · SocialLink
+  data/                        # profile · experience · activities · skills · projects · socials · nav
+                               #   (편집 지점)
+  types/content.ts             # Profile · Experience · Activity · Project · SkillGroup · SocialLink
   styles/index.css             # Tailwind v4 @theme 토큰 + 한글 줄바꿈 규칙 + reduced-motion
   styles/fonts.generated.css   # Pretendard @font-face(굵기당 core+안전망) — 스크립트가 쓴다
   assets/fonts/                # Pretendard 원본 OTF(gitignore) + 서브셋 woff2 3종(커밋)
@@ -693,7 +703,7 @@ Plus SMS의 정본은 **sms 저장소의 `portfolio/`** 다(Playwright가 API를
 - **AI가 읽는 지식은 `src/data/*.ts`가 원본이다**. 서버가 그 파일을 직접 읽을 수 없어
   (`@/` 별칭 + `.webp` import) `bun run knowledge`가 이미지 필드를 뺀
   `api/_lib/knowledge.generated.ts`를 만들어 커밋한다. **콘텐츠를 고치면 반드시 다시 돌린다.**
-- **프로필·경력·기술·프로젝트 요약만 시스템 프롬프트에 싣는다**. 전체 콘텐츠는 약 19,000자라
+- **프로필·경력·활동·기술·프로젝트 요약만 시스템 프롬프트에 싣는다**(활동은 비면 머리글째 빠진다). 전체 콘텐츠는 약 19,000자라
   매 요청에 다 실으면 낭비다. 상세 사례·런타임 지도·파이프라인은 서버 툴 `get_project_detail`로
   필요할 때만 꺼낸다.
 - **모델은 Lite 계열을 쓴다**(`GEMINI_MODEL` 환경변수, 기본 `gemini-3.5-flash-lite`).
@@ -754,6 +764,11 @@ Plus SMS의 정본은 **sms 저장소의 `portfolio/`** 다(Playwright가 API를
 
 실제로 한 번씩 밟았던 것들. 관련 코드를 건드릴 때 먼저 읽을 것.
 
+- **경력 구간에 `data-stage-anchor`를 experiences 말고 다른 것에 붙이지 말 것.** 계단의 카메라는
+  구간 안의 닻을 **순서째로** 연도 판에 대응시키므로(`stage/timeline`의 `localOf`), 닻이
+  `experiences.length`를 넘으면 마지막 항목을 읽는 동안 판이 하나씩 어긋난다. 그래서 활동 블록은
+  닻 없이 놓는다 — 마지막 닻 뒤의 스크롤은 카메라가 꼭대기에 머무는 구간(`at: 2`)이라, 지면을
+  늘리는 것 자체는 안전하다.
 - **시그니처 구간(`system`)의 조작 장치는 판으로 받친다**(2026-09-14 Plus SMS, 2026-09-15 나머지
   세 프로젝트까지 — 사용자 지적 "회색 텍스트가 뒤에 가려져 안 보인다"). 이 구간 뒤로 무대의 아치가
   지나가, 선이 `muted` 글자 밑을 가로지르면 글자부터 사라진다. **시그니처 장치 일곱 개 전부**
@@ -1281,7 +1296,23 @@ Plus SMS의 정본은 **sms 저장소의 `portfolio/`** 다(Playwright가 API를
   고리 앞에 영영 머문다(사용자 지적 — "경력 마지막 고리가 계속 이어진다"). 구간 안에서 뭘
   그리든, 표식은 그 구간을 대신하는 모든 DOM에 붙일 것.
 
-## 5. 마지막 검증 (2026-09-21, 26차) — 센티언트 시스템즈 합류 · 별도 이력서(resume/)
+## 5. 마지막 검증 (2026-09-21, 27차) — 활동(우아콘) · 리뷰 게이트 성과 · README
+
+- `bun run check` · `bun run build` 통과. Codex 리뷰 지적 없음.
+- **활동 데이터가 생겼다**(`activities.ts` · `Activity` 타입 · `Experience.tsx` 꼬리 블록 ·
+  안내자 배선 · `resume/content.js`의 `extras`). 섹션이 아니라 경력의 꼬리표로 둔 이유와
+  닻을 붙이면 안 되는 이유는 §1·§4에 있다.
+- **센티언트 경력에 성과 두 줄이 늘었다** — 리뷰 게이트(코드 리뷰 + CodeRabbit 통과 후 커밋)와
+  읽기 전용 AI 에이전트 리팩터링 파이프라인. 근거는 `~/Desktop/dashboard/.claude/agents`를
+  직접 읽어 맞췄다(서브 에이전트 셋 다 `tools`에 Edit/Write가 없다).
+- **README를 다시 썼다** — 배지·스택 나열 대신 스크롤 지도를 먼저 두고, 스택 표의 칸마다
+  함정을 붙였다. 가장 자주 하는 일(콘텐츠 편집)에 `knowledge` 재생성과 `resume/` 수동 복사
+  경고를 같이 넣었다.
+- §1의 "배포는 아직 연결 전" 줄이 낡아 있어 고쳤다 — 실제로는 §24대로 배포돼 있다.
+- 화면 캡처 검증은 하지 않았다. 바뀐 것이 경력 구간 꼬리에 붙는 정적 블록 하나라
+  무대·스크롤 축은 건드리지 않았다.
+
+## 5-A. 이전 검증 (2026-09-21, 26차) — 센티언트 시스템즈 합류 · 별도 이력서(resume/)
 
 - `bun run check` · `bun run build` 통과. Codex 리뷰 지적 1건(사진 없는 머리 레이아웃) 반영.
 - **경력이 여섯 곳이 됐다** — 센티언트 시스템즈(2026.07~, 플랫폼 엔지니어)가 현 직장이고 SafeOps가
@@ -1294,7 +1325,7 @@ Plus SMS의 정본은 **sms 저장소의 `portfolio/`** 다(Playwright가 API를
   문체도 비유 없이 평이하게 쓴다(사이트 본문의 말투를 그대로 옮겼더니 어색하다는 지적을 받았다).
 - **헤드리스 Chrome 검증** — 밝은/어두운 화면, 500px 좁은 화면(넘침 0), PDF 7쪽을 캡처해 확인했다.
 
-## 5-A. 이전 검증 (2026-09-15, 25차) — 시그니처 판을 전 프로젝트로
+## 5-B. 이전 검증 (2026-09-15, 25차) — 시그니처 판을 전 프로젝트로
 
 - `bun run check` — 99 files 무경고. `bun run build` — 타입 통과 + 빌드 성공. Codex 리뷰 지적 없음.
 - SafeOps(Pipeline) · 침례교(Anatomy · Runtime) · 아이머그(Keyring · Bridge)의 시그니처 장치를
@@ -1303,7 +1334,7 @@ Plus SMS의 정본은 **sms 저장소의 `portfolio/`** 다(Playwright가 API를
 - **헤드리스 Chrome 검증**(1440×900, 프로덕션 빌드) — 다섯 구간을 아치가 뒤로 지나가는 자리에서
   캡처해 판 위 글자가 읽히는 것을 확인했다. 좁은 폭은 따로 캡처하지 않았다.
 
-## 5-B. 이전 검증 (2026-09-14, 24차) — Plus SMS 추가
+## 5-C. 이전 검증 (2026-09-14, 24차) — Plus SMS 추가
 
 - `bun run check` — 97 files 무경고. `bun run build` — 타입 통과 + 빌드 성공.
 - 콘텐츠는 노션 "Plus SMS" 문서를 정본으로 삼고 sms 저장소(`~/Desktop/sms`) 코드로 교차 검증했다
@@ -1318,7 +1349,7 @@ Plus SMS의 정본은 **sms 저장소의 `portfolio/`** 다(Playwright가 API를
   콘솔의 `reading 'isReady'` 오류는 기존 페이지에서도 똑같이 나는 것이라 이번 변경과 무관하다.
 - 폰트 서브셋을 다시 구웠다(818자 → 858자). fonttools는 스크래치 venv에 설치해 돌렸다.
 
-## 5-C. 이전 검증 (2026-09-09, 23차) — 읽히는 본문
+## 5-D. 이전 검증 (2026-09-09, 23차) — 읽히는 본문
 
 - `bun run check` — 94 files 무경고. `bun run build` — 타입 통과 + 빌드 성공.
 - **연출은 한 줄도 건드리지 않았다.** 카메라·타임라인·전환·리빌은 그대로고, 바뀐 것은
@@ -1829,6 +1860,13 @@ Plus SMS의 정본은 **sms 저장소의 `portfolio/`** 다(Playwright가 API를
 
 ## 25. 다음 작업 (미착수)
 
+- **`safeops-dashboard`(관제 백오피스, React SPA + Django)는 아직 올리지 않는다.** 센티언트
+  시스템즈의 같은 제품 라인이고 리팩터링 파이프라인(`.claude/agents`)이 거기 서 있지만,
+  **완료된 프로젝트가 아니고 혼자 만든 것도 아니다.** 올린다면 먼저 **내가 한 몫과 팀이 한 몫을
+  가를 수 있어야** 한다 — 그 구분 없이 프로젝트 카드로 세우면 공동 작업을 단독 작업처럼
+  보이게 만든다. 그래서 센티언트 경력의 `summary`도 앱(SafeOps) 얘기로 둔 채 넓히지 않았다.
+  단, 대시보드에서 **직접 세우고 운영한 개발 흐름**(리뷰 게이트 · 읽기 전용 에이전트
+  파이프라인)은 제품이 아니라 일하는 방식이라 경력의 `achievements`에 이미 올라 있다.
 - **프로젝트를 더 넣는다면** `theme` 7색과 **그 프로젝트만의 시그니처 데이터**를 함께 정한다
   (`variant` 갈래는 없어졌다 — §3). 기존 시그니처를 재탕하지 말고 하나 더 만든다.
   콘텐츠를 고친 뒤에는 `bun run knowledge`를 잊지 말 것 — 안내자는 `projects.ts`를 그대로 읽는다.

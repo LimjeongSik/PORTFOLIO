@@ -19,6 +19,22 @@ export interface Experience {
     stack: string[];
 }
 
+/**
+ * 경력·프로젝트로는 안 세지만 남겨 둘 만한 것 — 컨퍼런스 · 세미나 · 스터디 · 자격.
+ * 경력 섹션 꼬리에 작은 목록으로 붙는다(무대의 닻은 붙이지 않는다 — §경력 카메라).
+ */
+export interface Activity {
+    /** "2025" 또는 "2025.10" */
+    period: string;
+    title: string;
+    /** 주최·기관 한 줄 */
+    host: string;
+    /** 무엇을 들었는지 한 문장 */
+    note: string;
+    /** 거기서 가져온 것. 참석 사실만 적힌 줄은 읽는 사람에게 아무것도 증명하지 않는다. */
+    takeaways?: string[];
+}
+
 export interface SkillGroup {
     label: string;
     items: string[];

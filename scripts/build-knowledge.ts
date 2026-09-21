@@ -10,6 +10,7 @@
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { activities } from "../src/data/activities";
 import { experiences } from "../src/data/experience";
 import { profile } from "../src/data/profile";
 import { projects } from "../src/data/projects";
@@ -55,6 +56,7 @@ for (const project of projects) {
 const knowledge: Knowledge = {
     profile: knowledgeProfile,
     experiences,
+    activities,
     skills: skillGroups,
     socials,
     projects: knowledgeProjects,

@@ -2,11 +2,13 @@ import { useRef } from "react";
 
 import { useReducedMotion } from "motion/react";
 
+import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
+import { activities } from "@/data/activities";
 import { experiences } from "@/data/experience";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { BODY, LEDE, MEASURE } from "@/lib/typography";
+import { BODY, LABEL, LEDE, MEASURE, NOTE } from "@/lib/typography";
 
 export function Experience() {
     const root = useRef<HTMLDivElement>(null);
@@ -138,6 +140,48 @@ export function Experience() {
                         ))}
                     </div>
                 </div>
+
+                {/* 활동은 경력의 꼬리표다 — 섹션을 따로 세우지 않는다. 항목이 하나뿐인 섹션은
+                    채울 게 없어 보이고, 무대는 구간이 다섯으로 고정돼 있다(stage/world).
+                    **여기에 data-stage-anchor를 붙이지 말 것** — 경력의 카메라는 닻 순서를
+                    연도 판에 그대로 대응시키므로, 닻이 experiences.length를 넘으면 마지막
+                    항목을 읽는 동안 계단이 어긋난다. 마지막 닻 뒤의 스크롤은 카메라가
+                    꼭대기에 머무는 구간이라 이 블록이 지면을 늘려도 안전하다. */}
+                {activities.length > 0 && (
+                    <div className="mt-24 border-t border-line pt-10 pl-8 sm:pl-12">
+                        <Reveal>
+                            <p className={LABEL}>Activity</p>
+                        </Reveal>
+                        <ul className="mt-8 space-y-8">
+                            {activities.map((item, index) => (
+                                <Reveal
+                                    as="li"
+                                    key={`${item.title}-${item.period}`}
+                                    delay={index * 0.06}
+                                >
+                                    <p className="font-mono text-xs tracking-wider text-muted">
+                                        {item.period}
+                                    </p>
+                                    <h3 className="mt-2 font-display text-xl font-medium text-ink">
+                                        {item.title}
+                                    </h3>
+                                    <p className={`mt-1 ${NOTE}`}>{item.host}</p>
+                                    <p className={`mt-3 ${MEASURE} ${BODY}`}>{item.note}</p>
+                                    {item.takeaways && (
+                                        <ul className={`mt-4 ${MEASURE} space-y-3`}>
+                                            {item.takeaways.map((line) => (
+                                                <li key={line} className={`flex gap-3 ${BODY}`}>
+                                                    <span className="mt-3.5 h-1 w-1 shrink-0 rounded-full bg-espresso" />
+                                                    {line}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </Reveal>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
         </section>
     );
