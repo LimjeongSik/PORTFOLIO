@@ -16,7 +16,7 @@
 | 생년월일   | 1995. 07. 25                                                                       |
 | 연락처     | 010.9194.0167 · limjeongsik95@gmail.com                                            |
 | 거주       | 서울                                                                               |
-| 포트폴리오 | https://portfolio-pi-nine-wt7bk929id.vercel.app                                    |
+| 포트폴리오 | https://limjeongsik-portfolio.vercel.app                                    |
 | GitHub     | https://github.com/LimjeongSik                                                     |
 | 총 경력    | 약 6년 (2020.10 ~ 현재, 웹 퍼블리셔 1년 5개월 포함 · 프론트엔드 개발 약 4년 7개월) |
 
@@ -358,7 +358,7 @@ NFC · QR 링크, 푸시 알림, 결제 웹뷰 복귀는 하나의 훅에서 처
 ### 5-5. 포트폴리오 사이트 · 개인 프로젝트
 
 - **기간** 2026.07 ~ 2026.09 · **역할** 기획 · 디자인 · 개발
-- **링크** https://portfolio-pi-nine-wt7bk929id.vercel.app
+- **링크** https://limjeongsik-portfolio.vercel.app
 - **기술** React 19, Vite 8, TypeScript, Three.js, GSAP, Motion, Lenis, Tailwind CSS v4, AI SDK + Gemini, Vercel, Bun, Biome
 
 **3D 공간.** 홈 전체가 Three.js 캔버스 하나로 된 3D 공간이고, 카메라의 위치 · 방향 · 화각을 스크롤 위치에 따라

@@ -268,11 +268,13 @@
                 color: var(--accent);
             }
 
-            /* 연락처: 라벨을 위에, 값을 아래에 쌓아 세 칸씩. 첫 칸은 긴 주소가 들어가도록 넓다. */
+            /* 연락처: 라벨을 위에, 값을 아래에 쌓아 한 줄로 늘어놓는다. 칸 폭은 값 길이를 따르고,
+               넘치면 다음 줄로 내려간다. */
             .contacts {
-                display: grid;
-                grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr);
-                gap: var(--s5) var(--s6);
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: var(--s4) var(--s5);
                 margin-top: var(--s7);
                 padding-top: var(--s6);
                 border-top: 1px solid var(--line);
@@ -473,7 +475,8 @@
                 align-items: baseline;
                 margin-bottom: var(--s6);
             }
-            .block-head h2 {
+            .block-head h2,
+            .about > h2 {
                 font-weight: 700;
                 font-size: 1.3rem;
                 line-height: 1.3;
@@ -488,21 +491,28 @@
                 margin-left: calc(var(--rail) + var(--gap));
             }
 
+            /* 소개는 곁들이는 한 줄이 없으니 제목 옆 오른쪽 열에서 바로 본문이 시작한다. */
+            .about {
+                display: grid;
+                grid-template-columns: var(--rail) minmax(0, 1fr);
+                gap: 0 var(--gap);
+                align-items: baseline;
+            }
             .intro {
                 display: grid;
                 gap: var(--s4);
-                max-width: 40em;
                 color: var(--ink-2);
             }
+            /* 역량은 소개글과 같은 오른쪽 열에 한 줄씩 쌓는다. 칸을 나누면 한 줄이 열 자 남짓으로
+               좁아져 읽기 어렵고, 왼쪽 열까지 넓히면 섹션의 정렬 축이 어긋난다. */
             .strengths {
                 display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: var(--s6) var(--s6);
-                margin-top: var(--s7);
+                gap: var(--s5);
+                margin-top: var(--s6);
             }
             .strength {
                 padding-top: var(--s4);
-                border-top: 2px solid var(--ink);
+                border-top: 1px solid var(--line);
             }
             .strength h3 {
                 font-weight: 700;
@@ -604,6 +614,14 @@
             .entry .summary {
                 margin-top: var(--s4);
                 color: var(--ink-2);
+            }
+            /* 성과 목록 없이 한두 줄로 끝나는 옛 경력 — 항목 사이를 한 단계 좁혀 목록처럼 읽히게 하되,
+               글자 크기는 줄이지 않는다. */
+            .entry.compact + .entry.compact {
+                margin-top: calc(var(--s6) - var(--s7));
+            }
+            .entry.compact .summary {
+                margin-top: var(--s2);
             }
             .bullets {
                 margin-top: var(--s4);
@@ -801,13 +819,13 @@
                     font-size: 2.2rem;
                 }
                 .contacts {
-                    grid-template-columns: minmax(0, 1fr);
+                    display: grid;
                     gap: var(--s4);
                 }
                 .body {
                     margin-left: 0;
                 }
-                .strengths,
+                .about,
                 .entry,
                 .skill-row,
                 .block-head {
@@ -893,6 +911,7 @@
                 }
                 .block-head,
                 .entry h3,
+                .entry .sub,
                 .project-title {
                     break-after: avoid;
                 }
@@ -909,8 +928,18 @@
                     margin-top: var(--s5);
                     padding-top: var(--s5);
                 }
+                /* 글자 크기 · 줄 간격은 화면과 같게 두고, 섹션과 항목 사이만 한 단계씩 좁혀 4쪽에 담는다. */
                 .block {
-                    margin-top: var(--s7);
+                    margin-top: var(--s6);
+                }
+                .entries {
+                    gap: var(--s6);
+                }
+                .points {
+                    gap: var(--s4);
+                }
+                .entry.compact + .entry.compact {
+                    margin-top: calc(var(--s5) - var(--s6));
                 }
                 .strengths {
                     margin-top: var(--s5);
@@ -923,6 +952,7 @@
                     break-inside: avoid;
                 }
                 .entry .summary {
+                    break-inside: avoid;
                     break-after: avoid;
                 }
                 /* 기술 목록 한 줄만 다음 쪽으로 떨어지지 않게 수치 줄과 붙여 둔다. */
@@ -930,24 +960,12 @@
                     break-before: avoid;
                 }
                 /* 크롬은 격자를 쪽 사이에서 잘 나누지 못해 핵심 역량이 통째로 다음 쪽으로 밀린다.
-                   출력에서만 두 칸을 인라인 블록으로 늘어놓아 줄 단위로 끊기게 한다. */
-                /* 카드 두 장이 한 줄 상자라 목록 전체가 두 줄뿐이다. 기본 orphans · widows(2)가
-                   남아 있으면 그 두 줄을 가를 수 없어 네 장이 통째로 다음 쪽으로 넘어간다. */
+                   출력에서는 블록으로 쌓아 역량 한 장 단위로 끊기게 한다. */
                 .strengths {
                     display: block;
-                    font-size: 0;
-                    orphans: 1;
-                    widows: 1;
                 }
-                .strength {
-                    display: inline-block;
-                    vertical-align: top;
-                    width: calc(50% - var(--s6) / 2);
-                    margin-bottom: var(--s6);
-                    font-size: 1rem;
-                }
-                .strength:nth-child(odd) {
-                    margin-right: var(--s6);
+                .strength + .strength {
+                    margin-top: var(--s4);
                 }
             }
         </style>
@@ -1192,7 +1210,13 @@
                             [
                                 el("div", { class: "tl-caption" }, [
                                     el("strong", {}, `경력 ${formatSpan(total)}`),
-                                    el("span", {}, "위는 소속과 직무, 아래는 프로젝트 — 괄호선은 기간만 아는 외주 묶음"),
+                                    el(
+                                        "span",
+                                        {},
+                                        side.length
+                                            ? "위는 소속과 직무, 아래는 프로젝트 — 괄호선은 기간만 아는 외주 묶음"
+                                            : "위는 소속과 직무, 아래는 주요 프로젝트",
+                                    ),
                                 ]),
                                 career,
                                 axis,
@@ -1214,8 +1238,9 @@
                     ]);
                 }
 
-                const about = block("소개", null, [
-                    el("div", { class: "body" }, [
+                const about = el("section", { class: "block about" }, [
+                    el("h2", {}, "소개"),
+                    el("div", {}, [
                         el(
                             "div",
                             { class: "intro" },
@@ -1273,17 +1298,22 @@
                         "div",
                         { class: "entries" },
                         careers.map((c) =>
-                            el("article", { class: "entry" }, [
+                            // 성과 목록이 없는 옛 경력은 한 단계 낮춘 간결한 행으로 둔다.
+                            el("article", { class: c.achievements?.length ? "entry" : "entry compact" }, [
                                 railFor({ ...c, nowLabel: "재직 중" }),
                                 el("div", {}, [
                                     el("h3", {}, c.company),
                                     el("p", { class: "sub" }, c.position),
                                     el("p", { class: "summary" }, text(c.summary)),
-                                    el(
-                                        "ul",
-                                        { class: "bullets" },
-                                        c.achievements.map((a) => el("li", {}, text(a))),
-                                    ),
+                                    c.achievements?.length
+                                        ? el(
+                                              "ul",
+                                              { class: "bullets" },
+                                              c.achievements.map((a) =>
+                                                  el("li", { class: isTodo(a) ? "todo-row" : undefined }, text(a)),
+                                              ),
+                                          )
+                                        : null,
                                     c.stack?.length
                                         ? el("p", { class: "stack" }, c.stack.join(", "))
                                         : null,
