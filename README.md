@@ -6,7 +6,7 @@
 
 섹션이 나타났다 사라지는 대신, 카메라 하나가 한 공간 안의 다섯 장소를 날아서 지나간다.
 
-[**→ 사이트 열기**](https://portfolio-pi-nine-wt7bk929id.vercel.app)
+[**→ 사이트 열기**](https://limjeongsik-portfolio.vercel.app)
 
 <img src="https://img.shields.io/badge/React-19-e7e0d2?style=flat-square&logo=react&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="React 19">
 <img src="https://img.shields.io/badge/TypeScript-6.0-e7e0d2?style=flat-square&logo=typescript&logoColor=e7e0d2&labelColor=17151f&color=17151f" alt="TypeScript 6">

@@ -27,11 +27,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Vite 8** 번들링, React 19 SPA. 진입 흐름: `index.html` → `src/main.tsx`(`<BrowserRouter>` + `<StrictMode>`) → `src/App.tsx`. 섹션·라우팅·데이터 계층의 전체 구조와 스택은 `docs/PROGRESS.md` "현재 구조"를 참고하세요. 코드를 추가할 때 지킬 규약:
 
-- **경로 별칭**: `@/*` → `src/*`. 예: `import { Hero } from "@/components/sections/Hero"`. `tsconfig.app.json`에 설정되어 Vite `tsconfigPaths`로 동작합니다.
+- **경로 별칭**: `@/*` → `src/*`. 예: `import { Hero } from "@/components/home/Hero"`. `tsconfig.app.json`에 설정되어 Vite `tsconfigPaths`로 동작합니다.
 - **콘텐츠는 데이터로**: 화면 텍스트/목록은 컴포넌트에 하드코딩하지 말고 `src/data/*.ts`(타입은 `src/types/content.ts`)에서 가져옵니다. 사용자가 로직 없이 콘텐츠만 교체할 수 있어야 합니다.
-- **스타일링**: `@tailwindcss/vite` 기반 Tailwind CSS v4. `tailwind.config.js`가 없으므로 색상/폰트 토큰은 `src/styles/index.css`의 `@theme` 블록에서 관리합니다(예: `bg-paper`, `text-espresso`, `font-display`). 새 디자인 토큰이 필요하면 이곳에 추가하세요.
-- **애니메이션**: GSAP은 `@/lib/gsap`에서 import(플러그인 등록 완료), 컴포넌트에서는 `useGSAP({ scope })`로 사용. 뷰포트 리빌·인터랙션은 `motion` 사용. 새 모션은 반드시 `prefers-reduced-motion`을 존중해야 합니다(`useReducedMotion` 또는 CSS 미디어쿼리 — GSAP 인라인 트윈은 CSS로 막히지 않으니 JS에서 가드).
-- **스크롤 이동**: 관성 스크롤(Lenis)이 window 스크롤을 소유합니다. 프로그래매틱 이동은 `window.scrollTo()`가 아니라 `@/lib/lenis`의 `getLenisInstance()`를 거쳐야 하며, Lenis가 없을 때(reduced-motion·최초 마운트)를 위한 폴백을 함께 둡니다. 자세한 이유는 PROGRESS.md 함정 노트 참고.
+- **스타일링**: `@tailwindcss/vite` 기반 Tailwind CSS v4. `tailwind.config.js`가 없으므로 색상/폰트 토큰은 `src/styles/index.css`의 `@theme` 블록에서 관리합니다(예: `bg-paper`, `text-ink`, `border-line`). 새 디자인 토큰이 필요하면 이곳에 추가하세요.
+- **애니메이션**: 모션 라이브러리를 쓰지 않는다. 움직임은 CSS transition/keyframes로만 두고, 저절로 움직이는 것은 첫 화면 등장 하나뿐이다(목록은 PROGRESS.md §1). 새 모션을 넣기 전에 그게 사용자의 행동에 답하는 것인지 먼저 볼 것. `prefers-reduced-motion`은 `styles/index.css`의 미디어쿼리가 일괄로 끈다.
+- **스크롤 이동**: 브라우저 네이티브 스크롤이다. 프로그래매틱 이동은 `@/lib/scroll`(`scrollToSection`/`scrollToTop`)을 거친다. 부드러운 이동과 헤더 여백은 CSS(`scroll-behavior` · `scroll-padding-top`)가 맡는다.
 - **SVG**: `vite-plugin-svgr` 활성화 — `?react` 접미사로 React 컴포넌트 import 가능. 타입 참조는 `src/types/vite-env.d.ts`.
 
 ## 코드 작성에 영향을 주는 Biome 규칙

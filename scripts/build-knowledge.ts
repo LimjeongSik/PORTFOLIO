@@ -43,13 +43,21 @@ for (const project of projects) {
         sheets: project.sheets.map(({ title, note }) => ({ title, note })),
     };
     if (project.anatomy) {
-        const { src: _src, ratio: _ratio, ...anatomy } = project.anatomy;
-        detail.anatomy = anatomy;
+        const { src: _src, ratio: _ratio, notes, ...anatomy } = project.anatomy;
+        detail.anatomy = { ...anatomy, notes: notes.map(({ title, body }) => ({ title, body })) };
     }
     if (project.runtime) detail.runtime = project.runtime;
     if (project.pipeline) detail.pipeline = project.pipeline;
     if (project.sieve) detail.sieve = project.sieve;
     if (project.windowing) detail.windowing = project.windowing;
+    if (project.keyring) {
+        const { burst: _burst, keys, ...keyring } = project.keyring;
+        detail.keyring = { ...keyring, keys: keys.map(({ life: _life, ...key }) => key) };
+    }
+    if (project.bridge) {
+        const { calls, ...bridge } = project.bridge;
+        detail.bridge = { ...bridge, calls: calls.map(({ applies: _applies, ...call }) => call) };
+    }
     details[project.slug] = detail;
 }
 

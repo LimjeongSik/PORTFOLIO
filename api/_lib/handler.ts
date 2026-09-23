@@ -158,7 +158,8 @@ function consecutiveToolTurns(messages: UIMessage[]): number {
 const serverTools = {
     get_project_detail: {
         description:
-            "프로젝트 상세 자료(문제 → 판단 → 결과 사례, 화면 해부, 런타임 구조, 좌표 파이프라인)를 꺼낸다. " +
+            "프로젝트 상세 자료(문제 → 판단 → 결과 사례, 작업물 설명, 그리고 프로젝트마다의 설계 그림 — " +
+            "화면 해부 · 런타임 구조 · 좌표 파이프라인 · 인증 열쇠 · 앱↔웹 브릿지 · 번호 파싱 · 목록 가상화)를 꺼낸다. " +
             "구현을 깊이 묻는 질문에 답하기 전에 먼저 호출한다.",
         inputSchema: z.object({
             slug: z.enum(projectSlugs as [string, ...string[]]).describe("프로젝트 slug"),

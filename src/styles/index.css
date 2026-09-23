@@ -1,11 +1,5 @@
 @import "tailwindcss";
 
-@import "@fontsource/space-grotesk/400.css";
-@import "@fontsource/space-grotesk/500.css";
-@import "@fontsource/space-grotesk/700.css";
-@import "@fontsource/jetbrains-mono/400.css";
-@import "@fontsource/jetbrains-mono/500.css";
-
 /* Pretendard는 npm 가변 폰트(약 2MB) 대신 원본 OTF를 서브셋한 woff2로 self-host 한다.
    `@font-face` 선언은 손으로 적지 않는다 — `unicode-range`가 실제 폰트 파일과 어긋나면
    그대로 버그이므로, 굵기마다 두 벌(core 75KB · 안전망 subset 170KB)을 굽는
@@ -13,41 +7,31 @@
 @import "./fonts.generated.css";
 
 @theme {
-    /* 홈의 기본 지면은 어두운 잉크다. 스크롤이 구간마다 이 값들을 프로젝트 테마로
-       갈아 끼우므로(@/lib/atmosphere) 여기 적힌 건 "아무 무드도 걸리지 않았을 때"의 바닥이다.
-       프로젝트 상세는 예전처럼 자기 theme을 :root에 주입해 이 값을 덮는다. */
-    --color-paper: #08070c;
-    --color-surface: #141119;
-    --color-ink: #f2efe9;
-    --color-muted: #8b8598;
-    --color-line: #26232f;
-    --color-sand: #1c1926;
-    --color-espresso: #e7e0d2;
+    /* 사이트 자체는 무채색이다. 색을 가진 것은 프로젝트뿐이고, 그 색은 프로젝트 표지 띠와
+       홈 목록의 hover에서만 나온다(`data/projects.ts`의 theme). */
+    --color-paper: #ffffff;
+    --color-surface: #f5f6f8;
+    --color-ink: #15171c;
+    --color-muted: #636a75;
+    --color-line: #e3e5e9;
+    --color-sand: #eceef2;
+    --color-espresso: #15171c;
 
-    --font-display: "Space Grotesk", "Pretendard", sans-serif;
+    /* 서체는 하나다. 위계는 크기와 굵기로만 가른다. */
     --font-sans:
         "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    --font-mono: "JetBrains Mono", monospace;
 
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
-    color-scheme: dark;
+    color-scheme: light;
 }
 
 html {
     scroll-behavior: smooth;
-    /* 가로 스크롤을 막는다. 어딘가 한 요소가 뷰포트를 넘기면 지면 전체가 옆으로 밀려
-       크기가 어긋나 보인다(사용자 지적).
-
-       `hidden`이 아니라 `clip`인 것이 중요하다 — `overflow: hidden`은 스크롤 컨테이너를
-       만들어서 그 안의 `position: sticky`가 뷰포트가 아니라 그 상자를 기준으로 붙는다.
-       이 지면은 붙어 서는 것으로 굴러간다(Roomy · 표지 · 화면 전시 · 해부 · 런타임).
-       `clip`은 스크롤 컨테이너를 만들지 않으므로 잘라 내기만 하고 sticky는 그대로다.
-
-       `body`에도 함께 건다 — 루트의 overflow는 뷰포트로 넘어가고 루트 자신은 `visible`로
-       계산되므로, 한쪽만 걸면 브라우저·상황에 따라 새는 경우가 있다. */
+    /* 고정 헤더 높이만큼 앵커 도착 지점을 내린다 */
+    scroll-padding-top: 5rem;
     overflow-x: clip;
 }
 
@@ -56,29 +40,17 @@ body {
     overflow-x: clip;
     background-color: var(--color-paper);
     color: var(--color-ink);
-    /* 홈에서는 @/lib/atmosphere가 --color-* 자체를 트윈하므로 여기서 또 0.6s를 걸면
-       이징이 두 번 겹쳐 뭉개진다. 라우트 전환의 급변만 다듬을 만큼 짧게 남긴다. */
-    transition:
-        background-color 0.25s linear,
-        color 0.25s linear;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 
-    /* 한글은 단어 안에서 줄이 끊긴다 — 브라우저 기본(`normal`)은 한글을 음절 단위로 보므로
-       "프론트엔드를"이 "프론트엔/드를"로 갈라진다. 줄 끝마다 단어를 다시 붙여 읽게 되는 것이
-       이 지면에서 본문이 안 읽히던 가장 큰 이유였다. `keep-all`은 어절을 통째로 넘긴다.
-
-       대신 끊을 곳이 없는 긴 토큰(이메일 · URL · 코드)이 제 상자를 넘길 수 있으므로
-       `break-word`를 함께 건다 — 넘칠 때만 끊는다. 더 세게 끊어야 하는 곳(이메일 · 토큰
-       문자열)은 지금처럼 `wrap-anywhere` · `break-all`을 개별로 얹는다. */
+    /* 한글은 어절 단위로 넘긴다 — 기본값은 음절에서 끊어 "프론트엔/드를"처럼 갈라진다.
+       끊을 곳이 없는 긴 토큰(이메일 · URL)은 넘칠 때만 끊는다. */
     word-break: keep-all;
     overflow-wrap: break-word;
 }
 
-/* 어절 단위로 넘기면 마지막 줄에 한 어절만 남는 일이 잦다 — 읽는 덩이에서만 줄을 고르게 편다.
-   지원하지 않는 브라우저는 그냥 무시하므로 폴백이 따로 필요 없다. */
 p,
 li,
 dd,
@@ -87,53 +59,73 @@ blockquote {
     text-wrap: pretty;
 }
 
-/* Lenis 사용 시 네이티브 smooth-scroll 비활성화 */
-html.lenis,
-html.lenis body {
-    height: auto;
-}
-
-.lenis.lenis-smooth {
-    scroll-behavior: auto !important;
-}
-
-.lenis.lenis-stopped {
-    overflow: hidden;
-}
-
-.grid-veil {
-    background-image:
-        linear-gradient(
-            to right,
-            color-mix(in srgb, var(--color-line) 45%, transparent) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            to bottom,
-            color-mix(in srgb, var(--color-line) 45%, transparent) 1px,
-            transparent 1px
-        );
-    background-size: 64px 64px;
+h1,
+h2,
+h3 {
+    text-wrap: balance;
 }
 
 ::selection {
-    background-color: var(--color-sand);
-    color: var(--color-ink);
+    background-color: var(--color-ink);
+    color: var(--color-paper);
 }
 
 :focus-visible {
-    outline: 2px solid var(--color-espresso);
+    outline: 2px solid var(--color-ink);
     outline-offset: 3px;
     border-radius: 2px;
 }
 
+/* 첫 화면에서 한 번만 일어나는 등장. 사이트 전체에서 저절로 움직이는 건 이것뿐이다. */
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(0.35em);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.rise {
+    animation: rise 0.9s var(--ease-out-quint) both;
+    animation-delay: calc(var(--i, 0) * 90ms + 60ms);
+}
+
+/* 안내 패널이 열릴 때 — 누른 버튼 쪽에서 올라온다. `hidden`이 풀릴 때마다 다시 돈다. */
+@keyframes panel-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.panel-in {
+    animation: panel-in 0.22s var(--ease-out-quint);
+}
+
+/* 가로로 넘기는 화면 목록 — 스크롤바는 숨기지 않고 얇게 둔다(넘길 수 있다는 단서다). */
+.shelf {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, currentColor 30%, transparent) transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
     *,
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
     }
 }

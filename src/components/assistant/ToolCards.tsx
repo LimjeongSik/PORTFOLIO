@@ -19,11 +19,7 @@ function Panel({ children }: { children: ReactNode }) {
 }
 
 function PanelLabel({ children }: { children: ReactNode }) {
-    return (
-        <p className="font-mono text-[0.625rem] tracking-[0.18em] text-muted uppercase">
-            {children}
-        </p>
-    );
+    return <p className="text-xs font-bold text-muted">{children}</p>;
 }
 
 export function ProjectCards({ slugs }: { slugs: string[] }) {
@@ -35,7 +31,7 @@ export function ProjectCards({ slugs }: { slugs: string[] }) {
 
     return (
         <Panel>
-            <PanelLabel>projects</PanelLabel>
+            <PanelLabel>프로젝트</PanelLabel>
             <ul className="flex flex-col gap-1.5">
                 {picked.map((project) => (
                     <li key={project.slug}>
@@ -50,7 +46,7 @@ export function ProjectCards({ slugs }: { slugs: string[] }) {
                                 className="h-10 w-10 shrink-0 rounded-lg object-cover"
                             />
                             <span className="min-w-0">
-                                <span className="block truncate font-display text-sm font-semibold text-ink">
+                                <span className="block truncate text-sm font-semibold text-ink">
                                     {project.title}
                                 </span>
                                 <span className="block truncate text-xs text-muted">
@@ -68,11 +64,11 @@ export function ProjectCards({ slugs }: { slugs: string[] }) {
 export function SkillCard() {
     return (
         <Panel>
-            <PanelLabel>skills</PanelLabel>
+            <PanelLabel>기술</PanelLabel>
             <dl className="flex flex-col gap-2">
                 {skillGroups.map((group) => (
                     <div key={group.label}>
-                        <dt className="font-mono text-[0.6875rem] text-espresso">{group.label}</dt>
+                        <dt className="text-xs font-bold text-ink">{group.label}</dt>
                         <dd className="text-xs leading-relaxed text-ink">
                             {group.items.join(", ")}
                         </dd>
@@ -86,16 +82,14 @@ export function SkillCard() {
 export function ExperienceCard() {
     return (
         <Panel>
-            <PanelLabel>experience</PanelLabel>
+            <PanelLabel>경력</PanelLabel>
             <ol className="flex flex-col gap-2">
                 {experiences.map((item) => (
                     <li
                         key={`${item.company}-${item.period}`}
                         className="border-line border-l pl-3"
                     >
-                        <p className="font-display text-sm font-semibold text-ink">
-                            {item.company}
-                        </p>
+                        <p className="text-sm font-semibold text-ink">{item.company}</p>
                         <p className="text-xs text-muted">
                             {item.position} · <span className="tabular-nums">{item.period}</span>
                         </p>
@@ -110,23 +104,27 @@ export function ProfileCard() {
     return (
         <Panel>
             <div className="flex items-center gap-3">
-                <img src={profile.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />
+                <img
+                    src={profile.avatar}
+                    alt=""
+                    className="h-12 w-12 rounded-full border border-line bg-paper object-cover object-top"
+                />
                 <div className="min-w-0">
-                    <p className="font-display text-sm font-semibold text-ink">{profile.name}</p>
+                    <p className="text-sm font-semibold text-ink">{profile.name}</p>
                     <p className="text-xs text-muted">{profile.role}</p>
                 </div>
             </div>
-            <dl className="flex flex-col gap-1 font-mono text-[0.6875rem] text-muted">
+            <dl className="flex flex-col gap-1 text-xs text-muted">
                 <div className="flex gap-2">
-                    <dt className="w-12 shrink-0 text-espresso">email</dt>
+                    <dt className="w-12 shrink-0">이메일</dt>
                     <dd className="truncate text-ink">{profile.email}</dd>
                 </div>
                 <div className="flex gap-2">
-                    <dt className="w-12 shrink-0 text-espresso">phone</dt>
+                    <dt className="w-12 shrink-0">전화</dt>
                     <dd className="tabular-nums text-ink">{profile.phone}</dd>
                 </div>
                 <div className="flex gap-2">
-                    <dt className="w-12 shrink-0 text-espresso">based</dt>
+                    <dt className="w-12 shrink-0">지역</dt>
                     <dd className="text-ink">{profile.location}</dd>
                 </div>
             </dl>
@@ -156,14 +154,12 @@ export function ContactNote({ label, value }: { label: string; value: string }) 
 
     return (
         <div className="mt-2 flex items-center gap-2 rounded-2xl border border-line bg-paper/60 px-3 py-2">
-            <span className="font-mono text-[0.625rem] tracking-[0.16em] text-muted uppercase">
-                {label}
-            </span>
-            <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink">{value}</span>
+            <span className="text-xs text-muted">{label}</span>
+            <span className="min-w-0 flex-1 truncate text-xs text-ink tabular-nums">{value}</span>
             <button
                 type="button"
                 onClick={copy}
-                className="shrink-0 rounded-full border border-line px-2.5 py-1 font-mono text-[0.625rem] text-espresso transition-colors hover:border-espresso/50"
+                className="shrink-0 rounded-full border border-line px-2.5 py-1 text-xs text-ink transition-colors hover:border-ink/40"
             >
                 {copied ? "복사됨" : "복사"}
             </button>
@@ -174,7 +170,7 @@ export function ContactNote({ label, value }: { label: string; value: string }) 
 /** 화면을 움직인 툴은 카드 대신 한 줄 흔적만 남긴다. */
 export function ActionNote({ children }: { children: ReactNode }) {
     return (
-        <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[0.6875rem] text-muted">
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
             <span aria-hidden className="inline-block h-1 w-1 rounded-full bg-espresso" />
             {children}
         </p>

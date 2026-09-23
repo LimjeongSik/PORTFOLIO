@@ -8,7 +8,9 @@ import type {
     Profile,
     Project,
     ProjectAnatomy,
+    ProjectBridgeMap,
     ProjectCase,
+    ProjectKeyring,
     ProjectPipeline,
     ProjectRuntimeMap,
     ProjectSieve,
@@ -33,6 +35,8 @@ export type KnowledgeProject = Omit<
     | "pipeline"
     | "sieve"
     | "windowing"
+    | "keyring"
+    | "bridge"
 > & {
     screens: { name: string; note: string }[];
 };
@@ -41,11 +45,21 @@ export type KnowledgeProject = Omit<
 export type KnowledgeProjectDetail = {
     cases: ProjectCase[];
     sheets: { title: string; note: string }[];
-    anatomy?: Omit<ProjectAnatomy, "src" | "ratio">;
+    anatomy?: Omit<ProjectAnatomy, "src" | "ratio" | "notes"> & {
+        notes: { title: string; body: string }[];
+    };
     runtime?: ProjectRuntimeMap;
     pipeline?: ProjectPipeline;
     sieve?: ProjectSieve;
     windowing?: ProjectWindowing;
+    /** 수명(`life`)과 `burst`는 화면 연출용으로 줄인 값이라 뺀다. 임계·경로는 코드 그대로다. */
+    keyring?: Omit<ProjectKeyring, "keys" | "burst"> & {
+        keys: Omit<ProjectKeyring["keys"][number], "life">[];
+    };
+    /** `applies`는 화면 상태 표시용이라 뺀다. */
+    bridge?: Omit<ProjectBridgeMap, "calls"> & {
+        calls: Omit<ProjectBridgeMap["calls"][number], "applies">[];
+    };
 };
 
 export type Knowledge = {

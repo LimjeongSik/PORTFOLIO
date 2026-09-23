@@ -45,14 +45,12 @@ export function AssistantLauncher() {
                 onFocus={prefetch}
                 aria-expanded={open}
                 aria-controls={mounted ? panelId : undefined}
-                className="flex h-13 items-center gap-2 rounded-full bg-espresso px-5 text-paper shadow-[0_12px_32px_-12px_rgba(0,0,0,0.5)] transition-transform hover:-translate-y-0.5"
+                className="flex h-12 items-center gap-2 rounded-full bg-ink px-5 text-paper shadow-[0_12px_32px_-14px_rgba(21,23,28,0.55)] transition-colors hover:bg-ink/85"
             >
                 <span aria-hidden="true" className="relative flex h-2 w-2">
                     <span className="absolute inset-0 rounded-full bg-paper/70" />
                 </span>
-                <span className="font-display text-sm font-semibold">
-                    {open ? "닫기" : "물어보기"}
-                </span>
+                <span className="text-sm font-bold">{open ? "닫기" : "물어보기"}</span>
             </button>
         </div>
     );

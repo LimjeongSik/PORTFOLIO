@@ -127,7 +127,7 @@ export const assistantToolkit = defineToolkit({
         }),
         render: ({ args }) => (
             <ContactNote
-                label={args.field === "phone" ? "phone" : "email"}
+                label={args.field === "phone" ? "전화" : "이메일"}
                 value={args.field === "phone" ? profile.phone : profile.email}
             />
         ),
