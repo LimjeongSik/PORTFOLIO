@@ -1,5 +1,6 @@
 import { Navigate, useParams } from "react-router-dom";
 
+import { CodeChange } from "@/components/project/CodeChange";
 import { Anatomy } from "@/components/project/figures/Anatomy";
 import { Bridge } from "@/components/project/figures/Bridge";
 import { Keyring } from "@/components/project/figures/Keyring";
@@ -82,6 +83,14 @@ function Case({ item }: { item: ProjectCase }) {
                     </div>
                 ))}
             </dl>
+            {item.changes?.length ? (
+                <div className="mt-8 flex flex-col gap-10 sm:ml-15 sm:max-w-[44rem]">
+                    {item.changes.map((change) => (
+                        // 같은 파일 · 같은 커밋에서 두 군데를 뽑을 수도 있어 발췌한 코드까지 키에 넣는다.
+                        <CodeChange key={`${change.file}:${change.after}`} change={change} />
+                    ))}
+                </div>
+            ) : null}
             {item.metrics?.length ? (
                 <dl className="mt-8 grid gap-x-8 gap-y-4 rounded-xl bg-surface px-5 py-5 sm:ml-15 sm:max-w-[38rem] sm:grid-cols-3">
                     {item.metrics.map((metric) => (

@@ -1,6 +1,6 @@
 # 포트폴리오 진행 문서
 
-> 최종 업데이트: 2026-09-23 (30차 — 인터랙션을 걷어내고 다시 짰다)
+> 최종 업데이트: 2026-09-28 (31차 — 사례에 전/후 코드 근거를 붙였다)
 
 프론트엔드 개발자 **포트폴리오 겸 이력서** 웹사이트. 원페이지 스크롤 + 프로젝트 상세 페이지 구조.
 
@@ -40,6 +40,11 @@
   증명하지 않으므로 `takeaways`를 적는다. 같은 내용이 `resume/content.js`의 `extras`에도 있다.
 - **프로젝트는 SafeOps · 침례교(전용앱) · 아이머그 · Plus SMS 넷**(`projects.ts`). Plus SMS만
   `platform: "web"`이라 화면 선반이 가로 비율로 선다.
+- **사례에 코드 근거를 싣는다(`ProjectCase.changes`).** 사용자 지적 — "어떻게 해결했다만 있고, 기존 코드가
+  어땠는데 어떻게 바뀌었는지 근거가 없다". 사례마다 원 저장소 git 이력에서 뽑은 **전/후 코드 · 파일 경로 ·
+  커밋(짧은 해시 · 날짜) · 달라진 동작 한 줄**을 `CodeChange`가 위아래로 그린다. 지금은 **SafeOps · 침례교만** 채웠고
+  아이머그 · Plus SMS는 아직이다. 전후 코드가 없는 설계(처음부터 그 꼴로 들어간 것)는 `note`에 그렇다고 적고
+  지어내지 않는다. 같은 근거를 `resume/resume.md`에 "전 → 후" 줄로, `content.js`에는 한 문장으로 옮겼다.
 - **AI 안내자(채팅 위젯) 동작함.** 우측 하단 버튼 → 질문 → 답하면서 화면까지 옮긴다.
   로컬은 `bun run dev` 하나로 API까지 뜨고, Vercel 배포도 연결돼 있다(§5).
 - **프로필 사진의 배경은 흰색으로 바꿨다**(원래 크림색이 구워져 있었다). 가장자리(위·좌·우)에서
@@ -128,7 +133,7 @@ scripts/                       # build-knowledge.ts · subset-fonts.py · optimi
   연락처 목록에 더한다.
 - **Pretendard는 굵기당 두 벌을 굽는다**(`python3 scripts/subset-fonts.py`, 요구:
   `fonttools[woff]`·`brotli`, 원본 OTF는 커밋하지 않음). `core`는 **소스에 실제로 쓰는 한글
-  859자**만 담아 76KB, `subset`은 KS X 1001 2350자로 170KB다. CSS는 `subset`을 먼저,
+  720자**만 담아 약 69KB, `subset`은 KS X 1001 2350자로 170KB다. CSS는 `subset`을 먼저,
   `core`를 나중에 선언하고 `core`에만 `unicode-range`를 준다 — 브라우저는 겹치는 글자에서
   나중 선언을 쓰므로 지금 쓰는 글자는 전부 `core`로 그려지고 `subset`은 **아예 받지 않는다**.
   세 굵기 518KB를 첫 로드에 통째로 받던 것이 229KB가 됐다. 콘텐츠에 없던 글자가 들어오면
@@ -173,6 +178,12 @@ scripts/                       # build-knowledge.ts · subset-fonts.py · optimi
 - **새 시그니처 필드는 `scripts/build-knowledge.ts`와 `api/_lib/types.ts`에도 넣을 것**: 넣지 않으면
   안내자의 `get_project_detail`이 그 그림을 모른다. `sieve`·`windowing`은 넣었다.
   일곱 그림 모두 들어가 있다(30차).
+- **원고의 수치 · 서사는 원 저장소 이력과 대조한 뒤에 쓴다**: 코드 근거를 붙이려고 git을 뒤졌더니 틀린 말이
+  여럿 나왔다(2026-09-28) — SafeOps는 되돌림이 idle 조건이 아니었고(idle은 화면 넘김 판단), 403은 세션 폐기 경로가
+  아니었고, 테스트는 84/1006이 아니라 88/1050이었다. 침례교는 "만료 모달이 요청 수만큼"이 아니라 로그아웃이 요청
+  수만큼이었고(모달은 없었다), 5분 선제 갱신은 원래 있던 것이며, 역순 읽기는 하루 만에 걷어낸 본인의 임시 우회로,
+  "275곳"은 재현되지 않았다(실제 121개 파일 · 약 500곳), 86.71은 상수가 아니라 Note20 실측값이다. 새 수치를 쓸 때는
+  커밋 해시까지 확인하고, 오래된 문서 값(README 배지 등)을 그대로 옮기지 말 것.
 - **`bun run knowledge` 뒤에는 `bun run check:fix`를 다시 돌릴 것**: 생성기가 만드는
   `api/_lib/knowledge.generated.ts`는 키를 따옴표로 감싼 JSON 꼴이라 Biome 포맷과 어긋난다.
   콘텐츠만 고치고 검사를 건너뛰면, 정작 손대지도 않은 생성 파일 때문에 `bun run check`가
@@ -250,15 +261,16 @@ scripts/                       # build-knowledge.ts · subset-fonts.py · optimi
 "답을 받아오지 못했습니다"로 나타나고 서버 로그에 429 `RESOURCE_EXHAUSTED`가 찍힌다.
 
 
-## 6. 마지막 검증 (2026-09-23, 30차)
+## 6. 마지막 검증 (2026-09-28, 31차)
 
-- `bun run check` · `bun run build` 통과. 첫 로드 JS는 index 39KB + react 74KB(gzip) —
-  three·gsap·motion 청크가 사라졌다. assistant 묶음은 여전히 버튼에 닿을 때 받는다.
-- 헤드리스 Chromium(1440×900 · 390×844)으로 홈과 네 상세를 찍어 확인. 콘솔 에러 0,
-  가로 넘침 없음. `/#about` 직접 진입 시 그 구간으로 이동.
-- 이력서: 헤드리스 Chrome `--print-to-pdf`로 뽑아 A4 4쪽 · 쪽 경계(제목만 남는 쪽 없음) 확인.
+- `bun run check` · `bun run build` 통과. `bun run knowledge` 재생성, 폰트 서브셋 재생성.
+- 헤드리스 Chromium(1440×900 · 390×844)으로 SafeOps · 침례교 상세를 찍어 확인. 코드 근거 SafeOps 9개 · 침례교 4개,
+  콘솔 에러 0, 가로 넘침 없음(긴 코드 줄은 코드 상자 안에서만 가로로 스크롤된다).
+- 이력서: 헤드리스 Chrome `--print-to-pdf`로 A4 4쪽 유지 확인.
 
 ## 7. 다음 작업 (미착수)
+
+- **아이머그 · Plus SMS 사례에도 `changes`(전/후 코드)를 붙이기.** 같은 방식으로 원 저장소 이력과 원고를 대조한다.
 
 - README 화면 캡처 · 스택 배지 · 구조 설명을 새 화면에 맞춰 다시 쓰기.
 - **`safeops-dashboard`(관제 백오피스, React SPA + Django)는 아직 올리지 않는다.** 센티언트

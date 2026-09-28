@@ -72,12 +72,28 @@ export interface ProjectMetric {
     value: string;
 }
 
+/**
+ * 사례의 근거 — 같은 자리의 코드가 전에는 어땠고 지금은 어떤가. 원 저장소의 git 이력에서
+ * 그대로 발췌한다(줄임은 `// ...`로만). 지어낸 코드나 다듬은 의사 코드는 넣지 않는다.
+ */
+export interface ProjectCodeChange {
+    /** 발췌한 파일(원 저장소 기준 경로) */
+    file: string;
+    /** 바뀐 커밋 — "짧은 해시 · YYYY.MM.DD". 저장소가 비공개라 확인할 때 짚는 표식이다. */
+    commit?: string;
+    before: string;
+    after: string;
+    /** 두 코드가 같은 입력에서 실제로 어떻게 다르게 움직였나 */
+    note: string;
+}
+
 export interface ProjectCase {
     label: string;
     problem: string;
     approach: string;
     result: string;
     metrics?: ProjectMetric[];
+    changes?: ProjectCodeChange[];
 }
 
 export interface ProjectAnatomyNote {
