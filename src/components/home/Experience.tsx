@@ -21,13 +21,15 @@ export function Experience() {
                             <h3 className={HEADING}>{item.company}</h3>
                             <p className={`mt-1 ${META}`}>{item.position}</p>
                             <p className={`mt-5 ${BODY}`}>{item.summary}</p>
-                            <ul className="mt-5 flex flex-col gap-2.5">
-                                {item.achievements.map((line) => (
-                                    <li key={line} className={`${DASH} ${SMALL}`}>
-                                        {line}
-                                    </li>
-                                ))}
-                            </ul>
+                            {item.achievements.length > 0 ? (
+                                <ul className="mt-5 flex flex-col gap-2.5">
+                                    {item.achievements.map((line) => (
+                                        <li key={line} className={`${DASH} ${SMALL}`}>
+                                            {line}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
                             <p className={`mt-5 ${META}`}>{item.stack.join(", ")}</p>
                         </div>
                     </li>
