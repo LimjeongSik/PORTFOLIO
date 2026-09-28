@@ -2,6 +2,8 @@ export interface Profile {
     name: string;
     role: string;
     tagline: string;
+    /** 첫 화면 헤드라인 아래 한 줄 — 지금 무엇을 하고 있나. */
+    current: string;
     intro: string[];
     phone: string;
     email: string;

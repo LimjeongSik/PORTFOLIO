@@ -3,7 +3,7 @@ import type { Experience } from "@/types/content";
 export const experiences: Experience[] = [
     {
         company: "센티언트 시스템즈 (Sentient Systems)",
-        position: "플랫폼 엔지니어",
+        position: "플랫폼 엔지니어 · React Native 앱 개발",
         period: "2026.07 — 현재",
         summary:
             "플랫폼 엔지니어링 팀에서 일하고 있습니다. 행사 현장의 경비 요원과 관제실을 잇는 근무 앱 SafeOps를 설계부터 구현까지 맡아 양대 스토어에 출시했고, 지금은 1.0.2 버전을 운영하고 있습니다.",

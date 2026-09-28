@@ -105,6 +105,7 @@ ${profile.name}의 이력 · 프로젝트 · 기술 · 일하는 방식에 대�
 ### 프로필
 - 이름: ${profile.name} / ${profile.role}
 - 한 줄: ${profile.tagline}
+- 지금: ${profile.current}
 - 소개: ${profile.intro.join(" ")}
 - 연락: ${profile.email} · ${profile.phone} · ${profile.location}
 - GitHub·블로그 같은 외부 링크는 아직 공개하지 않았습니다. 물으면 이메일로 연락하도록 안내합니다.

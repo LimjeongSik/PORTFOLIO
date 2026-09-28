@@ -74,7 +74,9 @@
 - **안내자가 읽는 자료에 아이머그의 브릿지(`bridge`)를 넣었다.** 화면 연출용 값
   (`applies`·`anatomy.notes[].at`)은 뺀다. 자리표시자 소셜 링크는 프롬프트에서 뺐다 —
   물으면 아직 공개하지 않았다고 답하고 이메일로 안내한다.
-- **README의 화면 캡처(`docs/screenshots/`)와 스택 배지·구조 설명은 아직 3D 시절 것이다.**
+- **README는 지금 화면 기준이다**(캡처 6장 · 배지 · 구조 · 스택 표, 2026-09-28).
+- **첫 화면 헤드라인 아래 한 줄은 `profile.current`(데이터)다.** 예전엔 `Hero`가 경력의 직함을 끼워 "플랫폼 엔지니어로
+  일하고 있습니다"를 만들었는데, 인프라 직군으로 읽힌다는 비판을 받아 이력서와 같이 "React Native 앱 SafeOps를…"로 바꿨다.
 
 ## 2. 구조
 
@@ -102,7 +104,10 @@ PDF에 브라우저 기본 머리글·바닥글(날짜·제목·URL·쪽번호)�
 찾는다. 크롬 격자는 쪽 사이에서 잘 안 끊기므로 출력에서는 `.strengths`를 block으로 둔다.
 레이아웃을 고친 뒤엔 PDF로 뽑아 쪽 경계를 확인할 것 — 역량 셋째 장이 20pt만 넘쳐도 뒤쪽이 줄줄이 밀려 5쪽이 된다.
 
-README의 화면 캡처는 `docs/screenshots/*.webp`에 있다(6장 260KB). 프로덕션 빌드를 띄우고
+README의 화면 캡처는 `docs/screenshots/*.webp`에 있다(6장 244KB: hero · projects · detail · case · demo · assistant).
+프로덕션 빌드를 `bun run preview`로 띄우고 헤드리스 Chromium 1440×900 · DPR 1.5로 찍어 `cwebp -resize 1600 0 -q 78`로
+줄였다. 찍기 전에 이미지를 `loading="eager"`로 바꾸고 폰트 로드를 기다린다. 안내자 패널은 맨 위에서 연다 —
+같은 세션에서 홈을 다시 열면 스크롤 위치가 복원돼 엉뚱한 자리에서 찍힌다.
 
 ```
 src/
@@ -110,7 +115,7 @@ src/
   App.tsx                      # ScrollManager + Header + Routes + Footer + AssistantLauncher
   lib/typography.ts            # 조판 규약(DISPLAY/RAIL/HEADING/LEAD/BODY/SMALL/META/DASH/MEASURE/CONTAINER)
   lib/scroll.ts                # scrollToSection / scrollToTop — 네이티브 스크롤
-  lib/text.ts                  # withRo(로/으로) · shortCompany · firstSentence
+  lib/text.ts                  # firstSentence(목록 한 줄 요약)
   lib/url.ts                   # hostOf
   lib/assistant/               # bridge(navigate·close 다리) · toolkit(모델이 부르는 툴 정의)
   hooks/useMediaQuery.ts
@@ -324,7 +329,6 @@ scripts/                       # build-knowledge.ts · subset-fonts.py · optimi
 - 후보로 봤지만 넣지 않은 것: 침례교 헌금내역 무한 재요청(14a24ce, 검증 기록 없음) · 계좌 마스킹 7자리(66a1a65) ·
   동명 교회 복원(e27aa8d), SafeOps jest gcTime(b1665b4) · iOS confidence 임계(797f353).
 
-- README 화면 캡처 · 스택 배지 · 구조 설명을 새 화면에 맞춰 다시 쓰기.
 - **`safeops-dashboard`(관제 백오피스, React SPA + Django)는 아직 올리지 않는다.** 센티언트
   시스템즈의 같은 제품 라인이고 리팩터링 파이프라인(`.claude/agents`)이 거기 서 있지만,
   **완료된 프로젝트가 아니고 혼자 만든 것도 아니다.** 올린다면 먼저 **내가 한 몫과 팀이 한 몫을
