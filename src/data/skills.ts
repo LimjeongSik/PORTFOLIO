@@ -15,8 +15,8 @@ export const skillGroups: SkillGroup[] = [
         ],
     },
     {
-        label: "Native · Push",
-        items: ["Kotlin", "FCM", "Notifee"],
+        label: "Push",
+        items: ["FCM", "Notifee"],
     },
     {
         label: "Data",

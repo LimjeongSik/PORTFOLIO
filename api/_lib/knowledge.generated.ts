@@ -12,8 +12,8 @@ export const knowledge: Knowledge = {
         current:
             "지금은 센티언트 시스템즈에서 행사 현장용 React Native 앱 SafeOps를 설계부터 출시 · 운영까지 맡고 있습니다.",
         intro: [
-            "6년 동안 React와 React Native로 웹과 앱을 만들어 왔습니다. 웹 퍼블리셔로 시작해 React 웹, React Native 앱, 필요하면 Kotlin 네이티브 모듈까지 맡는 범위를 넓혔고, 두 회사에서 프론트엔드 팀 리드로 공통 구조와 코드 리뷰를 맡았습니다.",
-            "화면을 그리는 것보다 운영하면서 생기는 문제에 오래 붙어 있는 편입니다. 백그라운드 위치 전송, 무음을 뚫는 알림, 토큰 갱신, WebView 연동처럼 OS와 서버가 얽힌 곳이요. 고친 뒤에는 실기기에서 상태별로 다시 확인하고, 잴 수 있는 건 재서 비교합니다.",
+            "웹 퍼블리셔로 시작해 6년째 웹과 앱을 만들고 있고, 그중 4년 넘게 React와 React Native로 개발했습니다. React 웹, React Native 앱, 필요하면 Kotlin 네이티브 모듈까지 맡는 범위를 넓혔고, 두 회사에서 프론트엔드 팀 리드로 공통 구조와 코드 리뷰를 맡았습니다.",
+            "화면을 그리는 것만큼, 운영하면서 생기는 문제에 오래 붙어 있는 편입니다. 백그라운드 위치 전송, 무음을 뚫는 알림, 토큰 갱신, WebView 연동처럼 OS와 서버가 얽힌 곳이요. 고친 뒤에는 실기기에서 상태별로 다시 확인하고, 잴 수 있는 건 재서 비교합니다.",
         ],
         phone: "010.9194.0167",
         email: "limjeongsik95@gmail.com",
@@ -26,13 +26,15 @@ export const knowledge: Knowledge = {
             position: "플랫폼 엔지니어 · React Native 앱 개발",
             period: "2026.07 — 현재",
             summary:
-                "플랫폼 엔지니어링 팀에서 일하고 있습니다. 행사 현장의 경비 요원과 관제실을 잇는 근무 앱 SafeOps를 설계부터 구현까지 맡아 양대 스토어에 출시했고, 지금은 1.0.2 버전을 운영하고 있습니다.",
+                "플랫폼 엔지니어링 팀에서 일하고 있습니다. 행사 현장의 경비 요원과 관제실을 잇는 근무 앱 SafeOps를 설계부터 구현까지 맡아 양대 스토어에 출시했고, 지금은 1.0.2 버전을 운영하고 있습니다. 관제실이 쓰는 백오피스도 함께 개발하고 있습니다.",
             achievements: [
                 "앱 1명 · 백엔드 1명 팀에서 SafeOps 앱 전체(설계 · 개발 · 양대 스토어 출시 · OTA 운영)를 맡음",
                 "요원이 화면을 보지 않아도 근무 중 10초 주기로 관제실에 좌표를 보내는 백그라운드 위치 전송 설계",
                 "무음 · 방해 금지에서도 울리는 긴급 알림 구현. Android는 알람 스트림 채널을 Kotlin Expo 모듈로 직접 만들고, iOS는 Critical Alert를 써서 양쪽 실기기에서 확인",
                 "라이트 · 다크 테마를 OTA로 배포하고 글자 대비 기준을 두 테마 모두 테스트로 검사(앱 전체 테스트 1,050개 · 88 suites)",
-                "사람 리뷰에 AI 에이전트 리뷰를 더한 절차를 운영. 코드가 고쳐지면 Codex 리뷰를 거쳐야 반영되는 게이트(Claude Code 훅)를 직접 만들고, MCP로 붙인 도구가 리뷰를 돕게 함",
+                "관제 백오피스(React 19 · Vite · TanStack Router · Tailwind v4)를 동료와 함께 개발. 전광판(DS) 화면과 편성 페이지, 요원 위치 · 이동 경로 지도(증분 폴링)를 맡음",
+                "백오피스에 Vitest 테스트 환경을 세우고 테스트 225개 파일을 추가",
+                "AI 에이전트가 리뷰를 돕는 흐름을 운영. 코드가 고쳐지면 Codex 리뷰를 거친 뒤에야 커밋되는 리뷰 게이트(Claude Code 훅)를 직접 만들고, MCP로 붙인 도구가 리뷰를 돕게 함",
                 "리팩터링을 탐색 · 판단 · 실행 세 단계로 나눠, 탐색과 판단은 읽기 전용 AI 에이전트에 맡기고 파일 수정 권한은 실행 단계에만 둔 파이프라인 운영",
             ],
             stack: [
@@ -42,6 +44,8 @@ export const knowledge: Knowledge = {
                 "TanStack Query",
                 "Expo Modules (Kotlin)",
                 "FCM · Notifee",
+                "React",
+                "Vitest",
             ],
         },
         {
@@ -49,9 +53,9 @@ export const knowledge: Knowledge = {
             position: "프론트엔드 개발 팀 리드",
             period: "2025.04 — 2026.07",
             summary:
-                "침례교 전용앱(React Native · Expo bare)을 동료 1명과 개발하며 앱 구조와 코드 리뷰 기준을 맡았습니다. 웹 리드에서 앱까지 맡는 범위를 넓힌 시기입니다.",
+                "개발 3 · 디자인 1명 팀의 프론트엔드 리드로, 침례교 전용앱(React Native · Expo bare)을 동료 1명과 개발하며 앱 구조와 코드 리뷰 기준을 맡았습니다. 웹 리드에서 앱까지 맡는 범위를 넓힌 시기입니다.",
             achievements: [
-                "웹 · 앱에서 함께 쓰는 API 인스턴스(토큰 갱신 · 세션 만료 처리) 설계 · 구현",
+                "아이머그 · 아이머그-바이블 · 침례교 · Plus SMS 등에서 쓰는 공용 API 인스턴스 구조를 설계하고, 프로젝트마다 필요한 기능을 더해 가며 다듬음",
                 "코드 리뷰와 멘토링으로 팀의 코드 작성 기준을 맞춤",
             ],
             stack: ["React", "React Native", "TypeScript", "Vite", "Axios", "TanStack Query"],
@@ -69,12 +73,11 @@ export const knowledge: Knowledge = {
             ],
             stack: [
                 "React",
-                "Next.js",
-                "Recoil",
-                "Axios",
+                "Vite",
+                "TypeScript",
                 "Zustand",
-                "styled-components",
                 "TanStack Query",
+                "styled-components",
             ],
         },
         {
@@ -83,7 +86,14 @@ export const knowledge: Knowledge = {
             period: "2022.08 — 2024.03",
             summary: "React · Next.js · React Native로 웹과 앱 외주 프로젝트를 개발했습니다.",
             achievements: [],
-            stack: ["React", "Next.js", "React Native", "TypeScript", "Axios", "styled-components"],
+            stack: [
+                "React",
+                "Next.js",
+                "React Native",
+                "TypeScript",
+                "Recoil",
+                "styled-components",
+            ],
         },
         {
             company: "주식회사 피씨유스토어",
@@ -131,8 +141,8 @@ export const knowledge: Knowledge = {
             ],
         },
         {
-            label: "Native · Push",
-            items: ["Kotlin", "FCM", "Notifee"],
+            label: "Push",
+            items: ["FCM", "Notifee"],
         },
         {
             label: "Data",
