@@ -40,27 +40,24 @@ function Call({ call }: { call: ProjectBridgeCall }) {
 
 /** 웹이 앱 WebView 안에서 돌 때 양쪽이 주고받는 말. 방향별로 모은다. */
 export function Bridge({ bridge }: { bridge: ProjectBridgeMap }) {
-    const sides: ProjectBridgeSide[] = ["app", "web"];
+    const sides = (["app", "web"] as ProjectBridgeSide[])
+        .map((side) => ({ side, calls: bridge.calls.filter((call) => call.from === side) }))
+        .filter(({ calls }) => calls.length > 0);
 
     return (
         <Figure title={bridge.title} lede={bridge.lede} note={bridge.note}>
-            <div className="grid gap-12 lg:grid-cols-2 lg:gap-12">
-                {sides.map((side) => {
-                    const calls = bridge.calls.filter((call) => call.from === side);
-                    if (calls.length === 0) {
-                        return null;
-                    }
-                    return (
-                        <div key={side} className="min-w-0">
-                            <p className="text-[0.9375rem] font-bold text-ink">{DIRECTION[side]}</p>
-                            <ul className="mt-4 flex flex-col">
-                                {calls.map((call) => (
-                                    <Call key={call.label} call={call} />
-                                ))}
-                            </ul>
-                        </div>
-                    );
-                })}
+            {/* 한 방향뿐이면 두 칸으로 나누지 않는다 — 오른쪽이 통째로 빈다. */}
+            <div className={`grid gap-12 ${sides.length > 1 ? "lg:grid-cols-2" : ""}`}>
+                {sides.map(({ side, calls }) => (
+                    <div key={side} className="min-w-0">
+                        <p className="text-[0.9375rem] font-bold text-ink">{DIRECTION[side]}</p>
+                        <ul className="mt-4 flex flex-col">
+                            {calls.map((call) => (
+                                <Call key={call.label} call={call} />
+                            ))}
+                        </ul>
+                    </div>
+                ))}
             </div>
         </Figure>
     );

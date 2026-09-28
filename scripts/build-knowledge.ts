@@ -50,10 +50,6 @@ for (const project of projects) {
     if (project.pipeline) detail.pipeline = project.pipeline;
     if (project.sieve) detail.sieve = project.sieve;
     if (project.windowing) detail.windowing = project.windowing;
-    if (project.keyring) {
-        const { burst: _burst, keys, ...keyring } = project.keyring;
-        detail.keyring = { ...keyring, keys: keys.map(({ life: _life, ...key }) => key) };
-    }
     if (project.bridge) {
         const { calls, ...bridge } = project.bridge;
         detail.bridge = { ...bridge, calls: calls.map(({ applies: _applies, ...call }) => call) };

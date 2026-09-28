@@ -3,7 +3,6 @@ import { Navigate, useParams } from "react-router-dom";
 import { CodeChange } from "@/components/project/CodeChange";
 import { Anatomy } from "@/components/project/figures/Anatomy";
 import { Bridge } from "@/components/project/figures/Bridge";
-import { Keyring } from "@/components/project/figures/Keyring";
 import { Pipeline } from "@/components/project/figures/Pipeline";
 import { Runtime } from "@/components/project/figures/Runtime";
 import { Sieve } from "@/components/project/figures/Sieve";
@@ -41,9 +40,6 @@ function figuresOf(project: Project) {
     }
     if (project.runtime) {
         figures.push({ key: "runtime", node: <Runtime runtime={project.runtime} /> });
-    }
-    if (project.keyring) {
-        figures.push({ key: "keyring", node: <Keyring keyring={project.keyring} /> });
     }
     if (project.bridge) {
         figures.push({ key: "bridge", node: <Bridge bridge={project.bridge} /> });

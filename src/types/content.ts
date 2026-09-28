@@ -81,7 +81,8 @@ export interface ProjectCodeChange {
     file: string;
     /** 바뀐 커밋 — "짧은 해시 · YYYY.MM.DD". 저장소가 비공개라 확인할 때 짚는 표식이다. */
     commit?: string;
-    before: string;
+    /** 없으면 이 커밋에서 새로 들어간 코드다 — 전 칸을 지어내지 않고 추가 칸 하나만 그린다. */
+    before?: string;
     after: string;
     /** 두 코드가 같은 입력에서 실제로 어떻게 다르게 움직였나 */
     note: string;
@@ -156,32 +157,6 @@ export interface ProjectPipeline {
     lede: string;
     stages: ProjectPipelineStage[];
     cases: ProjectPipelineCase[];
-    note: string;
-}
-
-/** 인증 열쇠 한 개 — 자기 수명과 갱신 임계, 그리고 그것이 여는 문. */
-export interface ProjectKey {
-    name: string;
-    /** 요청에 실려 나가는 헤더 이름 */
-    header: string;
-    /** 이 열쇠가 여는 곳 */
-    opens: string;
-    /** 발급 직후 수명(초). 화면에서는 시간을 감아 돌린다. */
-    life: number;
-    /** 남은 시간이 이 값(초) 이하로 떨어지면 갱신한다. 0이면 스스로 갱신하지 않는다. */
-    renewAt: number;
-    /** 갱신을 요청하는 자리. 스스로 갱신하지 않는 열쇠는 비워 둔다. */
-    renewVia?: string;
-    note: string;
-}
-
-/** 열쇠들이 각자 다른 속도로 닳는 시간축. */
-export interface ProjectKeyring {
-    title: string;
-    lede: string;
-    keys: ProjectKey[];
-    /** 동시에 터뜨려 볼 요청 수 — 갱신이 하나로 합쳐지는 걸 보여줄 때 쓴다. */
-    burst: number;
     note: string;
 }
 
@@ -278,7 +253,6 @@ export interface Project {
     anatomy?: ProjectAnatomy;
     runtime?: ProjectRuntimeMap;
     pipeline?: ProjectPipeline;
-    keyring?: ProjectKeyring;
     bridge?: ProjectBridgeMap;
     sieve?: ProjectSieve;
     windowing?: ProjectWindowing;

@@ -77,6 +77,16 @@
             }
         },
         {
+            "includes": ["src/data/projects.ts", "api/_lib/knowledge.generated.ts"],
+            "linter": {
+                "rules": {
+                    "suspicious": {
+                        "noTemplateCurlyInString": "off"
+                    }
+                }
+            }
+        },
+        {
             "includes": ["**/*.css"],
             "linter": {
                 "rules": {

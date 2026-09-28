@@ -28,8 +28,14 @@ export function CodeChange({ change }: { change: ProjectCodeChange }) {
                 ) : null}
             </figcaption>
             <div className="mt-3 flex flex-col gap-3">
-                <Pane label="전" code={change.before} faded />
-                <Pane label="후" code={change.after} />
+                {change.before === undefined ? (
+                    <Pane label="추가" code={change.after} />
+                ) : (
+                    <>
+                        <Pane label="전" code={change.before} faded />
+                        <Pane label="후" code={change.after} />
+                    </>
+                )}
             </div>
             <p className={`mt-3 ${SMALL}`}>{change.note}</p>
         </figure>

@@ -23,7 +23,7 @@ export const skillGroups: SkillGroup[] = [
     },
     {
         label: "Tooling & Testing",
-        items: ["Vite", "Bun", "Biome", "Vitest"],
+        items: ["Vite", "Bun", "Biome", "Jest", "Vitest"],
     },
     {
         label: "Workflow",
