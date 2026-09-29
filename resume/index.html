@@ -928,7 +928,7 @@
                     margin-top: var(--s5);
                     padding-top: var(--s5);
                 }
-                /* 글자 크기 · 줄 간격은 화면과 같게 두고, 섹션과 항목 사이만 한 단계씩 좁혀 4쪽에 담는다. */
+                /* 글자 크기 · 줄 간격은 화면과 같게 두고, 섹션과 항목 사이만 한 단계씩 좁힌다. */
                 .block {
                     margin-top: var(--s6);
                 }
@@ -943,6 +943,10 @@
                 }
                 .strengths {
                     margin-top: var(--s5);
+                }
+                /* 외주 섹션은 짧아서 쪽 사이에서 가르면 뒤쪽에 두세 줄만 남는다 — 통째로 넘긴다. */
+                .block.side {
+                    break-inside: avoid;
                 }
                 .strength,
                 .side-item,
@@ -1151,7 +1155,7 @@
                         data.sideProjectsSpan && data.sideProjects?.length
                             ? [
                                   {
-                                      title: `외주 프로젝트 ${data.sideProjects.length}건`,
+                                      title: "외주 프로젝트",
                                       span: parsePeriod(data.sideProjectsSpan),
                                       approx: true,
                                   },
@@ -1394,7 +1398,7 @@
                 ], "projects");
 
                 const sideBlock = data.sideProjects?.length
-                    ? block("외주 프로젝트", "모과플레이부터 프리랜서 시절까지의 외주 작업, 최근 것부터", [
+                    ? block("외주 프로젝트", data.sideProjectsNote || "", [
                           el("div", { class: "body" }, [
                               el(
                                   "ul",
@@ -1411,7 +1415,7 @@
                                   ),
                               ),
                           ]),
-                      ])
+                      ], "side")
                     : "";
 
                 const simpleList = (items) =>

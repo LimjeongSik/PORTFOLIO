@@ -55,7 +55,7 @@ export const knowledge: Knowledge = {
             summary:
                 "개발 3 · 디자인 1명 팀의 프론트엔드 리드로, 침례교 전용앱(React Native · Expo bare)을 동료 1명과 개발하며 앱 구조와 코드 리뷰 기준을 맡았습니다. 웹 리드에서 앱까지 맡는 범위를 넓힌 시기입니다.",
             achievements: [
-                "아이머그 · 아이머그-바이블 · 침례교 · Plus SMS 등에서 쓰는 공용 API 인스턴스 구조를 설계하고, 프로젝트마다 필요한 기능을 더해 가며 다듬음",
+                "아이머그 때 설계한 공용 API 인스턴스 구조를 아이머그-바이블 · 침례교 · Plus SMS로 옮기며 프로젝트마다 필요한 기능을 더함",
                 "코드 리뷰와 멘토링으로 팀의 코드 작성 기준을 맞춤",
             ],
             stack: ["React", "React Native", "TypeScript", "Vite", "Axios", "TanStack Query"],
@@ -65,7 +65,7 @@ export const knowledge: Knowledge = {
             position: "프론트엔드 개발 팀 리드",
             period: "2024.04 — 2025.04",
             summary:
-                "아이머그(React 웹 · 앱 WebView)의 개발 리드로 프론트엔드 초기 구조를 세웠습니다. 팀은 개발 3 · 디자인 1 · 백엔드 1명이었습니다.",
+                "아이머그(React 웹 · 앱 WebView)를 새 저장소로 다시 만들며 개발 리드로 프론트엔드 초기 구조를 세웠습니다. 팀은 개발 3 · 디자인 1 · 백엔드 1명이었습니다.",
             achievements: [
                 "웹 · 앱 공용 API 인스턴스의 설계 방향을 잡고 팀원의 구현을 리뷰",
                 "영상 목록 · 스와이프 · 탭을 합성 컴포넌트로 만들어 화면마다 반복하던 구현을 줄임",

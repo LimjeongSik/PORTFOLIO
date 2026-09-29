@@ -73,8 +73,8 @@ description: >-
   목록으로 한 번 훑는다.
 - 순서: `bun run knowledge` → `bun run check:fix` → 새 한글이 들어갔으면 `python3 scripts/subset-fonts.py`
   (요구 패키지가 없으면 스크래치패드 venv) → `bun run build`.
-- `content.js`를 고쳤으면 PDF를 뽑아 쪽수와 마지막 쪽을 본다. 쪽수 자체가 목표는 아니지만 몇 줄만 넘어간
-  빈 쪽은 만들지 않는다(`resume/README.md` 편집 원칙).
+- `content.js`를 고쳤으면 PDF를 뽑아 쪽 경계와 마지막 쪽을 본다. 정해진 쪽수는 없다 — 쪽수를 맞추려고 내용을
+  빼지 말고, 항목마다 최대한 간략하게 쓴다(`resume/README.md` 편집 원칙).
 
 ## 5. 보고
 
