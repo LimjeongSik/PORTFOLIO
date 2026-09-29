@@ -643,6 +643,30 @@
                 height: 1.5px;
                 background: var(--muted);
             }
+            /* 도입 행사 — 성과 목록과 섞이지 않게 제목을 단 작은 표로 둔다. */
+            .usage {
+                margin-top: var(--s4);
+                padding-top: var(--s3);
+                border-top: 1px solid var(--line);
+            }
+            .usage h4 {
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: var(--muted);
+            }
+            .usage ul {
+                margin-top: var(--s2);
+                display: grid;
+                gap: var(--s1);
+                font-size: 0.93rem;
+                line-height: 1.6;
+            }
+            .usage li span {
+                color: var(--muted);
+            }
+            .usage + .stack {
+                margin-top: var(--s5);
+            }
             .stack {
                 margin-top: var(--s4);
                 font-family: var(--figure);
@@ -952,7 +976,8 @@
                 .side-item,
                 .points > div,
                 .metrics,
-                .bullets li {
+                .bullets li,
+                .usage {
                     break-inside: avoid;
                 }
                 .entry .summary {
@@ -1317,6 +1342,21 @@
                                                   el("li", { class: isTodo(a) ? "todo-row" : undefined }, text(a)),
                                               ),
                                           )
+                                        : null,
+                                    c.usage?.length
+                                        ? el("div", { class: "usage" }, [
+                                              el("h4", {}, "SafeOps 도입 행사"),
+                                              el(
+                                                  "ul",
+                                                  {},
+                                                  c.usage.map((u) =>
+                                                      el("li", {}, [
+                                                          u.event,
+                                                          u.note ? el("span", {}, ` · ${u.note}`) : null,
+                                                      ]),
+                                                  ),
+                                              ),
+                                          ])
                                         : null,
                                     c.stack?.length
                                         ? el("p", { class: "stack" }, c.stack.join(", "))
