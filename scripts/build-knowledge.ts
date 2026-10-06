@@ -33,6 +33,7 @@ const knowledgeProjects: KnowledgeProject[] = projects.map((project) => ({
     links: project.links,
     context: project.context,
     approach: project.approach,
+    field: project.field,
     screens: project.screens.map(({ name, note }) => ({ name, note })),
 }));
 

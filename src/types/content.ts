@@ -99,6 +99,25 @@ export interface ProjectCase {
     changes?: ProjectCodeChange[];
 }
 
+/** 출시 뒤 실제 행사에서 쓰인 기록 한 건. 고객사 행사명 · 날짜는 밝히지 않고 성격만 적는다. */
+export interface ProjectFieldEvent {
+    event: string;
+    /** 누가 몇 명 썼나 */
+    users: string;
+    /** 시간대에 따라 사용 인원이 어떻게 달라졌나 */
+    usage: string;
+    /** 관제실이 앱으로 실제 대응한 일 */
+    dispatch: string;
+    metrics: ProjectMetric[];
+}
+
+export interface ProjectField {
+    lede: string;
+    events: ProjectFieldEvent[];
+    /** 현장에서 보고 다음에 고칠 것 */
+    retrospective: string[];
+}
+
 export interface ProjectAnatomyNote {
     /** 이 주석이 켜지는 스크롤 진행률(0~1). 오름차순으로 적는다. */
     at: number;
@@ -250,6 +269,8 @@ export interface Project {
     screenModes?: ProjectScreenModes;
     sheets: ProjectSheet[];
     links: ProjectLinks;
+    /** 출시 뒤 현장 운영 기록. 있으면 상세의 사례 다음에 "현장 운영" 구간으로 선다. */
+    field?: ProjectField;
     /* 아래는 그 프로젝트만의 시그니처 그림이다. 있는 것만 상세 페이지의 `system`
        구간에 차례로 놓인다(`ProjectSignature`). */
     anatomy?: ProjectAnatomy;

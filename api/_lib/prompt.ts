@@ -19,6 +19,13 @@ function projectSummary(): string {
             if (p.screens.length > 0) {
                 lines.push(`- 화면: ${p.screens.map((s) => s.name).join(" · ")}`);
             }
+            if (p.field) {
+                lines.push(`- 현장 운영: ${p.field.lede}`);
+                for (const e of p.field.events) {
+                    lines.push(`  - ${e.event}(${e.users}): ${e.usage} 관제 사례: ${e.dispatch}`);
+                }
+                lines.push(`  - 돌아보며: ${p.field.retrospective.join(" ")}`);
+            }
             const detail = details[p.slug];
             if (detail && detail.cases.length > 0) {
                 lines.push(

@@ -12,10 +12,10 @@ import { ProjectRow } from "@/components/project/ProjectRow";
 import { Section } from "@/components/ui/Section";
 
 import { projects } from "@/data/projects";
-import { BODY, HEADING, MEASURE, SMALL } from "@/lib/typography";
+import { BODY, HEADING, MEASURE, META, SMALL } from "@/lib/typography";
 
 import type { ReactNode } from "react";
-import type { Project, ProjectCase } from "@/types/content";
+import type { Project, ProjectCase, ProjectField, ProjectMetric } from "@/types/content";
 
 function Paragraphs({ items }: { items: string[] }) {
     return (
@@ -53,6 +53,40 @@ function figuresOf(project: Project) {
     return figures;
 }
 
+function Metrics({ items }: { items: ProjectMetric[] }) {
+    return (
+        <dl className="mt-8 grid gap-x-8 gap-y-4 rounded-xl bg-surface px-5 py-5 sm:ml-15 sm:max-w-[38rem] sm:grid-cols-3">
+            {items.map((metric) => (
+                <div key={metric.label}>
+                    <dt className="text-[0.8125rem] text-muted">{metric.label}</dt>
+                    <dd className="mt-0.5 text-[1rem] leading-[1.5] font-bold text-ink tabular-nums">
+                        {metric.value}
+                    </dd>
+                </div>
+            ))}
+        </dl>
+    );
+}
+
+/** 사례와 같은 줄 맞춤 — 왼쪽에 짧은 이름, 오른쪽에 본문. */
+function Parts({ items }: { items: { label: string; body: string }[] }) {
+    return (
+        <dl className="mt-7 flex flex-col gap-5">
+            {items.map((part) => (
+                <div
+                    key={part.label}
+                    className="grid gap-x-6 gap-y-1 sm:grid-cols-[3.5rem_minmax(0,38rem)]"
+                >
+                    <dt className="text-[0.875rem] leading-[2.1] font-bold text-muted">
+                        {part.label}
+                    </dt>
+                    <dd className={BODY}>{part.body}</dd>
+                </div>
+            ))}
+        </dl>
+    );
+}
+
 const CASE_PARTS: {
     key: keyof Pick<ProjectCase, "problem" | "approach" | "result">;
     label: string;
@@ -66,19 +100,9 @@ function Case({ item }: { item: ProjectCase }) {
     return (
         <article className="border-line border-t py-12 first:border-t-0 first:pt-0">
             <h3 className={`${HEADING} ${MEASURE}`}>{item.label}</h3>
-            <dl className="mt-7 flex flex-col gap-5">
-                {CASE_PARTS.map((part) => (
-                    <div
-                        key={part.key}
-                        className="grid gap-x-6 gap-y-1 sm:grid-cols-[3.5rem_minmax(0,38rem)]"
-                    >
-                        <dt className="text-[0.875rem] leading-[2.1] font-bold text-muted">
-                            {part.label}
-                        </dt>
-                        <dd className={BODY}>{item[part.key]}</dd>
-                    </div>
-                ))}
-            </dl>
+            <Parts
+                items={CASE_PARTS.map((part) => ({ label: part.label, body: item[part.key] }))}
+            />
             {item.changes?.length ? (
                 <div className="mt-8 flex flex-col gap-10 sm:ml-15 sm:max-w-[44rem]">
                     {item.changes.map((change) => (
@@ -87,19 +111,40 @@ function Case({ item }: { item: ProjectCase }) {
                     ))}
                 </div>
             ) : null}
-            {item.metrics?.length ? (
-                <dl className="mt-8 grid gap-x-8 gap-y-4 rounded-xl bg-surface px-5 py-5 sm:ml-15 sm:max-w-[38rem] sm:grid-cols-3">
-                    {item.metrics.map((metric) => (
-                        <div key={metric.label}>
-                            <dt className="text-[0.8125rem] text-muted">{metric.label}</dt>
-                            <dd className="mt-0.5 text-[1rem] leading-[1.5] font-bold text-ink tabular-nums">
-                                {metric.value}
-                            </dd>
-                        </div>
-                    ))}
-                </dl>
-            ) : null}
+            {item.metrics?.length ? <Metrics items={item.metrics} /> : null}
         </article>
+    );
+}
+
+function Field({ field }: { field: ProjectField }) {
+    return (
+        <div>
+            <p className={`${BODY} ${MEASURE}`}>{field.lede}</p>
+            <div className="mt-12">
+                {field.events.map((item) => (
+                    <article
+                        key={item.event}
+                        className="border-line border-t py-12 first:border-t-0 first:pt-0"
+                    >
+                        <h3 className={`${HEADING} ${MEASURE}`}>{item.event}</h3>
+                        <p className={`mt-1 ${META}`}>{item.users}</p>
+                        <Parts
+                            items={[
+                                { label: "사용", body: item.usage },
+                                { label: "관제", body: item.dispatch },
+                            ]}
+                        />
+                        <Metrics items={item.metrics} />
+                    </article>
+                ))}
+            </div>
+            <div className="border-line border-t pt-12">
+                <h3 className={HEADING}>돌아보며</h3>
+                <div className="mt-7">
+                    <Paragraphs items={field.retrospective} />
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -144,6 +189,12 @@ export function ProjectDetail() {
                     {project.cases.map((item) => (
                         <Case key={item.label} item={item} />
                     ))}
+                </Section>
+            ) : null}
+
+            {project.field ? (
+                <Section id="field" title="현장 운영">
+                    <Field field={project.field} />
                 </Section>
             ) : null}
 
