@@ -26,14 +26,14 @@ export const knowledge: Knowledge = {
             position: "플랫폼 엔지니어 · React Native 앱 개발",
             period: "2026.07 — 현재",
             summary:
-                "플랫폼 엔지니어링 팀에서 일하고 있습니다. 행사 현장의 경비 요원과 관제실을 잇는 근무 앱 SafeOps를 설계부터 구현까지 맡아 양대 스토어에 출시했고, 지금은 1.0.2 버전을 운영하고 있습니다. 관제실이 쓰는 백오피스도 함께 개발하고 있습니다.",
+                "플랫폼 엔지니어링 팀에서 일하고 있습니다. 행사 현장의 경비 요원과 관제실을 잇는 근무 앱 SafeOps를 설계부터 구현까지 맡아 양대 스토어에 출시했고, 지금은 1.0.2 버전을 운영하고 있습니다. 관제실이 쓰는 웹 대시보드도 개발합니다. 첫 판은 동료와 함께 만들어 두 행사의 관제에 쓰였고, 현장에서 드러난 문제를 반영해 새 판을 혼자 다시 만들었습니다.",
             achievements: [
                 "앱 1명 · 백엔드 1명 팀에서 SafeOps 앱 전체(설계 · 개발 · 양대 스토어 출시 · OTA 운영)를 맡음",
                 "요원이 화면을 보지 않아도 근무 중 10초 주기로 관제실에 좌표를 보내는 백그라운드 위치 전송 설계",
                 "무음 · 방해 금지에서도 울리는 긴급 알림 구현. Android는 알람 스트림 채널을 Kotlin Expo 모듈로 직접 만들고, iOS는 Critical Alert를 써서 양쪽 실기기에서 확인",
                 "라이트 · 다크 테마를 OTA로 배포하고 글자 대비 기준을 두 테마 모두 테스트로 검사(앱 전체 테스트 1,050개 · 88 suites)",
-                "관제 백오피스(React 19 · Vite · TanStack Router · Tailwind v4)를 동료와 함께 개발. 전광판(DS) 화면과 편성 페이지, 요원 위치 · 이동 경로 지도(증분 폴링)를 맡음",
-                "백오피스에 Vitest 테스트 환경을 세우고 테스트 225개 파일을 추가",
+                "관제 대시보드 첫 판(React 19 · Vite · TanStack Router)을 동료와 함께 개발. 영상 재연결 결함을 고치고 전광판(DS) 화면과 편성 페이지, 요원 이동 경로 지도(증분 폴링)를 맡음. Vitest 테스트 환경을 세우고, 테스트와 API 스키마 점검으로 드러난 결함(무효 refresh 토큰 처리, Web Locks가 없는 환경 등)을 고침. 이 판이 두 행사의 관제에 쓰임",
+                "현장 운영 뒤 대시보드 새 판을 Next.js 16으로 혼자 다시 만듦(디자인 포함). 오래 켜 두면 무거워지는 화면, 끊긴 영상, 같은 요청 반복, 누락되던 쓰기 요청을 새 판에서 고침(현장 운영 전이라 테스트와 실서버 이미지 요청 측정으로 확인)",
                 "AI 에이전트가 리뷰를 돕는 흐름을 운영. 코드가 고쳐지면 Codex 리뷰를 거친 뒤에야 커밋되는 리뷰 게이트(Claude Code 훅)를 직접 만들고, MCP로 붙인 도구가 리뷰를 돕게 함",
                 "리팩터링을 탐색 · 판단 · 실행 세 단계로 나눠, 탐색과 판단은 읽기 전용 AI 에이전트에 맡기고 파일 수정 권한은 실행 단계에만 둔 파이프라인 운영",
             ],
@@ -298,6 +298,104 @@ export const knowledge: Knowledge = {
                 {
                     name: "긴급 알림",
                     note: "무음과 방해 금지를 뚫고 앱 위에 뜬 순간",
+                },
+            ],
+        },
+        {
+            slug: "safeops-dashboard",
+            title: "SafeOps 관제 대시보드",
+            summary:
+                "행사 관제실이 쓰는 웹 대시보드를 첫 판으로 두 행사에서 운영한 뒤, 현장에서 드러난 문제를 반영해 Next.js로 혼자 다시 만들었습니다. 요원 위치 · 위험 알림 · CCTV 영상 · 출동 요청을 한 화면에서 다루고, SafeOps 앱과 짝을 이룹니다.",
+            year: "2026",
+            role: "프론트엔드 · 첫 판 2인 중 1인 · 새 판 1인(디자인 포함, 백엔드 1명과 협업)",
+            period: "2026.09 — 현재",
+            platform: "web",
+            tech: [
+                "Next.js 16",
+                "React 19",
+                "TypeScript",
+                "TanStack Query",
+                "Tailwind CSS v4",
+                "Three.js · 3d-tiles-renderer",
+                "Amazon IVS (WebRTC)",
+                "네이버 지도 SDK",
+                "Vitest",
+                "Vite · TanStack Router (첫 판)",
+            ],
+            links: {},
+            context: [
+                "관제실은 행사 내내 이 화면을 켜 둡니다. 현장 지도 위에서 요원 위치와 구역 혼잡도를 보고, 카메라 영상을 띄우고, 위험 알림이 들어오면 SafeOps 앱을 쓰는 요원에게 출동을 요청합니다. 사람이 없는 모니터 TV와 전광판도 같은 데이터로 따로 돌아갑니다. 실시간성은 WebSocket 없이 화면 데이터를 3~30초마다 폴링해 만듭니다.",
+                "첫 판은 프론트엔드 2명이 만들었습니다. 동료가 2026년 8월부터 초기 화면을 세웠고, 저는 9월에 합류해 영상 재연결 · 토큰 갱신 같은 기존 화면의 결함을 고치고 카메라 편성 · 전광판 · 요원 이동 경로 화면을 새로 맡았습니다. 이 판이 도심 야외 스포츠 행사와 대형 음악 페스티벌, 두 행사의 관제에 쓰였습니다.",
+                "현장에서 하루 종일 켜 두고 써 보니 개발할 때 안 보이던 문제가 나왔습니다. 오래 켜 둘수록 화면이 무거워졌고, 영상이 끊기면 칸이 비었고, 캐시가 제 역할을 못 해 같은 요청과 이미지를 계속 다시 받았고, 보낸 줄 알았던 요청이 누락되기도 했습니다. 그 문제들을 반영해 10월에 Next.js 16 App Router로 혼자 다시 만들었습니다. 디자인도 직접 했고, 백엔드(Django)는 팀원 1명이 맡습니다. 새 판은 다음 행사에서 처음 현장에 나갑니다.",
+            ],
+            approach: [
+                "토큰은 브라우저에 두지 않습니다. 첫 판은 토큰을 localStorage의 스토어에 두고 탭 사이의 갱신을 맞췄는데, 새 판은 Next.js Route Handler가 HttpOnly 쿠키로만 중계합니다. 백엔드가 재발급할 때마다 refresh 토큰을 바꾸기 때문에, 같은 토큰의 동시 재발급은 서버에서 한 번으로 묶고 탭 사이는 Web Locks로 차례를 정합니다. 카메라 스트리밍 키도 서버 route에만 둡니다.",
+                "서버 데이터는 서비스 함수 → TanStack Query 훅 → 컴포넌트 순서로만 받고, 쿼리 키는 한 곳에서 관리합니다. 폴링은 로딩 표시 없이 값만 바꾸고, 마지막 성공이 오래됐을 때만 ‘연결 지연’을 띄웁니다.",
+                "폴더마다 CLAUDE.md를 두어 그 폴더의 규칙과 데이터 흐름을 적었습니다(42개). 커밋마다 lint · 타입 검사 · 테스트 · 빌드를 통과시키고 Codex 리뷰와 보안 감사를 거칩니다. 새 판의 테스트는 198개 파일, 2,502개입니다.",
+                "코드는 Claude Code와 함께 썼습니다. 무엇이 문제인지 찾고 고칠 순서를 정하는 일, 리뷰 지적을 받아들일지 정하는 일, 폴더 · 인증 구조와 규칙을 설계하는 일은 제가 했습니다. 아래 사례의 실서버 측정도 Claude 세션이 돌렸고, 그렇게 적었습니다.",
+            ],
+            rebuild: {
+                title: "현장에서 본 것, 다시 만들며 바꾼 것",
+                lede: "첫 판으로 두 행사를 운영하며 겪은 문제 네 가지와, 새 판에서 같은 증상이 날 자리를 찾아 바꾼 것을 짝지어 정리했습니다. 첫 판에서 원인까지 추적해 고친 건 영상 끊김 하나이고, 나머지 셋은 새 판 코드에서 같은 증상이 날 자리를 찾아 고쳤습니다. 새 판은 아직 현장에 나가지 않아서, 새 판 쪽은 테스트와 실서버 측정으로 확인한 데까지만 적었습니다.",
+                versions: [
+                    {
+                        label: "첫 판",
+                        period: "2026.08 — 2026.10 · 본인은 9월 합류",
+                        team: "프론트엔드 2명",
+                        stack: "React 19 · Vite · TanStack Router · Zustand · 네이버 지도",
+                        status: "도심 야외 스포츠 행사 · 대형 음악 페스티벌에서 운영",
+                    },
+                    {
+                        label: "새 판",
+                        period: "2026.10 — 현재",
+                        team: "프론트엔드 · 디자인 1명(본인), 백엔드 1명",
+                        stack: "Next.js 16 App Router · Three.js 실사 3D · HttpOnly 쿠키 인증",
+                        status: "다음 행사에서 첫 운영",
+                    },
+                ],
+                items: [
+                    {
+                        seen: "오래 켜 둘수록 화면이 무거워졌다",
+                        changed:
+                            "3D 장면은 변화가 없으면 250ms마다만 그리고, 장면을 버리면 WebGL 컨텍스트까지 놓습니다. 1초 시계는 표시 값이 바뀌는 칸만 구독하고, 숨긴 탭과 상세 창 뒤의 영상은 연결을 끊어 둡니다.",
+                    },
+                    {
+                        seen: "영상이 끊기면 칸이 비었다",
+                        changed: "끊긴 동안에는 최근 스냅샷이나 마지막 프레임을 그대로 둡니다.",
+                    },
+                    {
+                        seen: "같은 요청과 이미지를 계속 다시 받았다",
+                        changed:
+                            "응답마다 새로 서명되는 이미지 주소를 같은 파일이면 고정하고, 저장 응답은 캐시에 합쳐 목록 전체를 다시 받지 않습니다.",
+                    },
+                    {
+                        seen: "보낸 줄 알았던 요청이 누락됐다",
+                        changed:
+                            "대기 중인 출동 요청은 화면을 떠나도 보내고, 카메라 정지는 탭이 숨겨져도 끝까지 다시 보냅니다. 오프라인이면 쓰기를 미뤄 두지 않고 바로 실패로 알립니다.",
+                    },
+                ],
+                note: "3D 렌더 간격과 리렌더 범위는 판단 로직만 테스트로 고정했고, 실제 fps · GPU 사용률의 전후는 재지 않았습니다. 이미지 요청 수는 실서버에서 센 값입니다.",
+            },
+            screens: [
+                {
+                    name: "실시간 관제",
+                    note: "실사 3D 위의 구역과 혼잡 경보 고리. 변화가 없으면 250ms마다만 그린다(공개 샘플 지형, 실제 행사장 아님)",
+                },
+                {
+                    name: "알림",
+                    note: "5초 폴링 목록과 상세. 같은 파일이면 서명 주소를 고정해 스냅샷을 다시 받지 않는다",
+                },
+                {
+                    name: "구역 편집",
+                    note: "실사 3D 위에서 손잡이를 끌어 구역을 고친다. 놓을 때마다 저장하고, 실패한 저장이 끼어도 되돌리기가 맞는 값으로 간다",
+                },
+                {
+                    name: "첫 판 · 실시간 관제",
+                    note: "현장에서 운영한 판의 관제 화면. 지도 한 장 위에 구역 · 알림 패널 · 요원 목록을 띄웠다(가명 미리보기 데이터)",
+                },
+                {
+                    name: "첫 판 · 스테이지 관제",
+                    note: "구역별 현재 인원 카드와 시간대 인원 차트, 위험 알림 순위(미리보기 데이터)",
                 },
             ],
         },
@@ -959,6 +1057,213 @@ export const knowledge: Knowledge = {
                 ],
                 note: "관문 수치는 실기기에서 관측한 값에 맞춰 조정했습니다. 실내 갱신 간격 7~185초는 실측값이고, 신선도 한계 10분이 여기서 나왔습니다. 중복 재전송 5초는 주기의 절반으로, 같은 캐시 좌표가 되풀이돼 전송이 멎던 실측 뒤에 정했습니다. 관문을 통과한 좌표가 10초 넘게 없으면 10초 타이머가 마지막 좌표를 다시 올립니다. 이 타이머는 JS에서 돌아서, 앱이 잠들면 함께 멈춘다는 한계가 있습니다.",
             },
+        },
+        "safeops-dashboard": {
+            cases: [
+                {
+                    label: "같은 이미지와 목록을 계속 다시 받던 문제",
+                    problem:
+                        "첫 판을 운영하며 겪은 문제 하나는 캐시가 제 역할을 못 해서 같은 요청을 계속 다시 받는 것이었습니다. 새 판에서도 같은 자리가 보였습니다. 알림 상세는 열어 두는 동안 5초마다 다시 받는데, 그때마다 같은 스냅샷 이미지를 새로 내려받고 있었습니다. 원인은 한 겹 아래인 백엔드 응답에 있었습니다. 백엔드가 응답할 때마다 S3 presigned URL을 새로 서명해서, 파일이 같아도 주소가 달라지니 브라우저 캐시를 쓰지 못했습니다. 알림 첨부, 전광판 대표 이미지, 카메라 스냅샷도 같았습니다. 요원 정보 칸 하나를 저장할 때마다 최대 25쪽짜리 요원 목록을 통째로 다시 받기도 했습니다.",
+                    approach:
+                        "같은 파일(origin + 경로)이고 서명 자격 증명도 같으면, 직전 주소가 만료 60초 전이 될 때까지 그 주소를 계속 쓰게 했습니다. 만료는 브라우저 시계가 아니라 새 주소의 서명 시각(X-Amz-Date)으로 계산하고, 로드에 실패한 주소는 다시 쓰지 않습니다. 처음엔 알림 상세의 한 필드에만 붙였다가, 응답 안의 서명 주소를 모두 찾아 파일별로 기억하는 stabilizeSignedUrls로 넓혀 여러 화면의 queryFn에 붙였습니다. 요원 저장은 PATCH 응답을 캐시의 같은 id에 합치고, 다른 쓰기가 섞였거나 실패했을 때만 목록을 다시 받습니다.",
+                    result: "실서버에서 화면을 열어 두고 이미지 요청을 셌습니다. 측정은 Claude Code 세션이 돌렸고, 수치는 그 커밋 메시지에 남겼습니다. 판단 규칙은 테스트 15개로 고정했습니다. 다른 파일 · 다른 자격 증명 · 서명 정보 없음 · 만료 임박 · 깨진 주소 중 하나라도 걸리면 새 주소를 쓰므로, 잘못 판단해도 원래 동작으로 돌아갈 뿐입니다.",
+                    metrics: [
+                        {
+                            label: "알림 상세 285초",
+                            value: "이미지 55회 → 2회",
+                        },
+                        {
+                            label: "첨부 4장 129초",
+                            value: "96회 · 52MB → 1회",
+                        },
+                        {
+                            label: "전광판 이미지 130초",
+                            value: "18MB → 4.5MB",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "frontend/src/queries/useQueryAlert.ts",
+                            commit: "6f19823 · 2026.10.21 · 새 판",
+                            before: "        queryKey: [...ALERT_DETAIL_KEY, id],\n        queryFn: id === null ? skipToken : () => getAlert(id),\n    });\n}",
+                            after: "        queryKey: [...ALERT_DETAIL_KEY, id],\n        queryFn:\n            id === null\n                ? skipToken\n                : async ({ client, queryKey }) => {\n                      const fresh = await getAlert(id);\n                      const prev = client.getQueryData<AlertDetailResponse>(queryKey)?.snapshot_url;\n                      return { ...fresh, snapshot_url: keepSignedUrl(prev, fresh.snapshot_url) };\n                  },\n    });\n}",
+                            note: "전에는 5초마다 받은 새 주소를 그대로 넘겨 <img src>가 매번 바뀌었습니다. 지금은 캐시에 있던 직전 주소와 비교해 같은 파일이면 직전 주소를 돌려주므로 src가 그대로입니다.",
+                        },
+                        {
+                            file: "frontend/src/lib/signedUrl.ts",
+                            commit: "6f19823 · 2026.10.21 · 새 판",
+                            after: 'export function keepSignedUrl(prev: string | null | undefined, next: string | null): string | null {\n    if (!prev || !next || prev === next || brokenUrls.has(prev)) return next;\n    const before = parse(prev);\n    const after = parse(next);\n    if (!before || !after) return next;\n    if (before.origin !== after.origin || before.pathname !== after.pathname) return next;\n    const sameCredential = CREDENTIAL_PARAMS.every(\n        (name) => before.searchParams.get(name) === after.searchParams.get(name),\n    );\n    if (!sameCredential) return next;\n    const prevSigned = signedAt(before);\n    const nextSigned = signedAt(after);\n    const expires = Number(before.searchParams.get("X-Amz-Expires"));\n    if (prevSigned === null || nextSigned === null || !(expires > 0)) return next;\n    const expiresAt = prevSigned + expires * 1000;\n    return expiresAt - nextSigned > SIGNED_URL_REUSE_MARGIN_MS ? prev : next;\n}',
+                            note: "어느 조건이든 어긋나면 새 주소를 씁니다. 다시 써도 되는 게 확실할 때만 직전 주소를 돌려줍니다.",
+                        },
+                        {
+                            file: "frontend/src/app/(console)/staff/_queries/useMutationGuards.ts",
+                            commit: "c7937cb · 2026.10.21 · 새 판",
+                            before: 'mutationFn: ({ id, body }: PatchVariables) => patchGuard(id, body),\nonError: (error) => {\n    staffActions.resetInfo();\n    failed("요원 정보를 저장하지 못했습니다", error);\n},\nonSettled: () => settleGuards(queryClient),',
+                            after: 'mutationFn: ({ id, body }: PatchVariables) => patchGuard(id, body),\nonSuccess: (saved, { id }) => applySaved(queryClient, id, saved),\nonError: (error) => {\n    staffActions.resetInfo();\n    failed("요원 정보를 저장하지 못했습니다", error);\n},\nonSettled: (_saved, error) => settleGuards(queryClient, error === null),',
+                            note: "같은 칸 하나 저장에서 전에는 요원 목록 전체를 무효화해 끝 쪽까지 다시 받았습니다. 지금은 응답을 캐시에 합치고, 성공한 저장만 있었다면 다시 받지 않습니다.",
+                        },
+                    ],
+                },
+                {
+                    label: "영상이 끊긴 칸을 비워 두지 않기까지",
+                    problem:
+                        "카메라 영상은 Amazon IVS Stage(WebRTC)로 받습니다. 첫 판에서는 송출이 끊겼다 돌아와도 칸이 대체 이미지에 멈춰 있었고, 서버가 409를 준 카메라는 재연결이 아예 멈췄습니다. 원인은 둘이었습니다. 트랙이 모두 빠져 끝난 MediaStream은 트랙을 다시 넣어도 <video>가 재생을 재개하지 않는데, 코드는 srcObject가 MediaStream이기만 하면 그 스트림을 계속 썼습니다. 그리고 409를 ‘재시도해도 실패’로 보고 그 카메라를 놓아 버렸는데, 송출 복귀 직후처럼 Stage가 잠깐 준비되지 않아서 나는 409도 있었습니다. 이걸 고친 뒤에도, 끊겨 있는 동안 칸이 대체 화면으로 덮이는 문제는 남아 새 판에서 다뤘습니다.",
+                    approach:
+                        "첫 판의 플레이어는 동료가 만든 IvsStagePlayer였고, 그 위에서 세 번에 걸쳐 고쳤습니다. 숨긴 탭은 30초 뒤 연결을 끊고, 서버가 연결을 끊은 경우에도 재연결하되 실패 한 번에 재연결은 하나만 예약하고, 마지막으로 트랙 없는 스트림은 새 MediaStream으로 갈아 끼우고 409는 사용 불가로 표시한 채 30초마다 다시 확인하게 했습니다. 새 판에서는 끊긴 동안 보이는 화면을 바꿨습니다. 영상이 끊기면 공용 CameraFrame이 최근 스냅샷과 그 분석 칸을, 스냅샷이 없으면 마지막 프레임을 그대로 보여 줍니다. 스트리밍 토큰은 서버 route가 로그인과 카메라 권한을 확인한 뒤에만 받아 와서, 브라우저는 재생 주소도 스트리밍 키도 모릅니다.",
+                    result: "첫 판에서는 송출이 돌아오면 영상도 돌아오는 것을 행사 현장에서 확인했고, 실패 경로는 테스트로 고정했습니다. 새 판의 스냅샷 대체 · 숨긴 탭 처리 · 토큰 route의 401 · 409 · 429 경계도 테스트로 고정했습니다. 다만 새 판은 아직 실제 카메라로 끊김을 확인하지 못했습니다. 테스트용 축제의 카메라가 모두 운영 중지 상태라서요.",
+                    metrics: [
+                        {
+                            label: "409 뒤",
+                            value: "멈춤 → 30초마다 재확인",
+                        },
+                        {
+                            label: "끊긴 동안",
+                            value: "대체 화면 → 마지막 프레임",
+                        },
+                        {
+                            label: "확인",
+                            value: "첫 판 현장 · 새 판 테스트",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "src/components/ivsPlayer/IvsStagePlayer.tsx",
+                            commit: "2ec9db4 · 2026.10.03 · 첫 판",
+                            before: "if (!(video.srcObject instanceof MediaStream)) {\n    video.srcObject = new MediaStream();\n}\n\nconst mediaStream = video.srcObject as MediaStream;",
+                            after: "if (\n    !(video.srcObject instanceof MediaStream) ||\n    video.srcObject.getTracks().length === 0\n) {\n    video.srcObject = new MediaStream();\n}\n\nconst mediaStream = video.srcObject as MediaStream;",
+                            note: "트랙이 모두 빠졌다 다시 들어올 때, 전에는 끝난 스트림에 트랙을 넣어 영상이 멈춘 채였습니다. 지금은 새 스트림을 붙여 재생이 다시 시작됩니다.",
+                        },
+                        {
+                            file: "src/components/ivsPlayer/IvsStagePlayer.tsx",
+                            commit: "2ec9db4 · 2026.10.03 · 첫 판",
+                            before: "} catch (error) {\n    if (myGeneration !== generation) return;\n\n    if (isRealtimeUnavailableError(error)) {\n        setIsUnavailable(true);\n        onPlayingChangeRef.current?.(false);\n        return;\n    }\n\n    scheduleReconnect(myGeneration);\n}",
+                            after: "// 송출 복귀 직후처럼 Stage 리소스가 잠깐 준비되지 않은 409도 있어, 사용 불가로 표시한 채 이 간격으로 다시 확인한다.\nconst UNAVAILABLE_RETRY_MS = 30_000;\n// ...\n            } catch (error) {\n                if (myGeneration !== generation) return;\n\n                if (isRealtimeUnavailableError(error)) {\n                    setIsUnavailable(true);\n                    onPlayingChangeRef.current?.(false);\n                    reconnectTimer = setTimeout(connect, UNAVAILABLE_RETRY_MS);\n                    return;\n                }\n\n                scheduleReconnect(myGeneration);\n            }",
+                            note: "409를 받으면 전에는 그 연결 시도를 끝내고 다시 확인하지 않았습니다. 지금은 사용 불가로 표시한 채 30초 뒤 다시 연결해 봅니다.",
+                        },
+                        {
+                            file: "src/components/stageVideo/StageVideo.tsx",
+                            commit: "13c3821 · 2026.10.20 · 새 판",
+                            before: 'const stopStage = () => {\n    const leaving = stage;\n    stage = null;\n    leaving?.leave();\n    video.srcObject = null;\n};\n// ...\n        next.on(sdk.StageEvents.STAGE_PARTICIPANT_STREAMS_REMOVED, (participant) => {\n            if (stage !== next) return;\n            if (!matchParticipant(participant.attributes, cameraUuid, nodeId)) return;\n            video.srcObject = null;\n            reportState("loading");\n        });',
+                            after: 'const stopStage = () => {\n    const leaving = stage;\n    stage = null;\n    leaving?.leave();\n};\n// ...\n        next.on(sdk.StageEvents.STAGE_PARTICIPANT_STREAMS_REMOVED, (participant) => {\n            if (stage !== next) return;\n            if (!matchParticipant(participant.attributes, cameraUuid, nodeId)) return;\n            reportState("loading");\n        });',
+                            note: "같은 연결 끊김에서 전에는 <video>를 비웠고, 지금은 마지막 프레임이 남습니다. 그 위에 최근 스냅샷이 있으면 CameraFrame이 스냅샷을 올립니다.",
+                        },
+                    ],
+                },
+                {
+                    label: "보낸 줄 알았던 요청이 조용히 사라지지 않게",
+                    problem:
+                        "첫 판을 운영하면서 요청이 누락되는 일을 겪었습니다. 그래서 새 판에서는 쓰기 요청이 사라질 수 있는 자리를 하나씩 찾았고, 세 군데가 나왔습니다. 출동 요청은 5초 동안 취소할 수 있게 기다렸다 보내는데, 그사이 다른 메뉴로 가거나 축제를 바꾸면 타이머와 함께 요청이 버려졌습니다. 카메라 방향 조작(PTZ)은 stop이 실패하면 카메라가 계속 돌아가는데, TanStack Query의 retry는 탭이 숨겨지면 멈춥니다. 또 기본 networkMode는 오프라인일 때 뮤테이션을 멈춰 두어서, 출동 요청이 안내 없이 대기하다 다시 연결될 때 늦게 나갔습니다.",
+                    approach:
+                        '‘취소는 취소 버튼만 한다’를 기준으로 삼았습니다. 화면을 떠나거나 축제를 바꾸는 건 취소가 아니므로, 대기 중인 출동 요청은 그때 바로 보냅니다. 대기 중에 탭을 닫으면 beforeunload로 한 번 묻습니다. stop은 retry 옵션 대신 mutationFn 안의 재시도 루프로 돌려서, 탭이 숨겨져도 최대 5번, 0.5초에서 4초까지 간격을 늘려 가며 다시 보냅니다. 끝내 실패하면 현장에서 카메라를 확인하라고 안내합니다. 뮤테이션 기본값은 networkMode: "always"로 바꿔 오프라인이면 바로 실패를 알리고, 읽기 폴링은 실패하는 동안 간격을 30초까지 늘립니다.',
+                    result: "떠날 때 한 번만 보내기, 취소한 요청은 보내지 않기, 숨긴 탭에서도 stop 재시도가 끝나기, 재시도 간격의 합이 15초를 넘지 않기를 테스트로 고정했습니다. 오프라인 쓰기는 기본 옵션 값만 테스트로 확인했고, beforeunload 확인 창은 테스트가 없습니다.",
+                    metrics: [
+                        {
+                            label: "화면을 떠나면",
+                            value: "버림 → 바로 보냄",
+                        },
+                        {
+                            label: "stop 실패",
+                            value: "1회 → 최대 5회 재시도",
+                        },
+                        {
+                            label: "오프라인 쓰기",
+                            value: "대기 → 바로 실패 안내",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "frontend/src/app/(console)/alerts/_lib/alertsUiStore.ts",
+                            commit: "be8372b · 2026.10.22 · 새 판",
+                            before: "function clearSendTimer() {\n    if (sendTimer) clearTimeout(sendTimer);\n    sendTimer = null;\n}\n// ...\n    /** 화면을 떠날 때: 대기 중인 전송은 버리고, 다음에 열면 처음 상태로 시작한다. */\n    leave: () => {\n        clearSendTimer();\n        clearGuardSearchTimer();\n// ...\n    },",
+                            after: "function clearSendTimer() {\n    if (sendTimer) clearTimeout(sendTimer);\n    sendTimer = null;\n    pendingFire = null;\n}\n// ...\n    /** 화면을 떠날 때: 대기 중인 전송은 취소가 아니므로 바로 보내고, 다음에 열면 처음 상태로 시작한다. */\n    leave: () => {\n        const fire = pendingFire;\n        clearSendTimer();\n        clearGuardSearchTimer();\n// ...\n        fire?.();\n    },",
+                            note: "‘대기 중에 메뉴 이동’에서 전에는 타이머만 지워져 요청이 사라졌습니다. 지금은 상태를 먼저 비운 뒤 그 요청을 한 번 보냅니다.",
+                        },
+                        {
+                            file: "src/app/(console)/cameras/_queries/useMutationCamera.ts",
+                            commit: "d7a1d1f · 2026.10.20 · 새 판",
+                            before: 'export function useMutationPtzStop(uuid: string): UseCustomMutationResult<void, string> {\n    return useMutation({\n        scope: { id: `ptz:${uuid}` },\n        mutationFn: (uuid: string) => postCameraPtzStop(uuid),\n        onError: (error) =>\n            toast({\n                tone: "danger",\n                title: "카메라를 멈추지 못했습니다",\n                description: error.message,\n            }),\n    });\n}',
+                            after: '// stop이 빠지면 카메라가 계속 움직이므로 실패해도 간격을 늘려 다시 보낸다. 같은 scope라 그동안 다음 move는 기다린다.\nexport function useMutationPtzStop(uuid: string): UseCustomMutationResult<void, string> {\n    return useMutation({\n        scope: { id: `ptz:${uuid}` },\n        mutationFn: (uuid: string) => withRetry(() => postCameraPtzStop(uuid), PTZ_STOP_RETRIES),\n        onError: (error) =>\n            toast({\n                tone: "danger",\n                title: "카메라를 멈추지 못했습니다",\n                description: `${error.message} 현장에서 카메라 상태를 확인하세요.`,\n            }),\n    });\n}',
+                            note: "같은 stop 실패에서 전에는 한 번으로 끝났습니다. 지금은 탭이 숨겨져도 멈추지 않는 루프로 다시 보내고, 같은 scope라 그동안 다음 move는 기다립니다.",
+                        },
+                    ],
+                },
+                {
+                    label: "하루 종일 켜 두는 화면이 무거워지지 않게",
+                    problem:
+                        "첫 판을 현장에서 하루 켜 두니 시간이 갈수록 화면이 무거워졌습니다. 새 판의 실시간 관제는 Three.js로 실사 3D 타일을 그리는 화면이라, 같은 일이 더 크게 생길 자리가 있었습니다. 렌더 루프는 변화가 없어도 소프트 그림자와 실사 타일을 매 프레임 그렸습니다. 장면을 버릴 때는 renderer.dispose()만 불렀는데, three r180의 dispose()는 WebGL 컨텍스트를 놓지 않아서 화면이나 축제를 오가면 브라우저 한도에 걸릴 수 있었습니다. React 쪽에서는 경과 시간을 보여 주는 1초 시계를 현장 인력 화면 본체가 구독하고 있어서, 매초 요원 표 전체가 다시 그려졌습니다. 실제로 바뀌는 건 ‘마지막 접속’ 칸의 분 단위 문구뿐이었습니다.",
+                    approach:
+                        "기준은 ‘화면에 보이는 게 바뀔 때만 일한다’로 잡았습니다. 렌더 루프 앞에 변화가 없으면 250ms마다만 통과시키는 관문(frameGate)을 두고, 시점이 움직이거나 경보 고리가 떠 있거나 조작 직후 2초 동안만 매 프레임 그립니다. 해제는 dispose → forceContextLoss → 캔버스 떼기 순서를 한 함수로 모아 실시간 관제와 구역 편집 장면이 같이 씁니다. 시계는 useSyncExternalStore 셀렉터로 파생 값만 구독하는 useNowSelect를 만들고, 시계를 쓰는 부분을 ‘마지막 접속’ 칸 같은 말단 컴포넌트로 뺐습니다. 행은 memo로 감쌌습니다.",
+                    result: "경보가 없고 장면이 멈춰 있으면 250ms 간격으로만 그리고, 장면을 버리면 컨텍스트와 그림자 맵까지 놓습니다. 렌더 횟수를 세는 테스트로 ‘분 단위 값을 고르면 59초 동안 0회, 60초째 1회’를 고정했습니다. 아쉬운 건 수치입니다. 판단 로직만 테스트로 고정했고 실제 fps · GPU 사용률 · 렌더 시간의 전후는 재지 않았습니다. 다시 한다면 고치기 전에 Chrome Performance로 기준값부터 남기겠습니다.",
+                    metrics: [
+                        {
+                            label: "변화 없을 때",
+                            value: "매 프레임 → 250ms마다",
+                        },
+                        {
+                            label: "1초 시계 틱",
+                            value: "표 전체 → 바뀐 칸만",
+                        },
+                        {
+                            label: "장면 해제",
+                            value: "WebGL 컨텍스트까지",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "frontend/src/app/(console)/live/_lib/scene/siteScene.ts",
+                            commit: "d693ff8 · 2026.10.22 · 새 판",
+                            before: "renderer.setAnimationLoop((now) => {\n    const dt = Math.min(0.1, (now - last) / 1000);\n    last = now;\n    mover.step(now);\n    controls.update();\n    base.update();\n    const pulse = 1 + ((now / 900) % 1) * 0.6;\n// ...\n    fitGroundLabels();\n    renderer.render(scene, camera);\n    projector.project(dt);\n});",
+                            after: "renderer.setAnimationLoop((now) => {\n    const moving = mover.moving();\n    mover.step(now);\n    const moved = controls.update();\n    if (!gate.shouldRender(now, moving || moved || rings.size > 0)) return;\n    const dt = Math.min(0.1, (now - last) / 1000);\n    last = now;\n    base.update();\n    const pulse = 1 + ((now / 900) % 1) * 0.6;\n// ...\n    fitGroundLabels();\n    renderer.render(scene, camera);\n    projector.project(dt);\n});",
+                            note: "전에는 브라우저가 부르는 모든 프레임에서 타일을 갱신하고 그렸습니다. 지금은 움직임 · 경보 고리가 없고 깨운 지 2초가 지났으면, 마지막으로 그린 뒤 250ms가 안 된 프레임은 바로 돌아갑니다.",
+                        },
+                        {
+                            file: "frontend/src/lib/scene3d/disposeRenderer.ts",
+                            commit: "bc6ed39 · 2026.10.22 · 새 판",
+                            after: 'import type * as THREE from "three";\n\n/** 렌더러를 버리고 WebGL 컨텍스트도 바로 놓는다. dispose만으로는 GC 전까지 컨텍스트가 남아 화면을 오가면 브라우저 한도에 걸린다. */\nexport function disposeRenderer(renderer: THREE.WebGLRenderer) {\n    renderer.dispose();\n    renderer.forceContextLoss();\n    renderer.domElement.remove();\n}',
+                            note: "같은 화면 이동에서 전에는 컨텍스트가 GC 전까지 남았고, 지금은 장면을 버리는 즉시 놓습니다.",
+                        },
+                        {
+                            file: "frontend/src/app/(console)/staff/_components/GuardTable.tsx",
+                            commit: "0496308 · 2026.10.21 · 새 판",
+                            before: 'const now = useNow();\n// ...\n                {rows.map((guard) => {\n                    const picked = selected.includes(guard.id);\n                    const open = guard.id === openId;\n                    return (\n                        <tr\n                            key={guard.id}\n// ...\n                            <td className={cn(CELL, "text-ink-3")}>\n                                {formatLastSeen(guard.last_login, now)}\n                            </td>',
+                            after: '// 1초 시계로 표 전체가 다시 그려지지 않게 마지막 접속 칸만 따로 구독한다.\nfunction LastSeenCell({ lastLogin }: { lastLogin: string | null | undefined }) {\n    const text = useNowSelect((now) => formatLastSeen(lastLogin, now));\n    return <td className={cn(CELL, "text-ink-3")}>{text}</td>;\n}\n\nconst GuardRow = memo(function GuardRow({\n// ...\n            <LastSeenCell lastLogin={guard.last_login} />\n        </tr>\n    );\n});',
+                            note: "같은 1초 틱에서 전에는 모든 행이 다시 그려졌습니다. 지금은 문구가 바뀐 ‘마지막 접속’ 칸만 다시 그려지고, 행은 props가 같으면 건너뜁니다.",
+                        },
+                    ],
+                },
+                {
+                    label: "하루치 동선을 매번 다시 받지 않고, 엉키지 않게 그리기",
+                    problem:
+                        "첫 판에서 맡은 화면 중 하나가 요원 이동 경로입니다. 요원 상세는 그날 요원이 움직인 경로를 지도에 그리는데, 하루치 위치 이력은 길어서 갱신 때마다 전체를 받으면 낭비였습니다. 실내나 제자리에서는 GPS 좌표가 사방으로 튀어 한자리에 머문 요원의 경로가 엉켜 보였고, 위치 보고가 오래 끊긴 구간도 실제 이동처럼 직선으로 이어졌습니다.",
+                    approach:
+                        "첫 조회만 전체를 받고, 그 뒤에는 캐시에 있는 마지막 id를 since_id 커서로 보내 새 점만 이어 붙였습니다. 오늘 날짜일 때만 10초마다 폴링합니다. 반경 40m 안에 2분 넘게 머문 구간은 무게중심 한 점으로 접었고, 10분 넘게 보고가 끊긴 구간은 흐린 점선으로 그려 실제 이동과 구분했습니다. 접속 기록 API가 따로 없어서, 위치 보고의 공백으로 접속 구간을 나눠 타임라인을 만들었습니다.",
+                    result: "오늘 날짜의 10초 폴링은 새 점만 받습니다. 커서 계산, 머문 구간 접기, 10분 공백 기준은 테스트로 고정했습니다. 줄어든 전송량을 잰 값은 없습니다.",
+                    metrics: [
+                        {
+                            label: "갱신마다 받는 것",
+                            value: "하루치 전체 → 새 점만",
+                        },
+                        {
+                            label: "머문 구간",
+                            value: "40m · 2분 → 한 점",
+                        },
+                        {
+                            label: "보고 공백",
+                            value: "10분 넘으면 점선",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "src/pages/staff/_queries/useQueryGuardLocationHistory.ts",
+                            commit: "be0d2cf · 2026.09.10 · 첫 판",
+                            before: "export const useQueryGuardLocationHistory = (guardId: number, date: string) => {\n    return useQuery({\n        queryKey: [queryKeys.GUARDLOCATIONHISTORY, guardId, date],\n        queryFn: () => getGuardLocationHistory(guardId, date),\n        enabled: !!guardId,\n    });\n};",
+                            after: "const TRACK_POLL_INTERVAL_MS = 10_000;\n\n// 하루치 동선은 길어서 매번 전체를 받지 않는다. 첫 조회만 전체를 받고 이후에는 마지막 id 이후만 받아 이어 붙인다.\nexport const useQueryGuardLocationHistory = (guardId: number, date: string, isToday: boolean) => {\n    const queryClient = useQueryClient();\n    const queryKey = [queryKeys.GUARDLOCATIONHISTORY, guardId, date];\n\n    return useQuery({\n        queryKey,\n        queryFn: async () => {\n            const previous = queryClient.getQueryData<GuardLocationHistory[]>(queryKey);\n\n            const response = await getGuardLocationHistory({\n                guardId,\n                date,\n                sinceId: toLocationHistoryCursor(previous),\n            });\n\n            return appendLocationHistory(previous, response.data.results);\n        },\n        enabled: !!guardId,\n        refetchInterval: isToday ? TRACK_POLL_INTERVAL_MS : false,\n    });\n};",
+                            note: "전에는 날짜별 이력 전체를 한 번 받았습니다. 지금은 같은 쿼리 키의 캐시를 이전 결과로 삼아 커서 이후만 받아 붙이고, 오늘이면 10초마다 반복합니다.",
+                        },
+                    ],
+                },
+            ],
+            sheets: [],
         },
         "korea-baptist": {
             cases: [

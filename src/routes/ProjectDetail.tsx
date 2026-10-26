@@ -4,6 +4,7 @@ import { CodeChange } from "@/components/project/CodeChange";
 import { Anatomy } from "@/components/project/figures/Anatomy";
 import { Bridge } from "@/components/project/figures/Bridge";
 import { Pipeline } from "@/components/project/figures/Pipeline";
+import { Rebuild } from "@/components/project/figures/Rebuild";
 import { Runtime } from "@/components/project/figures/Runtime";
 import { Sieve } from "@/components/project/figures/Sieve";
 import { Windowing } from "@/components/project/figures/Windowing";
@@ -32,6 +33,9 @@ function Paragraphs({ items }: { items: string[] }) {
 /** 프로젝트마다 있는 것만 차례로 놓는다. */
 function figuresOf(project: Project) {
     const figures: { key: string; node: ReactNode }[] = [];
+    if (project.rebuild) {
+        figures.push({ key: "rebuild", node: <Rebuild rebuild={project.rebuild} /> });
+    }
     if (project.pipeline) {
         figures.push({ key: "pipeline", node: <Pipeline pipeline={project.pipeline} /> });
     }

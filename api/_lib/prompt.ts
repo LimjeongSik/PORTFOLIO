@@ -26,6 +26,17 @@ function projectSummary(): string {
                 }
                 lines.push(`  - 돌아보며: ${p.field.retrospective.join(" ")}`);
             }
+            if (p.rebuild) {
+                lines.push(`- 다시 만든 판: ${p.rebuild.lede}`);
+                for (const v of p.rebuild.versions) {
+                    lines.push(
+                        `  - ${v.label}(${v.period}): ${v.team} · ${v.stack} · 현장: ${v.status}`,
+                    );
+                }
+                for (const item of p.rebuild.items) {
+                    lines.push(`  - 현장에서 본 것 "${item.seen}" → 새 판: ${item.changed}`);
+                }
+            }
             const detail = details[p.slug];
             if (detail && detail.cases.length > 0) {
                 lines.push(

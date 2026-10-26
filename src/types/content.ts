@@ -240,6 +240,32 @@ export interface ProjectWindowing {
     note: string;
 }
 
+/** 다시 만들기 전후의 판 하나. */
+export interface ProjectRebuildVersion {
+    label: string;
+    period: string;
+    team: string;
+    stack: string;
+    /** 현장에 나갔는지 */
+    status: string;
+}
+
+/** 현장에서 겪은 문제 하나와, 다시 만든 판에서 그 자리를 어떻게 바꿨나. */
+export interface ProjectRebuildItem {
+    seen: string;
+    changed: string;
+}
+
+/** 운영해 본 판을 다시 만들 때 — 현장에서 본 것과 새 판에서 바꾼 것을 짝지어 둔다. */
+export interface ProjectRebuild {
+    title: string;
+    lede: string;
+    /** 옛 판 → 새 판 순서 */
+    versions: [ProjectRebuildVersion, ProjectRebuildVersion];
+    items: ProjectRebuildItem[];
+    note: string;
+}
+
 export interface ProjectTheme {
     paper: string;
     surface: string;
@@ -271,6 +297,8 @@ export interface Project {
     links: ProjectLinks;
     /** 출시 뒤 현장 운영 기록. 있으면 상세의 사례 다음에 "현장 운영" 구간으로 선다. */
     field?: ProjectField;
+    /** 운영해 본 판을 다시 만든 프로젝트. 있으면 `system` 구간의 맨 앞에 선다. */
+    rebuild?: ProjectRebuild;
     /* 아래는 그 프로젝트만의 시그니처 그림이다. 있는 것만 상세 페이지의 `system`
        구간에 차례로 놓인다(`ProjectSignature`). */
     anatomy?: ProjectAnatomy;
