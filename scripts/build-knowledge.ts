@@ -35,7 +35,10 @@ const knowledgeProjects: KnowledgeProject[] = projects.map((project) => ({
     approach: project.approach,
     field: project.field,
     rebuild: project.rebuild,
-    screens: project.screens.map(({ name, note }) => ({ name, note })),
+    screens: project.screens.map(({ name, note, group }) => {
+        const label = project.screenGroups?.find((item) => item.id === group)?.label;
+        return { name: label ? `${name} (${label})` : name, note };
+    }),
 }));
 
 const details: Record<string, KnowledgeProjectDetail> = {};

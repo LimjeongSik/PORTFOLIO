@@ -24,10 +24,16 @@ interface ShelfState {
  * 화면 목록. 가로로 넘기는 선반이고, 넘기기는 Embla가 맡는다 — 터치 스와이프와 마우스 끌기가
  * 같은 손맛으로 스냅되고, 트랙패드 가로 밀기는 휠 제스처 플러그인이 받는다. 이전·다음 버튼과
  * 키보드 ←/→도 같은 스냅을 따른다. 화면이 두 벌(라이트 · 다크)이면 토글이 서고, 같은 자리에서
- * 두 벌이 겹쳐 바뀐다.
+ * 두 벌이 겹쳐 바뀐다. 판이 둘인 프로젝트(`screenGroups`)는 탭으로 판을 골라 한 판씩만 보인다 —
+ * 섞어 늘어놓으면 어느 화면이 어느 판인지 구분되지 않는다.
  */
 export function ScreenShelf({ project }: { project: Project }) {
-    const { screens, screenModes } = project;
+    const { screenModes, screenGroups } = project;
+    const [groupId, setGroupId] = useState(screenGroups?.[0]?.id);
+    const group = screenGroups?.find((item) => item.id === groupId);
+    const screens = group
+        ? project.screens.filter((screen) => screen.group === group.id)
+        : project.screens;
     const [alt, setAlt] = useState(false);
     const [state, setState] = useState<ShelfState>({ prev: false, next: false, progress: 0 });
     const still = useMediaQuery("(prefers-reduced-motion: reduce)");
@@ -73,6 +79,12 @@ export function ScreenShelf({ project }: { project: Project }) {
         };
     }, [embla, still]);
 
+    // 판을 바꾸면 슬라이드가 갈아 끼워진다(Embla가 다시 잰다). 새 판의 첫 화면부터 보인다.
+    const pickGroup = (id: string) => {
+        setGroupId(id);
+        embla?.scrollTo(0, true);
+    };
+
     // 끌기는 한 장 단위로 멈추고, 버튼 · 키보드는 다 보이는 장 수만큼 넘긴다(한 장씩이면 열 장을 열 번 눌러야 한다).
     // 동작 줄이기에서는 버튼 · 키보드 이동도 미끄러지지 않고 바로 간다.
     const step = useCallback(
@@ -97,6 +109,35 @@ export function ScreenShelf({ project }: { project: Project }) {
 
     return (
         <section aria-label="화면" className="pt-16 pb-14 sm:pt-20 sm:pb-16">
+            {screenGroups && group ? (
+                <div className={`${CONTAINER} mb-8`}>
+                    {/* 둘 중 하나를 고르는 전환 버튼이다(테마 토글과 같은 방식). 화살표 이동 · 패널 연결이 없는 tab 역할은 달지 않는다. */}
+                    <fieldset className="flex flex-wrap gap-2">
+                        <legend className="sr-only">버전</legend>
+                        {screenGroups.map((item) => {
+                            const on = item.id === group.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    aria-pressed={on}
+                                    onClick={() => pickGroup(item.id)}
+                                    className={`rounded-lg border px-4 py-2 text-[0.9375rem] font-bold transition-colors ${
+                                        on
+                                            ? "border-(--p-ink) bg-(--p-ink) text-(--p-paper)"
+                                            : "border-current/25 hover:border-current/60"
+                                    }`}
+                                >
+                                    {item.label}
+                                </button>
+                            );
+                        })}
+                    </fieldset>
+                    <p className="mt-3 max-w-xl text-[0.875rem] leading-[1.7] text-(--p-muted)">
+                        {group.note}
+                    </p>
+                </div>
+            ) : null}
             <div className={`${CONTAINER} flex flex-wrap items-end justify-between gap-4`}>
                 {paired && screenModes ? (
                     <div className="flex max-w-xl flex-col gap-3">
@@ -175,17 +216,20 @@ export function ScreenShelf({ project }: { project: Project }) {
                             <figure>
                                 <div
                                     className={`relative overflow-hidden bg-black/10 ring-1 ring-current/10 ${
-                                        web
-                                            ? "aspect-16/10 rounded-xl"
-                                            : "aspect-9/19.5 rounded-[1.75rem]"
+                                        web ? "rounded-xl" : "aspect-9/19.5 rounded-[1.75rem]"
                                     }`}
                                 >
+                                    {/* 웹 화면은 캡처 비율이 프로젝트마다 달라(16:10 · 16:9) 틀에 맞춰 자르지 않고 원본 비율대로 둔다. */}
                                     <img
                                         src={screen.src}
                                         alt={screen.name}
                                         loading="lazy"
                                         draggable={false}
-                                        className="absolute inset-0 h-full w-full object-cover object-top"
+                                        className={
+                                            web
+                                                ? "block h-auto w-full"
+                                                : "absolute inset-0 h-full w-full object-cover object-top"
+                                        }
                                     />
                                     {paired && screen.srcAlt ? (
                                         <img

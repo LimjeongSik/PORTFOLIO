@@ -55,6 +55,15 @@ export interface ProjectScreen {
     note: string;
     /** 웹 화면의 주소(경로). 전시의 주소창에 호스트 뒤로 붙는다. */
     path?: string;
+    /** `screenGroups`의 id. 판이 둘인 프로젝트에서 이 화면이 어느 판인지. */
+    group?: string;
+}
+
+/** 화면을 판(버전)별로 나눠 보일 때의 한 묶음. 선반 위 탭이 이 순서로 선다. */
+export interface ProjectScreenGroup {
+    id: string;
+    label: string;
+    note: string;
 }
 
 /** 화면이 두 벌일 때 — 토글에 붙는 이름(`[src, srcAlt]` 순서)과 그 아래 한 줄. */
@@ -293,6 +302,8 @@ export interface Project {
     cases: ProjectCase[];
     screens: ProjectScreen[];
     screenModes?: ProjectScreenModes;
+    /** 있으면 선반이 탭으로 판을 나눠 보인다. 화면마다 `group`을 단다. */
+    screenGroups?: ProjectScreenGroup[];
     sheets: ProjectSheet[];
     links: ProjectLinks;
     /** 출시 뒤 현장 운영 기록. 있으면 상세의 사례 다음에 "현장 운영" 구간으로 선다. */
