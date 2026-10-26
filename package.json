@@ -19,6 +19,8 @@
         "@assistant-ui/react-ai-sdk": "^1.4.8",
         "@tailwindcss/vite": "^4.3.3",
         "ai": "^7.0.90",
+        "embla-carousel-react": "^8.6.0",
+        "embla-carousel-wheel-gestures": "^8.1.0",
         "react": "^19.2.7",
         "react-dom": "^19.2.7",
         "react-router-dom": "^7.18.1",
