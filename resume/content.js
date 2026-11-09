@@ -442,7 +442,7 @@ window.RESUME = {
         {
             title: "baton",
             role: "공개 · 테스트 146개",
-            body: "개발 절차를 단계별로 맡는 플러그인 12개 묶음입니다. Claude의 git commit · push를 훅으로 가로채 Codex 리뷰 · 보안 감사를 통과하지 않은 변경을 막고, 재리뷰 때는 아직 리뷰하지 않은 줄만 보냅니다. 이 포트폴리오와 사이드 프로젝트 개발에 씁니다.",
+            body: "개발 절차를 단계별로 맡는 플러그인 12개 묶음입니다. Claude의 git commit · push를 훅으로 가로채 Codex 리뷰 · 보안 감사를 통과하지 않은 변경을 막고, 재리뷰 때는 아직 리뷰하지 않은 줄만 보냅니다. 이 포트폴리오 · 사이드 프로젝트 개발뿐 아니라 회사 업무까지 Claude Code로 하는 작업 전반에 씁니다.",
             tech: "github.com/LimjeongSik/baton-workflow",
         },
         {
