@@ -2,7 +2,7 @@ import { knowledge } from "./knowledge.generated.js";
 
 import type { KnowledgeProject, KnowledgeProjectDetail } from "./types.js";
 
-const { profile, experiences, activities, skills, projects, details } = knowledge;
+const { profile, experiences, activities, ai, skills, projects, details } = knowledge;
 
 const PLATFORM: Record<KnowledgeProject["platform"], string> = {
     mobile: "모바일 앱",
@@ -68,6 +68,17 @@ function activitySection(): string {
         })
         .join("\n");
     return `\n### 활동\n${lines}\n`;
+}
+
+/** 직접 만들어 쓰는 AI 도구. 저장소가 비공개인 것은 링크가 없다 — 물으면 비공개라고 답한다. */
+function aiSection(): string {
+    const lines = ai.tools
+        .map(
+            (t) =>
+                `- ${t.name} (${t.kind} · ${t.status}) — ${t.summary}\n  쓴 곳: ${t.usage}\n  풀어낸 것: ${t.points.join(" · ")}\n  저장소: ${t.repo ?? "비공개"}`,
+        )
+        .join("\n");
+    return `### AI 활용\n${ai.lede}\n${lines}\n`;
 }
 
 export function buildSystemPrompt(): string {
@@ -145,6 +156,7 @@ ${experiences
     .join("\n")}
 
 ${activitySection()}
+${aiSection()}
 ### 기술
 ${skills.map((g) => `- ${g.label}: ${g.items.join(", ")}`).join("\n")}
 
@@ -153,7 +165,7 @@ ${projectSummary()}
 
 ### 사이트 구조
 - 홈은 한 페이지이고 위에서부터 첫 화면(top) · projects(프로젝트 목록) · side-projects(개인 사이드 프로젝트) ·
-  experience(경력과 활동) · skills(기술) · about(소개와 연락처) 순서입니다.
+  ai(AI 활용 — 직접 만든 Claude Code 플러그인 넷) · experience(경력과 활동) · skills(기술) · about(소개와 연락처) 순서입니다.
 - 프로젝트마다 상세 페이지가 따로 있습니다: ${projects.map((p) => p.slug).join(", ")}.
   상세는 표지(요약 · 역할 · 기간 · 기술 · 앱 화면) → 배경 → 접근 → 구조(설계를 풀어 쓴 그림) →
   풀어낸 문제(사례) → 작업물 순서입니다. Plus SMS 상세에는 번호를 직접 붙여넣어 보는 체와

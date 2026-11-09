@@ -1460,25 +1460,31 @@
                       )
                     : "";
 
+                // 외주 · AI 활용이 같이 쓰는 두 칸 목록(제목 · 딸린 한 줄 · 본문 · 기술).
+                const sideList = (items) =>
+                    el("div", { class: "body" }, [
+                        el(
+                            "ul",
+                            { class: "side-list" },
+                            items.map((item) =>
+                                el("li", { class: "side-item" }, [
+                                    el("h3", {}, [
+                                        item.title,
+                                        item.role ? el("span", { class: "role" }, item.role) : null,
+                                    ]),
+                                    el("p", {}, text(item.body)),
+                                    item.tech ? el("p", { class: "tech" }, item.tech) : null,
+                                ]),
+                            ),
+                        ),
+                    ]);
+
+                const aiBlock = data.aiTools?.length
+                    ? block("AI 활용", data.aiNote || "", [sideList(data.aiTools)], "side")
+                    : "";
+
                 const sideBlock = data.sideProjects?.length
-                    ? block("외주 프로젝트", data.sideProjectsNote || "", [
-                          el("div", { class: "body" }, [
-                              el(
-                                  "ul",
-                                  { class: "side-list" },
-                                  data.sideProjects.map((item) =>
-                                      el("li", { class: "side-item" }, [
-                                          el("h3", {}, [
-                                              item.title,
-                                              item.role ? el("span", { class: "role" }, item.role) : null,
-                                          ]),
-                                          el("p", {}, text(item.body)),
-                                          item.tech ? el("p", { class: "tech" }, item.tech) : null,
-                                      ]),
-                                  ),
-                              ),
-                          ]),
-                      ], "side")
+                    ? block("외주 프로젝트", data.sideProjectsNote || "", [sideList(data.sideProjects)], "side")
                     : "";
 
                 const simpleList = (items) =>
@@ -1505,6 +1511,7 @@
                     experience,
                     projectBlock,
                     personalBlock,
+                    aiBlock,
                     sideBlock,
                     data.education?.length ? block("학력 · 교육", null, [simpleList(data.education)]) : "",
                     data.extras?.length ? block("자격 · 기타", null, [simpleList(data.extras)]) : "",

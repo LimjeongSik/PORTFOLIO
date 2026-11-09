@@ -37,6 +37,25 @@ export interface Activity {
     takeaways?: string[];
 }
 
+/**
+ * 일하면서 직접 만들어 쓰는 AI 도구(Claude Code 플러그인) 하나. 홈의 "AI 활용" 구간에 선다.
+ * 무엇을 하는지보다 **어디에 실제로 썼는지(`usage`)** 가 먼저 읽혀야 한다 — 만들기만 한 도구는 증명이 약하다.
+ */
+export interface AiTool {
+    name: string;
+    /** 한 줄 정체 — "개발 절차를 단계별로 맡는 플러그인 12개 묶음" */
+    kind: string;
+    /** 공개 여부 · 테스트 수처럼 확인할 수 있는 상태 */
+    status: string;
+    summary: string;
+    /** 실제로 쓴 곳. 근거가 확인된 것만 적는다. */
+    usage: string;
+    /** 기술적으로 풀어낸 것 — "~하던 문제"는 실제로 겪은 결함일 때만 */
+    points: string[];
+    /** 공개 저장소일 때만. 비공개면 비워 둔다(링크가 404로 떨어진다). */
+    repo?: string;
+}
+
 export interface SkillGroup {
     label: string;
     items: string[];

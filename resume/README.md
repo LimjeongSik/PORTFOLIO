@@ -34,6 +34,7 @@
   (`evaluation.md` 4장 참고).
 - 경력의 `short`는 타임라인 막대 위 이름표입니다. 막대 진하기는 순서로 자동으로 정해집니다(오래될수록 옅게).
 - 기술의 `core: true`는 굵게 표시됩니다.
+- `aiTools`는 "AI 활용"(직접 만든 Claude Code 플러그인, 사이트 `src/data/ai.ts`의 요약본) 두 칸 목록이고 부제는 `aiNote`입니다. 사이드 프로젝트 다음 · 외주 앞에 섭니다.
 - `personalProjects`는 "사이드 프로젝트"(회사 · 외주가 아닌 개인 작업)입니다. `projects`와 같은 꼴이고, 프로젝트 다음 · 외주 앞에 섭니다.
   타임라인에는 올리지 않습니다(경력 흐름만 보이게). 부제는 `personalProjectsNote`입니다.
 - `sideProjects`는 "외주 프로젝트" 목록입니다(제목 · 설명 · 선택으로 `role` · `tech`). 비우면 섹션이 사라집니다.

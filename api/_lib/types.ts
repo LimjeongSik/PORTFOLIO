@@ -4,6 +4,7 @@
  */
 import type {
     Activity,
+    AiTool,
     Experience,
     Profile,
     Project,
@@ -63,6 +64,8 @@ export type Knowledge = {
     profile: KnowledgeProfile;
     experiences: Experience[];
     activities: Activity[];
+    /** 홈 "AI 활용" 구간 — 직접 만든 Claude Code 플러그인 */
+    ai: { lede: string; tools: AiTool[] };
     skills: SkillGroup[];
     socials: SocialLink[];
     projects: KnowledgeProject[];

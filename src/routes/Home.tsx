@@ -1,4 +1,5 @@
 import { About } from "@/components/home/About";
+import { AiUsage } from "@/components/home/AiUsage";
 import { Experience } from "@/components/home/Experience";
 import { Hero } from "@/components/home/Hero";
 import { ProjectIndex, SideProjectIndex } from "@/components/home/ProjectIndex";
@@ -10,6 +11,7 @@ export function Home() {
             <Hero />
             <ProjectIndex />
             <SideProjectIndex />
+            <AiUsage />
             <Experience />
             <Skills />
             <About />

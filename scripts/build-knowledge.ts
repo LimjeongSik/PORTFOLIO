@@ -11,6 +11,7 @@ import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { activities } from "../src/data/activities";
+import { aiLede, aiTools } from "../src/data/ai";
 import { experiences } from "../src/data/experience";
 import { profile } from "../src/data/profile";
 import { projects } from "../src/data/projects";
@@ -68,6 +69,7 @@ const knowledge: Knowledge = {
     profile: knowledgeProfile,
     experiences,
     activities,
+    ai: { lede: aiLede, tools: aiTools },
     skills: skillGroups,
     socials,
     projects: knowledgeProjects,
