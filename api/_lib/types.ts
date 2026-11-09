@@ -13,6 +13,7 @@ import type {
     ProjectPipeline,
     ProjectRuntimeMap,
     ProjectSieve,
+    ProjectSync,
     ProjectWindowing,
     SkillGroup,
     SocialLink,
@@ -34,6 +35,7 @@ export type KnowledgeProject = Omit<
     | "pipeline"
     | "sieve"
     | "windowing"
+    | "sync"
     | "bridge"
 > & {
     screens: { name: string; note: string }[];
@@ -50,6 +52,7 @@ export type KnowledgeProjectDetail = {
     pipeline?: ProjectPipeline;
     sieve?: ProjectSieve;
     windowing?: ProjectWindowing;
+    sync?: ProjectSync;
     /** `applies`는 화면 상태 표시용이라 뺀다. */
     bridge?: Omit<ProjectBridgeMap, "calls"> & {
         calls: Omit<ProjectBridgeMap["calls"][number], "applies">[];

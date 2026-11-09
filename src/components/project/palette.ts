@@ -4,6 +4,7 @@ import type { Project } from "@/types/content";
 export const PLATFORM_LABEL: Record<Project["platform"], string> = {
     mobile: "앱",
     web: "웹",
+    "mobile-web": "모바일 웹",
 };
 
 /**

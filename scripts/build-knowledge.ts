@@ -23,6 +23,7 @@ const { avatar: _avatar, ...knowledgeProfile } = profile;
 
 const knowledgeProjects: KnowledgeProject[] = projects.map((project) => ({
     slug: project.slug,
+    side: project.side,
     title: project.title,
     summary: project.summary,
     year: project.year,
@@ -55,6 +56,7 @@ for (const project of projects) {
     if (project.pipeline) detail.pipeline = project.pipeline;
     if (project.sieve) detail.sieve = project.sieve;
     if (project.windowing) detail.windowing = project.windowing;
+    if (project.sync) detail.sync = project.sync;
     if (project.bridge) {
         const { calls, ...bridge } = project.bridge;
         detail.bridge = { ...bridge, calls: calls.map(({ applies: _applies, ...call }) => call) };

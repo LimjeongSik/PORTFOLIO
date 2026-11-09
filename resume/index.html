@@ -1379,11 +1379,11 @@
                         p.icon ? el("img", { src: p.icon, alt: "" }) : p.title.slice(0, 1),
                     );
 
-                const projectBlock = block("프로젝트", "주요 문제와 해결 방법 위주로", [
+                const projectEntries = (list) =>
                     el(
                         "div",
                         { class: "entries" },
-                        projects.map((p) =>
+                        list.map((p) =>
                             el("article", { class: "entry" }, [
                                 railFor({ ...p, nowLabel: "진행 중" }, [el("p", {}, p.platform)]),
                                 el("div", {}, [
@@ -1434,8 +1434,31 @@
                                 ]),
                             ]),
                         ),
-                    ),
-                ], "projects");
+                    );
+
+                const projectBlock = block(
+                    "프로젝트",
+                    "주요 문제와 해결 방법 위주로",
+                    [projectEntries(projects)],
+                    "projects",
+                );
+
+                // 사이드 프로젝트는 프로젝트와 같은 꼴로 그리되 타임라인에는 올리지 않는다(경력 흐름만 보이게).
+                const personalBlock = data.personalProjects?.length
+                    ? block(
+                          "사이드 프로젝트",
+                          data.personalProjectsNote || "",
+                          [
+                              projectEntries(
+                                  data.personalProjects.map((p) => ({
+                                      ...p,
+                                      span: parsePeriod(p.period),
+                                  })),
+                              ),
+                          ],
+                          "projects",
+                      )
+                    : "";
 
                 const sideBlock = data.sideProjects?.length
                     ? block("외주 프로젝트", data.sideProjectsNote || "", [
@@ -1481,6 +1504,7 @@
                     skills,
                     experience,
                     projectBlock,
+                    personalBlock,
                     sideBlock,
                     data.education?.length ? block("학력 · 교육", null, [simpleList(data.education)]) : "",
                     data.extras?.length ? block("자격 · 기타", null, [simpleList(data.extras)]) : "",

@@ -26,10 +26,10 @@ export function ProjectCover({ project }: { project: Project }) {
         <div style={paint(project)} className="bg-(--p-paper) text-(--p-ink)">
             <div className={`${CONTAINER} pt-8 sm:pt-10`}>
                 <Link
-                    to="/#projects"
+                    to={project.side ? "/#side-projects" : "/#projects"}
                     className="text-[0.875rem] text-(--p-muted) transition-colors hover:text-(--p-ink)"
                 >
-                    모든 프로젝트
+                    {project.side ? "사이드 프로젝트" : "모든 프로젝트"}
                 </Link>
 
                 <div className="mt-12 flex items-center gap-5 sm:mt-16">

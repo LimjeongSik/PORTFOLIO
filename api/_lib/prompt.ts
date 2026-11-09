@@ -1,8 +1,14 @@
 import { knowledge } from "./knowledge.generated.js";
 
-import type { KnowledgeProjectDetail } from "./types.js";
+import type { KnowledgeProject, KnowledgeProjectDetail } from "./types.js";
 
 const { profile, experiences, activities, skills, projects, details } = knowledge;
+
+const PLATFORM: Record<KnowledgeProject["platform"], string> = {
+    mobile: "모바일 앱",
+    web: "웹",
+    "mobile-web": "모바일 우선 웹",
+};
 
 /** 상세는 툴로 꺼내므로, 목록에는 "무엇에 대해 더 물을 수 있는지"만 적는다. */
 function projectSummary(): string {
@@ -10,7 +16,7 @@ function projectSummary(): string {
         .map((p) => {
             const lines = [
                 `### ${p.title} (slug: ${p.slug})`,
-                `- 기간/역할: ${p.period} · ${p.role} · ${p.platform === "mobile" ? "모바일 앱" : "웹"}`,
+                `- 기간/역할: ${p.period} · ${p.role} · ${PLATFORM[p.platform]}${p.side ? " · 개인 사이드 프로젝트" : ""}`,
                 `- 한 줄: ${p.summary}`,
                 `- 기술: ${p.tech.join(", ")}`,
                 `- 배경: ${p.context.join(" ")}`,
@@ -146,8 +152,8 @@ ${skills.map((g) => `- ${g.label}: ${g.items.join(", ")}`).join("\n")}
 ${projectSummary()}
 
 ### 사이트 구조
-- 홈은 한 페이지이고 위에서부터 첫 화면(top) · projects(프로젝트 목록) · experience(경력과 활동) ·
-  skills(기술) · about(소개와 연락처) 순서입니다.
+- 홈은 한 페이지이고 위에서부터 첫 화면(top) · projects(프로젝트 목록) · side-projects(개인 사이드 프로젝트) ·
+  experience(경력과 활동) · skills(기술) · about(소개와 연락처) 순서입니다.
 - 프로젝트마다 상세 페이지가 따로 있습니다: ${projects.map((p) => p.slug).join(", ")}.
   상세는 표지(요약 · 역할 · 기간 · 기술 · 앱 화면) → 배경 → 접근 → 구조(설계를 풀어 쓴 그림) →
   풀어낸 문제(사례) → 작업물 순서입니다. Plus SMS 상세에는 번호를 직접 붙여넣어 보는 체와

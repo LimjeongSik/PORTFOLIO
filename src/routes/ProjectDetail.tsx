@@ -7,6 +7,7 @@ import { Pipeline } from "@/components/project/figures/Pipeline";
 import { Rebuild } from "@/components/project/figures/Rebuild";
 import { Runtime } from "@/components/project/figures/Runtime";
 import { Sieve } from "@/components/project/figures/Sieve";
+import { Sync } from "@/components/project/figures/Sync";
 import { Windowing } from "@/components/project/figures/Windowing";
 import { ProjectCover } from "@/components/project/ProjectCover";
 import { ProjectRow } from "@/components/project/ProjectRow";
@@ -53,6 +54,9 @@ function figuresOf(project: Project) {
     }
     if (project.windowing) {
         figures.push({ key: "windowing", node: <Windowing windowing={project.windowing} /> });
+    }
+    if (project.sync) {
+        figures.push({ key: "sync", node: <Sync sync={project.sync} /> });
     }
     return figures;
 }

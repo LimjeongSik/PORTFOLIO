@@ -275,6 +275,22 @@ export interface ProjectRebuild {
     note: string;
 }
 
+/** 실시간 방에서 흔한 상황 하나 — 서버가 무엇을 알리고 화면이 무엇을 하나. */
+export interface ProjectSyncEvent {
+    label: string;
+    hint: string;
+    server: string;
+    client: string;
+}
+
+/** 이벤트에는 내용 대신 version만 싣고 화면이 다시 읽는 실시간 동기화 규칙. */
+export interface ProjectSync {
+    title: string;
+    lede: string;
+    events: ProjectSyncEvent[];
+    note: string;
+}
+
 export interface ProjectTheme {
     paper: string;
     surface: string;
@@ -287,12 +303,15 @@ export interface ProjectTheme {
 
 export interface Project {
     slug: string;
+    /** 회사 · 외주가 아닌 개인 사이드 프로젝트. 홈에서 "사이드 프로젝트" 구간에 따로 선다. */
+    side?: boolean;
     title: string;
     summary: string;
     year: string;
     role: string;
     period: string;
-    platform: "mobile" | "web";
+    /** `mobile-web`은 휴대폰 화면 비율로 만든 웹이다 — 선반이 휴대폰 틀로 선다. */
+    platform: "mobile" | "web" | "mobile-web";
     tech: string[];
     thumbnail: string;
     icon?: string;
@@ -318,6 +337,7 @@ export interface Project {
     bridge?: ProjectBridgeMap;
     sieve?: ProjectSieve;
     windowing?: ProjectWindowing;
+    sync?: ProjectSync;
 }
 
 export interface SocialLink {
