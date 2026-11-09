@@ -51,3 +51,4 @@ src/assets/fonts/*.otf
 
 # prefs 플러그인 학습 파일
 /learn/
+.claude/review-logs/
