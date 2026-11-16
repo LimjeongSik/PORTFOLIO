@@ -125,6 +125,7 @@ function Case({ item }: { item: ProjectCase }) {
 }
 
 function Field({ field }: { field: ProjectField }) {
+    const [usageLabel, dispatchLabel] = field.labels ?? ["사용", "관제"];
     return (
         <div>
             <p className={`${BODY} ${MEASURE}`}>{field.lede}</p>
@@ -138,8 +139,8 @@ function Field({ field }: { field: ProjectField }) {
                         <p className={`mt-1 ${META}`}>{item.users}</p>
                         <Parts
                             items={[
-                                { label: "사용", body: item.usage },
-                                { label: "관제", body: item.dispatch },
+                                { label: usageLabel, body: item.usage },
+                                { label: dispatchLabel, body: item.dispatch },
                             ]}
                         />
                         <Metrics items={item.metrics} />
@@ -201,7 +202,7 @@ export function ProjectDetail() {
             ) : null}
 
             {project.field ? (
-                <Section id="field" title="현장 운영">
+                <Section id="field" title={project.field.title ?? "현장 운영"}>
                     <Field field={project.field} />
                 </Section>
             ) : null}

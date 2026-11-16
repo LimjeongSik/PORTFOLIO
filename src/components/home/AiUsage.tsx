@@ -1,7 +1,9 @@
+import { Link } from "react-router-dom";
+
 import { Section } from "@/components/ui/Section";
 import { TextLink } from "@/components/ui/TextLink";
 
-import { aiLede, aiTools } from "@/data/ai";
+import { aiDetail, aiLede, aiTools } from "@/data/ai";
 import { BODY, DASH, HEADING, MEASURE, META, SMALL } from "@/lib/typography";
 
 /** 이름 | 내용 두 칸 — 경력 목록과 같은 축이라 홈을 훑어 내려갈 때 줄이 맞는다. */
@@ -11,6 +13,14 @@ export function AiUsage() {
     return (
         <Section id="ai" title="AI 활용">
             <p className={`${MEASURE} ${BODY}`}>{aiLede}</p>
+            <p className="mt-5">
+                <Link
+                    to={`/projects/${aiDetail.slug}`}
+                    className={`${BODY} font-bold underline decoration-ink/25 decoration-1 underline-offset-[0.3em] transition-colors hover:decoration-current`}
+                >
+                    {aiDetail.label}
+                </Link>
+            </p>
             <ol className="mt-12 flex flex-col">
                 {aiTools.map((tool) => (
                     <li

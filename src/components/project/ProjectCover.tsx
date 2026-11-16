@@ -14,8 +14,20 @@ import type { Project } from "@/types/content";
  * hover가 같은 색이라, 목록에서 눌러 들어오면 그 줄이 그대로 펼쳐진 것처럼 이어진다.
  * 화면 목록도 이 띠 위에 놓여 스크린샷이 자기 앱의 색 위에서 보인다.
  */
+/** 표지 왼쪽 위의 돌아가는 길 — 이 상세로 들어온 홈 구간. */
+function backOf(project: Project) {
+    if (project.ai) {
+        return { to: "/#ai", label: "AI 활용" };
+    }
+    if (project.side) {
+        return { to: "/#side-projects", label: "사이드 프로젝트" };
+    }
+    return { to: "/#projects", label: "모든 프로젝트" };
+}
+
 export function ProjectCover({ project }: { project: Project }) {
     const host = hostOf(project.links.demo);
+    const back = backOf(project);
     const facts = [
         { label: "역할", value: project.role },
         { label: "기간", value: project.period },
@@ -26,10 +38,10 @@ export function ProjectCover({ project }: { project: Project }) {
         <div style={paint(project)} className="bg-(--p-paper) text-(--p-ink)">
             <div className={`${CONTAINER} pt-8 sm:pt-10`}>
                 <Link
-                    to={project.side ? "/#side-projects" : "/#projects"}
+                    to={back.to}
                     className="text-[0.875rem] text-(--p-muted) transition-colors hover:text-(--p-ink)"
                 >
-                    {project.side ? "사이드 프로젝트" : "모든 프로젝트"}
+                    {back.label}
                 </Link>
 
                 <div className="mt-12 flex items-center gap-5 sm:mt-16">

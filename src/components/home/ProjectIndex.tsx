@@ -20,7 +20,7 @@ function Rows({ items }: { items: Project[] }) {
 export function ProjectIndex() {
     return (
         <Section id="projects" title="프로젝트">
-            <Rows items={projects.filter((project) => !project.side)} />
+            <Rows items={projects.filter((project) => !project.side && !project.ai)} />
         </Section>
     );
 }

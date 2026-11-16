@@ -5,6 +5,7 @@ export const PLATFORM_LABEL: Record<Project["platform"], string> = {
     mobile: "앱",
     web: "웹",
     "mobile-web": "모바일 웹",
+    plugin: "플러그인",
 };
 
 /**
