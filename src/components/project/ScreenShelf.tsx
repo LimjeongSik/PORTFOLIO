@@ -49,7 +49,9 @@ export function ScreenShelf({ project }: { project: Project }) {
     );
 
     const paired = Boolean(screenModes) && screens.every((screen) => screen.srcAlt);
-    const web = project.platform === "web";
+    // 플러그인의 결과물은 덱(16:9)과 실행 캡처(가로 · 세로)가 섞여, 가로 틀 하나에 비율을 지켜 담는다.
+    const fitted = project.platform === "plugin";
+    const web = project.platform === "web" || fitted;
     const host = hostOf(project.links.demo);
 
     useEffect(() => {
@@ -217,7 +219,7 @@ export function ScreenShelf({ project }: { project: Project }) {
                                 <div
                                     className={`relative overflow-hidden bg-black/10 ring-1 ring-current/10 ${
                                         web ? "rounded-xl" : "aspect-9/19.5 rounded-[1.75rem]"
-                                    }`}
+                                    } ${fitted ? "aspect-video" : ""}`}
                                 >
                                     {/* 웹 화면은 캡처 비율이 프로젝트마다 달라(16:10 · 16:9) 틀에 맞춰 자르지 않고 원본 비율대로 둔다. */}
                                     <img
@@ -226,9 +228,11 @@ export function ScreenShelf({ project }: { project: Project }) {
                                         loading="lazy"
                                         draggable={false}
                                         className={
-                                            web
-                                                ? "block h-auto w-full"
-                                                : "absolute inset-0 h-full w-full object-cover object-top"
+                                            fitted
+                                                ? "absolute inset-0 h-full w-full object-contain"
+                                                : web
+                                                  ? "block h-auto w-full"
+                                                  : "absolute inset-0 h-full w-full object-cover object-top"
                                         }
                                     />
                                     {paired && screen.srcAlt ? (

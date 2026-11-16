@@ -18,6 +18,7 @@ const CHIP: Record<ProjectPipelineVerdict, string> = {
 
 /** 좌표 하나가 지나는 관문과, 흔한 상황마다 어디서 걸리는지. */
 export function Pipeline({ pipeline }: { pipeline: ProjectPipeline }) {
+    const verdicts = { ...VERDICT, ...pipeline.verdictLabels };
     return (
         <Figure title={pipeline.title} lede={pipeline.lede} note={pipeline.note}>
             <ol className="grid gap-x-10 gap-y-6 md:grid-cols-2">
@@ -47,7 +48,7 @@ export function Pipeline({ pipeline }: { pipeline: ProjectPipeline }) {
                                         key={stage.name}
                                         className={`rounded-full border px-3 py-1 text-[0.8125rem] ${CHIP[verdict]}`}
                                     >
-                                        {stage.name} {VERDICT[verdict]}
+                                        {stage.name} {verdicts[verdict]}
                                     </li>
                                 );
                             })}

@@ -25,6 +25,7 @@ const { avatar: _avatar, ...knowledgeProfile } = profile;
 const knowledgeProjects: KnowledgeProject[] = projects.map((project) => ({
     slug: project.slug,
     side: project.side,
+    ai: project.ai,
     title: project.title,
     summary: project.summary,
     year: project.year,

@@ -140,6 +140,10 @@ export interface ProjectFieldEvent {
 }
 
 export interface ProjectField {
+    /** 구간 제목. 없으면 "현장 운영". 행사가 아니라 실행 기록일 때처럼 성격이 다르면 적는다. */
+    title?: string;
+    /** 기록 한 건의 두 칸 이름(`usage` · `dispatch` 순서). 없으면 "사용" · "관제". */
+    labels?: [string, string];
     lede: string;
     events: ProjectFieldEvent[];
     /** 현장에서 보고 다음에 고칠 것 */
@@ -204,6 +208,8 @@ export interface ProjectPipelineCase {
 export interface ProjectPipeline {
     title: string;
     lede: string;
+    /** 판정 칩의 말. 좌표가 아니라 커밋처럼 "버림"이 어색한 대상일 때 바꾼다. */
+    verdictLabels?: Partial<Record<ProjectPipelineVerdict, string>>;
     stages: ProjectPipelineStage[];
     cases: ProjectPipelineCase[];
     note: string;
@@ -324,13 +330,18 @@ export interface Project {
     slug: string;
     /** 회사 · 외주가 아닌 개인 사이드 프로젝트. 홈에서 "사이드 프로젝트" 구간에 따로 선다. */
     side?: boolean;
+    /** 홈의 "AI 활용" 구간에서 들어오는 상세. 프로젝트 목록에는 서지 않는다. */
+    ai?: boolean;
     title: string;
     summary: string;
     year: string;
     role: string;
     period: string;
-    /** `mobile-web`은 휴대폰 화면 비율로 만든 웹이다 — 선반이 휴대폰 틀로 선다. */
-    platform: "mobile" | "web" | "mobile-web";
+    /**
+     * `mobile-web`은 휴대폰 화면 비율로 만든 웹이다 — 선반이 휴대폰 틀로 선다.
+     * `plugin`은 화면이 없는 도구라 결과물(덱 · 실행 캡처)을 비율이 섞인 채 가로 틀에 맞춰 보인다.
+     */
+    platform: "mobile" | "web" | "mobile-web" | "plugin";
     tech: string[];
     thumbnail: string;
     icon?: string;

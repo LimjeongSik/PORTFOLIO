@@ -8,6 +8,7 @@ const PLATFORM: Record<KnowledgeProject["platform"], string> = {
     mobile: "모바일 앱",
     web: "웹",
     "mobile-web": "모바일 우선 웹",
+    plugin: "Claude Code 플러그인",
 };
 
 /** 상세는 툴로 꺼내므로, 목록에는 "무엇에 대해 더 물을 수 있는지"만 적는다. */
@@ -16,7 +17,7 @@ function projectSummary(): string {
         .map((p) => {
             const lines = [
                 `### ${p.title} (slug: ${p.slug})`,
-                `- 기간/역할: ${p.period} · ${p.role} · ${PLATFORM[p.platform]}${p.side ? " · 개인 사이드 프로젝트" : ""}`,
+                `- 기간/역할: ${p.period} · ${p.role} · ${PLATFORM[p.platform]}${p.side ? " · 개인 사이드 프로젝트" : ""}${p.ai ? " · 홈 AI 활용 구간의 상세" : ""}`,
                 `- 한 줄: ${p.summary}`,
                 `- 기술: ${p.tech.join(", ")}`,
                 `- 배경: ${p.context.join(" ")}`,
@@ -26,9 +27,12 @@ function projectSummary(): string {
                 lines.push(`- 화면: ${p.screens.map((s) => s.name).join(" · ")}`);
             }
             if (p.field) {
-                lines.push(`- 현장 운영: ${p.field.lede}`);
+                const [usageLabel, dispatchLabel] = p.field.labels ?? ["사용", "관제 사례"];
+                lines.push(`- ${p.field.title ?? "현장 운영"}: ${p.field.lede}`);
                 for (const e of p.field.events) {
-                    lines.push(`  - ${e.event}(${e.users}): ${e.usage} 관제 사례: ${e.dispatch}`);
+                    lines.push(
+                        `  - ${e.event}(${e.users}): ${usageLabel}: ${e.usage} ${dispatchLabel}: ${e.dispatch}`,
+                    );
                 }
                 lines.push(`  - 돌아보며: ${p.field.retrospective.join(" ")}`);
             }

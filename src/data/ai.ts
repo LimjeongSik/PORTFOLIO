@@ -10,6 +10,12 @@ import type { AiTool } from "@/types/content";
 export const aiLede =
     "Claude Code로 개발하면서 매번 반복하던 지시와 검수를 플러그인 네 개로 만들어 씁니다. 에이전트에게 일을 끝까지 맡기되, 꼭 지켜야 하는 규칙은 프롬프트가 아니라 훅 · 스크립트 · 빌드 검사로 강제했습니다. 프롬프트에 적은 규칙은 모델이 건너뛸 수 있기 때문입니다. 네 개 모두 혼자 설계하고 Claude Code와 함께 작성했습니다(2026.10 — 2026.11).";
 
+/** 네 플러그인을 한 상세로 묶은 페이지(`projects.ts`의 `ai: true` 항목) — 사례 · 코드 · 결과물 · 실행 기록. */
+export const aiDetail = {
+    slug: "claude-plugins",
+    label: "풀어낸 문제와 코드, 결과물, 실행 기록 보기",
+};
+
 export const aiTools: AiTool[] = [
     {
         name: "report-deck",

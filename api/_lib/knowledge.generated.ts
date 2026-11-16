@@ -777,6 +777,162 @@ export const knowledge: Knowledge = {
                 },
             ],
         },
+        {
+            slug: "claude-plugins",
+            ai: true,
+            title: "Claude Code 플러그인 4종",
+            summary:
+                "반복하던 업무와 개발 절차를 AI 에이전트에게 맡기되, 꼭 지켜야 하는 규칙은 코드로 강제한 Claude Code 플러그인 네 개입니다. 회사의 행사 결과보고서 제작(report-deck), 커밋 전 리뷰와 보안 점검(baton), git 이력으로 이력서 원고 쓰기(reel), 아이디어 한 줄에서 서비스를 만드는 자율 개발(seed)을 맡습니다.",
+            year: "2026",
+            role: "1인 설계 · 개발 · 테스트 (Claude Code와 함께 작성)",
+            period: "2026.10 — 2026.11",
+            platform: "plugin",
+            tech: [
+                "Claude Code",
+                "Skills · Subagents · Hooks",
+                "Node.js",
+                "Python",
+                "Bash",
+                "Git",
+                "OpenAI Codex",
+                "pptxgenjs",
+                "python-pptx",
+                "LibreOffice",
+                "Playwright",
+                "node:test",
+            ],
+            links: {},
+            context: [
+                'LLM 에이전트에게 일을 맡기면 빨라지지만, 결과를 그대로 믿고 쓰기는 어렵습니다. 결과보고서의 숫자가 반올림되고, 문서에 적어 둔 리뷰 · 보안 점검 절차를 건너뛰고, 이력서 원고에 없는 커밋이 근거로 붙고, 실행해 보지 않은 기능이 "구현 완료"로 보고됩니다. 네 플러그인은 모두 이 문제에서 출발했습니다.',
+                '반대로 사람이 계속 붙어 있으면 맡긴 의미가 없습니다. 에이전트는 스택 · 화면 · 깨진 테스트를 매번 묻고, 답할 때까지 멈춥니다. 그래서 네 플러그인은 "사람이 중간에 끼지 않아도 끝까지 진행하되, 확인된 결과만 내놓는다"는 같은 요구를 서로 다른 일에 적용한 것입니다.',
+                'report-deck은 재직 중인 회사에서 실제 행사의 AI 안전관제 결과보고서를 만드는 데 씁니다. 고객이 승인한 실제 보고서 2벌의 장 순서를 표준 템플릿으로 삼았고, 고객 피드백을 "인사이트와 개선 사항" 섹션으로 표준 구성에 넣었습니다. 고객 · 행사 이름과 실제 수치는 밝히지 않으며, 아래 화면은 가상 데이터로 만든 시험 덱입니다.',
+                '나머지 셋은 매일 쓰는 개발 도구입니다. baton은 개발 절차를, reel은 그 결과를 이력서 원고로 옮기는 일을, seed는 서비스 하나를 처음부터 끝까지 만드는 일을 맡습니다. 사이드 프로젝트 "너, 나 알아?"를 seed로 16회차 동안 키울 때 모든 회차가 baton의 리뷰 · 보안 점검을 거쳐 커밋됐고, 이 페이지의 원고는 reel로 만들었습니다. baton · reel · seed는 공개 저장소이고 report-deck은 비공개입니다.',
+            ],
+            approach: [
+                "꼭 지켜야 하는 규칙은 문서가 아니라 코드로 강제했습니다. 프롬프트에 적은 규칙은 모델이 건너뛸 수 있기 때문입니다. report-deck은 완성된 덱의 숫자를 원자료 기록(facts.json)과 대조하고 차트 축이 0부터가 아니면 빌드를 멈춥니다. baton은 PreToolUse 훅으로 Claude의 git commit · push를 가로채 리뷰 · 감사 기록이 없는 변경을 막습니다. reel은 사람이 고친 원고인지를 모델의 판단이 아니라 SHA-256 기록으로 가립니다. seed는 완성 전에 턴을 끝내는 것을 Stop 훅으로, 사용자에게 묻는 것을 AskUserQuestion 차단 훅으로 막습니다.",
+                "확인한 것만 씁니다. report-deck은 숫자마다 원문 표기 · 출처 · 기준을 facts.json에 두고, 원자료끼리 값이 다르면 하나를 고르지 않고 [자료 확인 필요]로 남깁니다. reel은 모르는 사실을 지어내지 않고 TODO로 남겨 묻습니다. seed의 테스터는 개발자의 보고를 믿지 않고 README 명령대로 처음부터 다시 실행해 판정합니다.",
+                "판단과 구현을 나누고, 단계 사이는 파일로 넘깁니다. report-deck은 자료 분석 · 목차 설계처럼 틀리면 덱 전체가 틀리는 판단은 opus에, 섹션 제작은 sonnet에 맡겨 병렬로 실행합니다. 계산만 하던 디자인 단계는 에이전트 대신 스크립트로 바꿨습니다(약 9분 → 1초). baton의 feature는 구현 에이전트와 테스트 에이전트를 나눠, 자기 코드에 맞춘 테스트를 쓰지 못하게 합니다. seed의 다섯 에이전트는 정해진 파일로만 결과를 주고받아, 긴 실행에서도 대화가 덜 차고 대화가 압축된 뒤에도 같은 자리에서 이어 갑니다.",
+                "사람에게 묻는 일은 줄이되, 정한 것은 남깁니다. report-deck은 원자료가 아예 없을 때만 멈추고, 나머지는 기본값으로 정해 brief.md에 가정으로 적은 뒤 전달할 때 한 번에 보여 줍니다. seed는 결정마다 이유 · 대안 · 바꾸는 법을 decisions.md에 남깁니다. reel은 질문을 모아 마지막에 한 번 묻되, 어느 커밋이 내 것인지처럼 답이 없으면 남의 작업이 섞이는 질문만 그 자리에서 묻습니다.",
+                "이미 있는 도구 위에 얹습니다. report-deck은 Anthropic의 pptx 스킬을 복사하지 않고, 바꿀 기본값 9개만 이유와 함께 덮어쓰는 방식으로 만들었습니다(원본은 재배포할 수 없는 라이선스입니다). baton은 OpenAI의 codex 플러그인과 Anthropic의 frontend-design 스킬을 의존성으로 걸어 설치할 때 함께 들어오게 했습니다. seed는 사용자가 설치한 다른 플러그인을 찾아 쓰되, 그 플러그인의 점검 단계를 우회하지 않습니다.",
+                "직접 만든 실수도 기록하고 테스트로 확인합니다. baton은 심볼릭 링크 경로에서 점검이 건너뛰어지던 문제를 고치며 훅 테스트를 0개에서 25개로 늘렸고, “공백만 바뀐 파일은 다시 검사하지 않는다”는 최적화가 동작이 바뀐 코드까지 통과시키자 되돌렸습니다. report-deck은 너무 넓게 잡던 문장 규칙을 같은 날 되돌렸습니다. reel의 회귀 테스트는 0개(0.3.0)에서 34개(0.4.0), 105개(0.5.0)로 늘었습니다.",
+            ],
+            field: {
+                title: "실행 기록",
+                labels: ["진행", "판정"],
+                lede: "seed는 사람이 끼지 않고 실행되는 만큼, 실제로 돌려 본 기록이 가장 확실한 근거입니다. 실제 서비스 두 개에 세 번 실행한 기록입니다. report-deck의 회사 사용 기록은 고객 · 행사와 수치를 밝히지 않아 여기에 싣지 않습니다.",
+                events: [
+                    {
+                        event: '"너, 나 알아?" 1차 — 기존 서비스에 유입 · 재방문 기능 더하기',
+                        users: "본인 · 2026.10.26 · 3회차",
+                        usage: "Next.js · NestJS로 만든 기존 서비스에 새 사용자를 모으고 다시 찾게 하는 기능을 더해 달라는 요청으로 시작했습니다. 순위, 링크 미리보기, 유입 통계 명령이 들어갔고, 사용자 지시로 3회차에서 마쳤습니다.",
+                        dispatch: "완성 기준 17개를 모두 채워 기획자의 완성 승인을 받았습니다.",
+                        metrics: [
+                            {
+                                label: "완성 기준",
+                                value: "17/17",
+                            },
+                            {
+                                label: "회차",
+                                value: "3",
+                            },
+                            {
+                                label: "실행 기간 커밋",
+                                value: "18개",
+                            },
+                        ],
+                    },
+                    {
+                        event: '"너, 나 알아?" 2차 — 남은 일부터 회차 상한 없이 이어 가기',
+                        users: "본인 · 2026.10.26 — 10.29 · 16회차",
+                        usage: '"seed 이용해서 작업 이어서 진행해" 한 줄로 1차에 남은 일부터 이어 갔습니다. 공유 이미지, 인사이트 카드, 밸런스 게임, "오늘 뭐 정할까?", 프로필이 들어갔습니다. 사람이 끼어든 것은 시작 전 codex CLI 설치 결정과 회차 상한 조정 두 번뿐이고, 모든 회차가 baton의 리뷰 · 보안 점검을 거쳐 커밋됐습니다.',
+                        dispatch:
+                            "일을 7단계로 나눠 단계마다 기획자의 완성 검토를 거쳤고, 완성 기준 26개를 모두 채웠습니다. 마지막 회차에서 단위 테스트 4,583개 · backend e2e 586개 · Playwright 44개가 한 번에 통과했습니다.",
+                        metrics: [
+                            {
+                                label: "완성 기준",
+                                value: "26/26",
+                            },
+                            {
+                                label: "결정 기록",
+                                value: "428건",
+                            },
+                            {
+                                label: "실행 기간 커밋",
+                                value: "190개",
+                            },
+                        ],
+                    },
+                    {
+                        event: "모바일 청첩장 서비스 — 빈 폴더에서 시작",
+                        users: "본인 · 2026.11.05 · 2회차 검증 중 멈춤",
+                        usage: '"모바일 청첩장 서비스 만들어줘"와 스택, 브랜딩 폴더만 주고 빈 폴더에서 시작했습니다. 1회차에 편집기와 실시간 미리보기, 공개 청첩장을 만들었습니다. 실행 중에 요청을 여섯 번 더했는데, 하던 단계를 멈추지 않고 요청 문서에 덧붙여 진행 중인 개발자에게 넘기거나 다음 회차 기획에 반영했습니다.',
+                        dispatch:
+                            '1회차 테스터가 수용 기준 29개를 모두 통과시키고도 요청 제한 우회 보안 이슈를 찾아 "완성 불가"로 판정했고, 개선 단계에서 고쳤습니다. 2회차 검증 중에 실행 환경을 옮기려고 사용자가 멈췄습니다.',
+                        metrics: [
+                            {
+                                label: "1회차 수용 기준",
+                                value: "29/29",
+                            },
+                            {
+                                label: "결정 기록",
+                                value: "82건",
+                            },
+                            {
+                                label: "커밋",
+                                value: "7개",
+                            },
+                        ],
+                    },
+                ],
+                retrospective: [
+                    "네 플러그인 모두 Claude가 스킬을 이어서 호출하는 전체 흐름은 자동 테스트가 없습니다. 스크립트와 훅은 테스트로 확인했지만(baton 146개, reel 105개), 모델이 문서대로 움직이는지는 실제로 써 보며 확인합니다. report-deck은 검사 스크립트의 테스트 파일도 없어 수동 회귀 절차에 기대고 있습니다.",
+                    "seed 실행에서 규칙끼리 부딪친 경우가 있었습니다. '확인 창이 뜨면 커밋을 건너뛴다'와 '일회성 환경에서 결과물을 잃지 않는다'가 충돌해 실행 중 결정으로 풀었는데, 아직 규칙 문서에 반영하지 않았습니다. 모바일 청첩장 서비스에는 재현을 확인하지 못한 입력 버그 의심이 하나 남아 있습니다.",
+                    "결과물 자료가 부족합니다. report-deck 예시 덱은 표준 템플릿을 도입하기 전 구성이고, baton · reel은 실행 화면 캡처가 없습니다.",
+                ],
+            },
+            screens: [
+                {
+                    name: "표지 (report-deck)",
+                    note: "현장 사진 3장을 연결하고, 촬영 일시가 없는 사진은 주석으로 밝힙니다.",
+                },
+                {
+                    name: "운영 결과 요약 (report-deck)",
+                    note: "결론을 한 줄로 먼저 쓰고, 대표 수치와 집계 기준 각주를 붙입니다.",
+                },
+                {
+                    name: "구역별 인원 흐름 (report-deck)",
+                    note: "범주별 시간 흐름을 선 차트로 보입니다. 덱마다 한 장 이상 넣는 규칙이 있습니다.",
+                },
+                {
+                    name: "AI 감지 (report-deck)",
+                    note: "도형으로 그린 누적 막대 차트입니다. 축이 0부터 시작해야 빌드됩니다.",
+                },
+                {
+                    name: "위험 감지 사례 (report-deck)",
+                    note: "CCTV 위치 사진과 같은 시점의 기록 표를 나란히 둡니다.",
+                },
+                {
+                    name: "시스템 업데이트 예정 (report-deck)",
+                    note: "현재 기능과 추가할 기능을 비교 표로 정리합니다.",
+                },
+                {
+                    name: "디자인 3안 미리보기 (report-deck)",
+                    note: "같은 내용을 서로 다른 디자인 3안으로 그려 고르게 합니다(design-deck).",
+                },
+                {
+                    name: "청첩장 편집기 (seed)",
+                    note: "실행 중에 추가한 요청(편집 화면 옆 실시간 미리보기)을 1회차에 반영했습니다. 테스터가 찾은 이슈를 고친 뒤 다시 검증하며 찍은 캡처입니다.",
+                },
+                {
+                    name: "백엔드를 끈 편집기 (seed)",
+                    note: "테스터가 백엔드를 끄고 오류 상태와 '다시 시도' 버튼이 나오는지 확인한 캡처입니다.",
+                },
+                {
+                    name: '"너, 나 알아?" 실시간 반영 (seed)',
+                    note: "16회차 테스터 캡처입니다. 상대가 방을 열면 새로고침 없이 '이어서 하기'로 바뀌는 전 · 후입니다.",
+                },
+            ],
+        },
     ],
     details: {
         safeops: {
@@ -2615,6 +2771,249 @@ export const knowledge: Knowledge = {
                     },
                 ],
                 note: "같은 Wi-Fi에서 12명이 알림마다 다시 받아 와도 막히지 않도록, 이 방의 요청 제한은 IP가 아니라 사용자별로 계산합니다. 네 경우 모두 backend e2e와 frontend 단위 테스트로 확인했고, 여러 기기로 실제로 함께 해 본 기록은 없습니다.",
+            },
+        },
+        "claude-plugins": {
+            cases: [
+                {
+                    label: "결과보고서의 숫자가 바뀌지 않도록 빌드에서 막기",
+                    problem:
+                        "LLM은 3,120을 '약 3천'으로 줄이거나, 원자료에 없는 합계를 만들거나, 축을 잘라 차이를 부풀리기 쉽습니다. 결과보고서의 숫자는 고객이 그대로 인용하는 사실이라 근삿값 하나도 결함입니다. 이 위험은 데이터가 슬라이드로 옮겨지는 단계에 있어서, 프롬프트에 바꾸지 말라고 적는 것만으로는 막을 수 없었습니다.",
+                    approach:
+                        "숫자의 근거를 facts.json 하나로 정했습니다. 검사 스크립트(check-deck.py)가 완성된 pptx의 모든 숫자를 facts와 계산식(derived)의 숫자와 대조해, 어긋나면 장 번호와 함께 경고합니다. 도형으로 그리는 차트는 축이 0부터가 아니거나 축 최대값이 데이터보다 작으면 빌드를 멈춥니다.",
+                    result: "숫자가 바뀌면 빌드 · 검사 단계에서 장 번호와 함께 드러납니다. 날짜 · 시각의 일부, 두 자리 이하의 수, 축 눈금 같은 둥근 수는 넘기므로 이 범위의 변경은 잡지 못합니다. 정적으로만 검증했고, 이 동작을 확인하는 테스트는 아직 없습니다.",
+                    changes: [
+                        {
+                            file: "plugins/report-deck/skills/report-deck/assets/theme.default.js",
+                            commit: "4e0b05f · 2026.10.29",
+                            after: 'function valueAxis(s, { x, y, w, h, ticks, axisW, topPad = 0.32, labH = 0.3 }) {\n  if (!ticks || ticks[0] !== 0) throw new Error("ticks는 0부터 시작해야 합니다(축 자르기 금지)");\n// ...\nfunction columnChart(s, { x, y, w, h, labels, values, emphasis = [], valueLabels = [], valueText, ticks, colors, barW, axisW = 0.55, labelEvery = 1 }) {\n  if (Math.max(...values) > ticks[ticks.length - 1]) throw new Error("columnChart: ticks 최대값이 데이터 최대값보다 작습니다(축 자르기 금지)");',
+                            note: "저장소 첫 커밋에서 새로 넣은 코드라 전 코드가 없습니다. 축을 500부터 시작하는 차트는 아예 만들어지지 않습니다.",
+                        },
+                    ],
+                },
+                {
+                    label: "문장 검사가 문맥에 맞는 쉬운 말까지 잡던 문제",
+                    problem:
+                        "LLM이 만든 슬라이드 문장을 사람이 매번 고치면 같은 지적이 덱마다 반복됩니다. 처음에는 지적받은 구어('옆 노트북', '인원을 세어', '쌓이는 건수')를 금지 패턴으로 넣었습니다. 그런데 이 방식은 문맥에 맞는 쉬운 말까지 잡았고, 경고대로 고치면 문장이 오히려 딱딱해졌습니다. 어떤 낱말이 나쁜지를 기준으로 규칙을 짠 것이 원인이었습니다.",
+                    approach:
+                        "구어 낱말 경고 4종을 같은 날 지우고, 남은 규칙의 안내를 '판단할 후보'로 바꿨습니다. 지시어는 대상이 보이면 그대로 두고, 번역투는 문장 전체로 판단합니다. 다음 날에는 실제 덱 최종본에서 사람이 고친 것 가운데 문맥과 상관없이 어색한 유형 4가지만 규칙으로 더했습니다. 설명서 같은 패널 제목, 수식 같은 말투, 내부 표기, 운영일 라벨입니다.",
+                    result: "새 규칙을 세 가지 덱으로 확인했습니다. 시험 덱과 수정 전 실제 덱 사본에서는 잡고, 고객이 승인한 덱 사본에서는 잘못 잡은 것이 없었습니다. 검사는 경고만 내고, 전달하기 전에 메인 에이전트가 덱 전체 문장을 한 번 더 읽습니다.",
+                    metrics: [
+                        {
+                            label: "시험 덱 검출",
+                            value: "7건",
+                        },
+                        {
+                            label: "수정 전 실제 덱 검출",
+                            value: "18건",
+                        },
+                        {
+                            label: "승인 덱 2벌 오탐",
+                            value: "0건",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "plugins/report-deck/skills/report-deck/scripts/check-deck.py",
+                            commit: "cc72b18 · 2026.11.02",
+                            before: '    ("language", r"되어지|되어졌|에 있어서|함에 있어|를 통해 .*진행", "번역투(korean-writing.md §5)", "warning"),\n    # 사용자 지적으로 고친 유형(korean-writing.md §5)\n    ("language", r"(^|\\s)(옆|위쪽|아래쪽|뒤쪽|앞쪽)\\s+\\S*(노트북|모니터|화면|PC|태블릿)", "구어 위치어 — ‘별도’·‘상단’·‘하단’ 등 보고서 말로(korean-writing.md §5)", "warning"),\n    ("language", r"(세어|세고|세서|세는)(\\s|$|,)", "고유어 동사 ‘세다’ — ‘집계’·‘계수’로(korean-writing.md §5)", "warning"),\n    ("language", r"(^|\\s)(그|이|저)\\s(시간|때|곳|값|기간|구역|시점)(과|에|의|은|는|을|를|$|\\s)", "지시어로 가리킴 — 대상을 구체적으로(‘해당 시간대’, 구역 이름)(korean-writing.md §5)", "warning"),\n    ("language", r"가장\\s\\S+던\\s때", "‘가장 ~했던 때는’ 구어 — ‘~ 최다는’, ‘최다 시간대는’(korean-writing.md §5)", "warning"),\n    // ...\n    ("language", r"쌓이는|쌓인\\s(알림|건수)", "‘쌓이는 건수’ 구어 — ‘생성된’, ‘기록된’(korean-writing.md §5)", "warning"),',
+                            after: '    ("language", r"되어지|되어졌|에 있어서|함에 있어|를 통해 .*진행", "번역투(korean-writing.md §5)", "warning"),\n    # 사용자 지적으로 고친 유형(korean-writing.md §5). 쉬운 말·구어라는 이유만으로 잡지 않는다(2026-11-02 사용자 지시:\n    # ‘세어’·‘쌓이는’·‘가장 ~던 때’·‘옆 노트북’ 일괄 경고 삭제 — 문맥에 맞으면 그대로 둔다)\n    ("language", r"(^|\\s)(그|이|저)\\s(시간|때|곳|값|기간|구역|시점)(과|에|의|은|는|을|를|$|\\s)", "지시어 — 가리키는 대상이 바로 보이는지 판단. 안 보이면 이름을 쓰고, 보이면 그대로(‘해당’으로 바꾸는 것만으로는 개선 아님)(korean-writing.md §5)", "warning"),',
+                            note: '"인원을 세어 집계" 같은 문장은 전에는 경고를 받아 한자어로 고쳐질 수 있었고, 이제는 경고가 나오지 않습니다. 지시어 경고도 "해당"으로 바꾸라고 하지 않고, 가리키는 대상이 바로 보이는지 판단하게 합니다.',
+                        },
+                    ],
+                },
+                {
+                    label: "심볼릭 링크 경로에서 리뷰 · 보안 점검이 검사 없이 커밋을 통과시키던 문제",
+                    problem:
+                        "review · security 플러그인은 Claude가 실행하는 git commit을 PreToolUse 훅으로 가로채, 통과 기록이 없는 소스 변경을 막습니다. 그런데 macOS 임시 폴더처럼 작업 디렉터리가 심볼릭 링크 아래에 있으면 통과 기록이 없는 변경도 그대로 지나갔습니다. git이 알려 주는 저장소 루트는 실제 경로(/private/var/...)이고 훅이 받는 작업 디렉터리는 링크 경로(/var/...)라서, git add로 지정한 파일의 상대 경로가 어긋나 검사 대상에서 빠졌습니다.",
+                    approach:
+                        "작업 디렉터리를 realpathSync로 실제 경로로 바꾼 뒤 상대 경로를 계산합니다. 같은 코드가 복사돼 있던 review · security를 함께 고치고, 임시 git 저장소에서 훅을 실제로 실행하는 테스트를 같은 커밋에서 처음 추가했습니다.",
+                    result: "링크 경로에서도 지정한 파일이 커밋 검사 대상에 들어갑니다. 점검 단계의 동작을 처음으로 테스트로 확인하게 됐습니다.",
+                    metrics: [
+                        {
+                            label: "훅 테스트",
+                            value: "0 → 25개",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "plugins/review/hooks/guard-git.mjs",
+                            commit: "4e3a51d · 2026.10.13",
+                            before: 'function commitCandidates(changes, staged, callDir, root) {\n    const prefix = path.relative(root, callDir);\n    const targets = staged.paths.map((p) => path.normalize(path.join(prefix, p)));\n    const matches = (file) => targets.some((t) => t === "." || file === t || file.startsWith(`${t}/`));\n    return changes.filter((change) => {\n        if (change.where === "staged") return true;\n        if (staged.all) return !(staged.trackedOnly && change.untracked);\n        return matches(change.path);\n    });\n}',
+                            after: 'const realpathOr = (p) => {\n    try {\n        return realpathSync(p);\n    } catch {\n        return p;\n    }\n};\n// ...\n// 이번 커밋에 실제로 담길 수 있는 변경만 고른다: index는 항상, 작업 트리는 add/commit 인자가 가리키는 것만\n// root는 git이 돌려준 실제 경로이므로, callDir도 실제 경로로 바꿔야 상대 경로가 맞는다 (/var → /private/var 같은 심볼릭 링크).\nfunction commitCandidates(changes, staged, callDir, root) {\n    const prefix = path.relative(root, realpathOr(callDir));\n    const targets = staged.paths.map((p) => path.normalize(path.join(prefix, p)));\n    const matches = (file) => targets.some((t) => t === "." || file === t || file.startsWith(`${t}/`));\n    return changes.filter((change) => {\n        if (change.where === "staged") return true;\n        if (staged.all) return !(staged.trackedOnly && change.untracked);\n        return matches(change.path);\n    });\n}',
+                            note: "링크 경로에서 git add src/a.js && git commit을 실행하면, 전에는 prefix가 저장소 밖을 가리켜 src/a.js가 후보에서 빠졌고 커밋이 통과했습니다. 이제는 src/a.js가 후보에 남아, 통과 기록이 없으면 막힙니다.",
+                        },
+                    ],
+                },
+                {
+                    label: "재리뷰 때 Codex가 이미 통과한 줄까지 다시 보던 문제",
+                    problem:
+                        "review는 OpenAI의 codex 플러그인으로 커밋 전 리뷰를 받습니다. 지적을 반영해 파일이 바뀌면 다시 리뷰해야 하는데, 범위가 작업 트리 전체라서 이미 통과한 파일과 줄까지 Codex가 다시 봤습니다. 리뷰 스크립트는 범위를 '작업 트리'나 'git 기준 지점'으로만 넘길 수 있었고, baton이 가진 통과 기록(blob 해시)은 어느 쪽에도 담기지 않았습니다.",
+                    approach:
+                        "통과 기록을 git이 이해하는 형태로 만들었습니다. 통과하지 않은 파일만 마지막 통과 내용으로 되돌린 '이미 리뷰한 상태' 커밋 R과, 지금 작업 트리를 담은 커밋 C(부모가 R)를 임시 index와 commit-tree로 만들면 R..C가 곧 리뷰할 변경입니다. C를 임시 worktree로 꺼내 Codex에 기준 지점 R과 함께 넘기고, 리뷰할 변경이 없으면 Codex를 부르지 않습니다.",
+                    result: "재리뷰는 반영한 수정분만 봅니다. 이미 리뷰한 줄이 diff에서 빠지는지, 저장소의 index와 브랜치를 건드리지 않는지 등을 테스트 3개로 확인했습니다. 리뷰 시간과 토큰이 얼마나 줄었는지는 아직 재 보지 않았습니다.",
+                    changes: [
+                        {
+                            file: "plugins/review/skills/codex/scripts/run-codex.sh",
+                            commit: "540b953 · 2026.10.26",
+                            before: '# 범위를 직접 주지 않았으면:\n# - 커밋되지 않은 변경이 있으면 작업 트리(staged + unstaged + untracked)를 리뷰한다. 커밋 전에 리뷰하는 기본 흐름이다.\n# - 작업 트리가 깨끗하면 마지막 리뷰 지점(없으면 첫 커밋)부터 HEAD까지의 커밋을 리뷰한다.\nEXTRA=()\nif [[ "${HAS_TARGET}" -eq 0 ]]; then\n    if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then\n        EXTRA=(--scope working-tree)\n    else\n        BASE="$(git rev-parse -q --verify refs/codex-review/last || git rev-list --max-parents=0 HEAD | tail -1)"\n        EXTRA=(--base "${BASE}")\n    fi\nfi',
+                            after: 'if [[ "${HAS_TARGET}" -eq 0 && "${FULL}" -eq 0 ]]; then\n    # 아직 리뷰하지 않은 내용만 담은 임시 worktree를 만든다. 실패하면 --full과 같은 범위로 돌아간다.\n    if DELTA="$(node "${SCRIPT_DIR}/delta.mjs" prepare 2>&1)"; then\n        // ...\n        echo "위험도: ${RISK:-알 수 없음}" >&2\n        if [[ "${EMPTY:-0}" == "1" ]]; then\n            echo "리뷰할 새 변경이 없습니다. 모든 소스 변경이 이미 리뷰를 통과했거나 공백만 바뀌었습니다. codex를 부르지 않습니다."\n            exit 0\n        fi\n        MODE="${MODE:-${RISK_MODE:-adversarial-review}}"\n        echo "리뷰 범위: 아직 리뷰하지 않은 내용만 (${DELTA_STAT:-}). 파일: ${DELTA_FILES//,/, }" >&2\n        EXTRA=(--cwd "${WORKTREE}" --base "${DELTA_BASE}")\n    else\n        echo "리뷰 델타를 만들지 못해 작업 트리 전체를 리뷰합니다: ${DELTA}" >&2\n        FULL=1\n    fi\nfi',
+                            note: "a.js 한 줄을 고친 뒤 다시 리뷰하면, 전에는 작업 트리의 변경 파일 전부가 Codex에 갔고 이제는 a.js의 새 줄만 갑니다. 리뷰할 새 변경이 없으면 Codex를 부르지 않습니다.",
+                        },
+                        {
+                            file: "shared/gate-core.mjs",
+                            commit: "add4cb0 · 2026.10.26",
+                            after: '// 아직 통과하지 않은 내용만 diff로 보이는 두 커밋을 만든다.\n// - reviewed(R): 지금 작업 트리에서, 통과하지 않은 소스 파일만 마지막 통과 내용(없으면 base 내용)으로 되돌린 상태\n// - current(C): 지금 작업 트리 그대로. 부모가 R이라서 `R..C`가 곧 리뷰할 델타다.\n// 이미 통과한 파일, 문서·에셋, 공백만 바뀐 파일은 델타에 나오지 않는다.\nexport function buildDelta(root, store, { tree = snapshotTree(root), base = shipBase(root) } = {}) {\n    // ...\n    const scratch = mkdtempSync(path.join(tmpdir(), "baton-delta-index-"));\n    const env = { GIT_INDEX_FILE: path.join(scratch, "index"), ...SYNTHETIC_IDENTITY };\n    let reviewedTree;\n    try {\n        gitWith(root, ["read-tree", tree], { env });\n        gitWith(root, ["update-index", "--index-info"], { env, input: `${overrides.join("\\n")}\\n` });\n        reviewedTree = gitWith(root, ["write-tree"], { env });\n    } finally {\n        rmSync(scratch, { recursive: true, force: true });\n    }\n    const parent = hasHead(root) ? ["-p", "HEAD"] : [];\n    const reviewed = gitWith(root, ["commit-tree", reviewedTree, ...parent, "-m", "baton: 이미 리뷰한 내용"], { env: SYNTHETIC_IDENTITY });\n    const current = gitWith(root, ["commit-tree", tree, "-p", reviewed, "-m", "baton: 아직 리뷰하지 않은 변경"], { env: SYNTHETIC_IDENTITY });\n    const stat = git(root, "diff", "--shortstat", reviewed, current);\n    return { empty: false, files: reviewFiles, reviewed, current, stat };\n}',
+                            note: '이 커밋에서 새로 넣은 코드입니다. 임시 GIT_INDEX_FILE로 트리를 만들어 저장소의 index와 브랜치를 건드리지 않고, 두 커밋은 어떤 브랜치에도 연결하지 않습니다. 주석의 "공백만 바뀐 파일" 규칙은 동작이 바뀐 코드까지 통과시키는 문제가 있어 나중에 없앴습니다.',
+                        },
+                    ],
+                },
+                {
+                    label: "원고에 붙인 커밋 근거를 실제 git 이력과 대조하도록",
+                    problem:
+                        "reel의 원고는 사례마다 '짧은 해시 · 날짜' 꼴로 근거 커밋을 붙이는데, 모델은 그럴듯한 해시나 날짜를 지어낼 수 있습니다. 0.3.0의 /reel:cut은 원고를 쓰고 바로 보고해서, 인용이 실제 이력과 맞는지 확인하는 단계가 없었습니다. 검증을 원고를 쓴 모델 자신에게 맡긴 셈이었습니다.",
+                    approach:
+                        "0.4.0에서 검수 스크립트(check-work.sh)를 만들어 /reel:cut의 마지막 단계로 넣었습니다. 인용한 커밋이 git cat-file -e로 실제로 있는지, 작성 날짜가 같은지 보고, 틀리면 경고가 아니라 오류로 셉니다. 이미지 경로 · 사례 번호가 틀려도 오류로, 자리표시자와 피할 표현은 경고로 셉니다.",
+                    result: "지어낸 근거가 남아 있으면 /reel:cut은 원고를 고쳐 다시 검수하고, 그 단계를 완료로 기록하지 않습니다. 이 페이지의 원고도 reel로 만들어 같은 검수를 통과했습니다(인용 커밋 report-deck 59건 · baton 99건 · reel 47건 · seed 10건, 오류 0). 코드 발췌가 그 커밋의 실제 코드와 같은지는 이 스크립트가 보지 않아, 사이트에 옮길 때 원 저장소와 줄 단위로 따로 대조했습니다.",
+                    metrics: [
+                        {
+                            label: "검수 스크립트 회귀 테스트",
+                            value: "17개",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "commands/cut.md",
+                            commit: "718cfe7 · 2026.10.26",
+                            before: "3. `work/README.md`를 갱신한다: 만들어진 파일과 각각의 쓰임(어느 지원서 칸 · 사이트 필드에 쓰는지),\n   모든 파일의 `TODO` 모음(`grep -rn TODO work/`), 찍지 못한 화면.\n4. 사용자에게는 짧게 보고한다: 만든 파일 목록, 사례 제목들, 채워야 할 TODO 개수. 원고 전문을 대화에 붙여 넣지 않는다.",
+                            after: "4. `check-work.sh <대상 경로>/work`. 오류(✗)가 있으면 해당 원고를 고치고 다시 돌린다. 끝까지 남는 오류는 보고에 적는다.",
+                            note: "원고를 쓰고 바로 보고하던 마지막 단계를, 검수 스크립트를 돌리고 오류를 고치는 단계로 바꿨습니다.",
+                        },
+                        {
+                            file: "shared/scripts/check-work.sh",
+                            commit: "718cfe7 · 2026.10.26",
+                            after: 'if git -C "$repo" rev-parse --git-dir >/dev/null 2>&1; then\n    // ...\n    checked=0\n    while IFS=$\'\\t\' read -r f ref; do\n        [ -n "$ref" ] || continue\n        h="${ref%% *}"\n        checked=$((checked + 1))\n        if ! git -C "$repo" cat-file -e "$h^{commit}" 2>/dev/null; then\n            err "$f: 커밋 $h 가 저장소에 없거나 모호합니다"\n            continue\n        fi\n        case "$ref" in\n            *" · "*)\n                want="${ref##* }"\n                got="$(git -C "$repo" show -s --format=%ad --date=format:%Y.%m.%d "$h")"\n                [ "$want" = "$got" ] || err "$f: 커밋 $h 날짜가 $want 로 적혀 있지만 실제는 $got"\n                ;;\n        esac\n    done <<< "$refs"\n    echo "커밋 인용 ${checked}건 확인"',
+                            note: "이 커밋에서 새로 넣은 파일입니다. 같은 원고라도 전에는 지어낸 해시가 있으면 그대로 보고까지 갔고, 이제는 오류로 잡혀 고치기 전에는 끝나지 않습니다.",
+                        },
+                    ],
+                },
+                {
+                    label: "'구현 완료' 보고만으로 완성 판정이 나지 않도록",
+                    problem:
+                        "사람이 끼지 않는 실행에서는 '완성'을 누가 무엇으로 판단하느냐가 가장 큰 위험입니다. 개발 에이전트의 '구현 완료' 보고를 그대로 믿으면 확인 없이 끝나고, 완성 기준이 회차마다 늘어나면 영원히 끝나지 않습니다.",
+                    approach:
+                        "기획자 에이전트가 첫 회차에 완성 기준(DoD)을 테스터가 직접 실행해 확인할 수 있는 문장으로 씁니다. 이후 기준은 꼭 필요한 것만 이유와 함께 더하고, 지우지 않습니다. 테스터는 개발자 보고를 믿지 않고 README 명령대로 처음부터 실행해 수용 기준 · 회귀 e2e · 완성 기준을 하나씩 판정합니다. 조건을 모두 채워야 '완성 판정: 가능'을 내고, 그 판정도 기획자의 완성 검토를 한 번 더 거칩니다.",
+                    result: '"너, 나 알아?"는 두 번 실행해 완성 기준 17/17(3회차)과 26/26(16회차)으로 완성 승인을 받았고, 마지막 검증에서 check · test · test:e2e가 한 번에 모두 통과했습니다. 모바일 청첩장 서비스의 1회차에서는 테스터가 수용 기준 29개를 모두 통과시키고도 "완성 불가"로 판정했습니다. 남은 완성 기준이 있었고, X-Forwarded-For 헤더를 위조해 요청 제한을 우회할 수 있는 보안 이슈를 찾았기 때문입니다. 이 이슈는 개선 단계에서 고친 뒤 재검증에서 닫았습니다.',
+                    metrics: [
+                        {
+                            label: "2차 실행 완성 기준",
+                            value: "26/26 (16회차)",
+                        },
+                        {
+                            label: "최종 단위 테스트",
+                            value: "4,583개",
+                        },
+                        {
+                            label: "e2e · Playwright",
+                            value: "586 · 44개",
+                        },
+                    ],
+                    changes: [
+                        {
+                            file: "agents/tester.md",
+                            commit: "777a03b · 2026.10.26",
+                            after: "**완성 판정 `가능`의 조건**: DoD 전부 pass, 열린 P0 · P1 없음, 회귀 e2e 전부 통과. 하나라도 빠지면 `불가`.",
+                            note: "세 조건 모두 직접 실행해서 확인하는 결과라, 개발자의 보고만으로는 '가능'이 나오지 않습니다.",
+                        },
+                        {
+                            file: "skills/cycle/SKILL.md",
+                            commit: "777a03b · 2026.10.26",
+                            after: "- 테스터의 마지막 판정이 `완성 판정: 가능`이면 → `phase: review`, planner(모드 C · 완성 검토)\n  - `완성 승인: 예` → 마무리로\n  - `완성 승인: 아니오` → 기획자가 이미 다음 `plan.md`를 썼으므로 `cycle + 1`, `phase: design`으로 이어간다\n- 판정이 `불가`이고 `cycle < max_cycles` → `cycle + 1`, `improve_round: 0`, `phase: plan`\n- `cycle == max_cycles` → 완성 여부와 관계없이 마무리로 간다(미완 항목을 보고서에 명시)",
+                            note: "'가능' 판정 뒤에도 기획자 검토를 한 번 더 거치고, 최대 회차에 이르면 완성 여부와 관계없이 남은 항목을 밝히고 끝냅니다.",
+                        },
+                    ],
+                },
+            ],
+            sheets: [
+                {
+                    title: "report-deck 제작 흐름",
+                    note: "원자료 → 자료 분석(opus) → 목차와 디자인(opus · 스크립트) → 섹션 제작(sonnet, 병렬) → 자동 검사 → pptx · pdf.",
+                },
+                {
+                    title: "baton 작업 단계와 플러그인",
+                    note: "단계마다 플러그인이 하나씩 붙고, 검증 단계의 test · security · review가 커밋 전 점검을 이룹니다. 기록은 다음 세션이 가장 먼저 읽습니다.",
+                },
+                {
+                    title: "reel — 커밋 이력에서 사례 고르기",
+                    note: "저장소 살펴보기 → 사례 고르기 → 화면 찍기 → 원고 쓰기 순서로 진행합니다.",
+                },
+                {
+                    title: "seed 회차와 역할",
+                    note: "도구 살펴보기 → 기획 → 설계 · 디자인 → 개발 → 테스트 · 피드백 → 개선을 완성 기준을 채울 때까지 반복합니다.",
+                },
+                {
+                    title: "seed 검증 → 개선 → 재검증",
+                    note: "청첩장 1회차에서 테스터가 0.3초 간격 프레임 캡처로 찾은 이슈와, 개선 뒤 같은 시점을 다시 검증해 닫은 기록입니다.",
+                },
+                {
+                    title: '"너, 나 알아?" 공유 이미지 이름 줄 전 · 후',
+                    note: "14회차 개발자 에이전트가 48px 이름 8종을 서체 2가지로 따로 그려 비교한 것입니다. 수정 전에는 줄 끝이 잘렸습니다.",
+                },
+            ],
+            pipeline: {
+                title: "Claude의 커밋 하나가 baton의 점검을 지나기까지",
+                lede: "Claude가 git commit을 실행하려 하면, 실행되기 전에 baton의 훅이 먼저 명령을 받습니다. 리뷰(review)와 보안 감사(security) 플러그인의 훅이 각각 따로 보고, 둘 중 더 엄격한 판정(막기 > 묻기 > 허용)을 따릅니다. 흔한 상황 네 가지에서 커밋이 어느 단계까지 가는지 정리했습니다.",
+                verdictLabels: {
+                    drop: "걸림",
+                },
+                stages: [
+                    {
+                        name: "명령 해석",
+                        detail: "PreToolUse(Bash) 훅이 Claude가 실행하려는 명령에서 git commit · push를 찾습니다. sh -c · eval · alias처럼 감싼 명령은 펼쳐서 다시 해석합니다. 입력이 깨졌는데 커밋으로 보이면 막고, git이 실패하거나 해석할 수 없는 형태면 사용자에게 묻습니다.",
+                    },
+                    {
+                        name: "커밋 후보",
+                        detail: "이번 커밋에 실제로 담길 변경만 고릅니다. index에 올린 것은 항상, 작업 트리는 add · commit 인자가 가리키는 것만입니다. 작업 디렉터리를 실제 경로로 바꾼 뒤 상대 경로를 계산합니다.",
+                    },
+                    {
+                        name: "통과 기록",
+                        detail: "후보 파일 내용의 blob 해시가 리뷰 · 감사를 통과한 기록에 있는지 봅니다. 통과한 뒤 한 줄이라도 바뀌면 해시가 달라져 기록이 없는 것으로 봅니다. 감사는 critical 지적이 남았거나 high를 보류했거나 추적 중인 시크릿 파일이 있으면 기록되지 않습니다.",
+                    },
+                    {
+                        name: "커밋",
+                        detail: "모든 후보에 기록이 있을 때만 명령이 그대로 실행됩니다. /git:ship으로 반영하면 같은 내용에서 이미 통과한 검사 · 테스트는 다시 실행하지 않습니다.",
+                    },
+                ],
+                cases: [
+                    {
+                        label: "리뷰 · 감사를 모두 통과한 변경",
+                        hint: "/git:ship이 테스트 → 보안 감사 → Codex 리뷰를 차례로 거친 뒤 커밋하는, 가장 흔한 경우입니다.",
+                        verdicts: ["pass", "pass", "pass", "pass"],
+                        outcome: "모든 후보 파일의 해시가 통과 기록과 같아 그대로 커밋됩니다.",
+                    },
+                    {
+                        label: "리뷰를 받은 뒤 한 줄을 더 고쳤을 때",
+                        hint: "Codex의 지적을 반영하다 보면 리뷰가 끝난 파일을 다시 고치게 됩니다.",
+                        verdicts: ["pass", "pass", "drop", "skip"],
+                        outcome:
+                            "파일 내용이 바뀌어 통과 기록과 맞지 않으므로 커밋이 막힙니다. 다시 리뷰할 때는 작업 트리 전체가 아니라 아직 리뷰하지 않은 줄만 Codex에 보냅니다(아래 풀어낸 문제).",
+                    },
+                    {
+                        label: "심볼릭 링크 아래에서 리뷰하지 않은 파일을 커밋할 때",
+                        hint: "macOS 임시 폴더(/var → /private/var)처럼 작업 디렉터리가 심볼릭 링크 아래에 있는 경우입니다.",
+                        verdicts: ["pass", "pass", "drop", "skip"],
+                        outcome:
+                            "작업 디렉터리를 실제 경로로 바꿔 계산하므로 파일이 후보에 남고, 통과 기록이 없어 막힙니다. 이 처리를 넣기 전에는 상대 경로가 어긋나 파일이 후보에서 빠졌고, 커밋이 검사 없이 통과했습니다.",
+                    },
+                    {
+                        label: "해석할 수 없는 명령",
+                        hint: "훅 입력이 깨졌거나, git이 실패했거나, 펼쳐도 무엇을 커밋하는지 알 수 없는 명령입니다.",
+                        verdicts: ["drop", "skip", "skip", "skip"],
+                        outcome:
+                            "통과시키지 않습니다. 커밋으로 보이는데 입력이 깨졌으면 막고, 나머지는 사용자에게 묻습니다. 처음 만든 점검은 이런 경우를 통과시켰고, 기본값을 막거나 묻는 쪽으로 바꿨습니다.",
+                    },
+                ],
+                note: "훅이 놓칠 수 있는 경로는 .git/hooks의 pre-commit · pre-push가 한 번 더 막습니다. 이 2차 점검은 Claude Code가 실행한 커밋만 보고, 저장소에 기존 훅이나 husky가 있으면 설치하지 않습니다. 명령 해석 7개 · 판단 불가 3개 · 2차 점검 2개 테스트와 훅 통합 테스트, 실제 claude -p로 실행하는 E2E로 동작을 확인했습니다. baton의 테스트는 모두 146개입니다.",
             },
         },
     },
